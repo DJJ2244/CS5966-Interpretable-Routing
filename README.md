@@ -30,6 +30,14 @@ The baseline router is RouteLLM's built-in `bert` router. The plan is to replace
 
 ## Evaluation
 
-Evaluation approach TBD.
+Inference and evaluation are intentionally split into two stages:
 
-RouteLLM has eval but we might want to use our own. They might be able to work together.
+**Stage 1 — Inference (cluster or local):** Run the dataset through RouteLLM. Each problem is routed to either the strong or weak model, which generates a completion. Results are saved to a JSONL file (task_id, chosen model, completion).
+
+**Stage 2 — Evaluation (local):** Load the results file and run each completion against the problem's test cases. This is pure CPU logic — no GPUs, no LLMs — so it runs fast locally. Multi-language execution is handled here (see `testing/`).
+
+This separation means the expensive inference can run on a Slurm cluster without needing Docker or language runtimes installed there.
+
+## Docker (Local Evaluation)
+
+See [`testing/`](testing/) for a fully containerized local setup. This is optional — only needed if you want to evaluate completions in languages other than Python without installing runtimes locally.
