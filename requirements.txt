@@ -1,0 +1,5 @@
+routellm[serve,eval]
+litellm
+python-dotenv
+torch
+transformers
