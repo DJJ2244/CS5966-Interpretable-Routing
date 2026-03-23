@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import dataset
 from routellm.controller import Controller
 

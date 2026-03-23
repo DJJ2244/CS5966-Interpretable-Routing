@@ -11,6 +11,8 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+note: use pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130 or similar for gpu acceleration on torch
+
 Make sure [Ollama](https://ollama.com) is installed and running, then pull the models:
 
 ```bash
@@ -20,9 +22,25 @@ ollama pull llama3
 
 ## Run
 
+Run a single problem (quick sanity check):
+
 ```bash
 python main.py
 ```
+
+Run the full dataset and save results to `results.jsonl`:
+
+```bash
+python run_all.py
+```
+
+Each line of `results.jsonl` is a JSON object:
+
+```json
+{"task_id": "...", "model": "...", "completion": "..."}
+```
+
+Progress is flushed after each problem, so the file is safe to inspect mid-run or resume after an interruption.
 
 ## Approach
 

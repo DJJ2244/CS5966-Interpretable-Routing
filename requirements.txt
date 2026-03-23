@@ -1,4 +1,4 @@
-routellm[serve,eval]
+routellm
 litellm
 python-dotenv
 torch
