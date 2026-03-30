@@ -12,6 +12,7 @@ Usage:
 import argparse
 import io
 import json
+import re
 import sys
 import tarfile
 from pathlib import Path
@@ -23,6 +24,13 @@ import dataset
 from languages import LANGUAGES
 
 TIMEOUT = 30  # seconds per test case
+
+
+def extract_code(completion: str) -> str:
+    match = re.search(r"```(?:\w+)?\n(.*?)```", completion, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    return completion.strip()
 _docker = docker.from_env()
 
 
@@ -79,8 +87,11 @@ def run_tests(results_path: Path, output_path: Path) -> None:
         containers[lang] = _start_container(config)
     print(f"Started {len(containers)} container(s)\n")
 
+    results_path_obj = Path(output_path)
+    testing_results_path = results_path_obj.parent / "testing_results.jsonl"
+
     try:
-        with open(output_path, "w") as f_out:
+        with open(output_path, "w") as f_out, open(testing_results_path, "w") as f_results:
             for rec, problem in records:
                 lang = problem.programming_language
                 config = LANGUAGES.get(lang)
@@ -89,10 +100,12 @@ def run_tests(results_path: Path, output_path: Path) -> None:
                 if container is None:
                     rec["passed"] = False
                     f_out.write(json.dumps(rec) + "\n")
+                    f_results.write(json.dumps({"task_id": rec["task_id"], "passed": False}) + "\n")
                     continue
 
+                extracted = extract_code(rec["completion"])
                 source = config["assemble"](
-                    problem.prompt, rec["completion"], problem.test, problem.entry_point
+                    problem.prompt, extracted, problem.test, problem.entry_point
                 )
                 _write_file_to_container(container, config["filename"], source)
 
@@ -103,7 +116,9 @@ def run_tests(results_path: Path, output_path: Path) -> None:
                 )
                 passed = result.exit_code == 0
                 rec["passed"] = passed
+                rec["extracted_code"] = extracted
                 f_out.write(json.dumps(rec) + "\n")
+                f_results.write(json.dumps({"task_id": rec["task_id"], "passed": passed}) + "\n")
                 print(f"[{'PASS' if passed else 'FAIL'}] {rec['task_id']}  ({rec.get('chosen_model', '?')})")
     finally:
         for lang, container in containers.items():
