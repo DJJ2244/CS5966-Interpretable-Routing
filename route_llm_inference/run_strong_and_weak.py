@@ -23,12 +23,12 @@ print("=== Running STRONG model ===")
 run_inference(
     create_fn=client.chat.completions.create,
     model_str=STRONG_MODEL,
-    output_path="results_strong.jsonl",
+    output_path="results/results_strong.jsonl",
 )
 
 print("\n=== Running WEAK model ===")
 run_inference(
     create_fn=client.chat.completions.create,
     model_str=WEAK_MODEL,
-    output_path="results_weak.jsonl",
+    output_path="results/results_weak.jsonl",
 )

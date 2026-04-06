@@ -13,7 +13,7 @@ import json
 import dataset
 from router_client import client, ROUTER
 
-OUTPUT_PATH = "toughness.jsonl"
+OUTPUT_PATH = "results/toughness.jsonl"
 
 router = client.routers[ROUTER]
 

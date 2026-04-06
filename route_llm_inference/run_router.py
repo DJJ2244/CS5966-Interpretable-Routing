@@ -11,7 +11,7 @@ load_dotenv()
 from router_client import client, ROUTER, THRESHOLD
 from inference import run_inference
 
-OUTPUT_PATH = "router_results.jsonl"
+OUTPUT_PATH = "results/router_results.jsonl"
 
 run_inference(
     create_fn=client.chat.completions.create,
