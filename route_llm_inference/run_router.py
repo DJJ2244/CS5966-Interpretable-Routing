@@ -1,22 +1,22 @@
 """
-run_all.py - Run the full dataset through RouteLLM and save results to results.jsonl.
+run_router.py - Run the full dataset through RouteLLM and save results to results.jsonl.
 
 Each line of results.jsonl contains:
   {"task_id": ..., "model": ..., "completion": ...}
 """
 
-import json
 from dotenv import load_dotenv
 load_dotenv()
 
-import dataset
+import os
 from routellm.controller import Controller
+from inference import run_inference
 
-WEAK_MODEL   = "ollama/llama3.2:1b"
-STRONG_MODEL = "ollama/llama3:8b"
+WEAK_MODEL   = os.environ["WEAK_MODEL"]
+STRONG_MODEL = os.environ["STRONG_MODEL"]
 ROUTER       = "bert"
 THRESHOLD    = 0.11593
-OUTPUT_PATH  = "results.jsonl"
+OUTPUT_PATH  = "router_results.jsonl"
 
 client = Controller(
     routers=[ROUTER],
@@ -24,19 +24,8 @@ client = Controller(
     weak_model=WEAK_MODEL,
 )
 
-with open(OUTPUT_PATH, "w") as out:
-    for i, problem in enumerate(dataset.load()):
-        response = client.chat.completions.create(
-            model=f"router-{ROUTER}-{THRESHOLD}",
-            messages=dataset.as_message(problem),
-        )
-        record = {
-            "task_id":    problem.task_id,
-            "model":      response.model,
-            "completion": response.choices[0].message.content,
-        }
-        out.write(json.dumps(record) + "\n")
-        out.flush()
-        print(f"[{i+1}] {problem.task_id} -> {response.model}")
-
-print(f"\nDone. Results saved to {OUTPUT_PATH}")
+run_inference(
+    create_fn=client.chat.completions.create,
+    model_str=f"router-{ROUTER}-{THRESHOLD}",
+    output_path=OUTPUT_PATH,
+)
