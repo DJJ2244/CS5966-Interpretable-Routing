@@ -10,10 +10,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import json
-import dataset
-from router_client import client, ROUTER
+from util import dataset
+from route_llm_inference.router_client import client, ROUTER
 
-OUTPUT_PATH = "results/toughness.jsonl"
+OUTPUT_PATH = "route_llm_results/toughness.jsonl"
 
 router = client.routers[ROUTER]
 
