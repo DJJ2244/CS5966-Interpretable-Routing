@@ -10,7 +10,7 @@ load_dotenv()
 
 from route_llm_inference.router_client import client, ROUTER, THRESHOLD
 from route_llm_inference.inference import run_inference
-from util.dataset import load
+from util.dataset import load, count
 
 OUTPUT_PATH = "route_llm_results/router_results.jsonl"
 
@@ -19,4 +19,5 @@ run_inference(
     create_fn=client.chat.completions.create,
     model_str=f"router-{ROUTER}-{THRESHOLD}",
     output_path=OUTPUT_PATH,
+    total=count(),
 )
