@@ -24,17 +24,34 @@ ollama pull llama3:8b
 
 ## Run
 
-All inference scripts live in [`route_llm_inference/`](route_llm_inference/) — see its [README](route_llm_inference/README.md) for full details. Scripts are run from that directory:
+Scripts are run from the project root with Ollama running locally.
 
 ```bash
-cd route_llm_inference
-
 python record_toughness.py      # score all problems (no LLM inference)
 python run_strong_and_weak.py   # run strong and weak models individually
 python run_router.py            # run full router inference
 ```
 
-Results are written to `route_llm_inference/results/`.
+Results are written to `route_llm_results/`.
+
+### Output formats
+
+**Inference scripts** (`run_router.py`, `run_strong_and_weak.py`) — one JSON object per line:
+```json
+{"task_id": "HumanEval/0", "model": "ollama/llama3:8b", "completion": "..."}
+```
+
+**Toughness script** (`record_toughness.py`) — one JSON object per line:
+```json
+{"task_id": "HumanEval/0", "score": 0.312}
+```
+
+### Inference modules (`route_llm_inference/`)
+
+| File | Purpose |
+|------|---------|
+| `router_client.py` | Shared RouteLLM `Controller` instance. Single source of truth for router configuration (`ROUTER`, `THRESHOLD`, model names). Guarantees toughness scores are consistent across scripts. |
+| `inference.py` | Shared inference loop — iterates a dataset, calls a model, writes `.jsonl` results. Accepts any OpenAI-compatible `create` callable. |
 
 ## Approach
 
@@ -44,7 +61,7 @@ The baseline router is RouteLLM's built-in `bert` router. The plan is to replace
 
 Inference and evaluation are intentionally split into two stages:
 
-**Stage 1 — Inference (cluster or local):** Run the dataset through RouteLLM. Each problem is routed to either the strong or weak model, which generates a completion. Results are saved to JSONL files under `route_llm_inference/results/`.
+**Stage 1 — Inference (cluster or local):** Run the dataset through RouteLLM. Each problem is routed to either the strong or weak model, which generates a completion. Results are saved to JSONL files under `route_llm_results/`.
 
 **Stage 2 — Evaluation (local):** Load the results file and run each completion against the problem's test cases. This is pure CPU logic — no GPUs, no LLMs — so it runs fast locally. Multi-language execution is handled here (see `testing/`).
 
