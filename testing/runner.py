@@ -11,7 +11,6 @@ Usage:
     python3 testing/runner.py --results results.jsonl
 """
 
-import argparse
 import atexit
 import io
 import json
@@ -27,10 +26,9 @@ from pathlib import Path
 import docker
 from tqdm import tqdm
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-import dataset
-from languages import LANGUAGES
-from sanitize import sanitize
+from util import dataset
+from testing.languages import LANGUAGES
+from testing.sanitize import sanitize
 
 TIMEOUT = 30  # seconds per test case
 _docker = docker.from_env()
@@ -347,8 +345,3 @@ def run_tests(results_path: Path) -> None:
     print("=" * 50)
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--results", required=True)
-    args = parser.parse_args()
-    run_tests(Path(args.results))

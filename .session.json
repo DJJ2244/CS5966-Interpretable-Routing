@@ -1,0 +1,12 @@
+{
+  "weak_vllm": {
+    "pid": 14088,
+    "port": 8001,
+    "model": "meta-llama/Llama-3.2-1B"
+  },
+  "strong_vllm": {
+    "pid": 6204,
+    "port": 8002,
+    "model": "meta-llama/Meta-Llama-3-8B"
+  }
+}

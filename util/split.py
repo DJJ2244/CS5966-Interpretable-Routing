@@ -1,5 +1,5 @@
 """
-split_data.py - Stratified 80/20 train/test split by programming_language.
+split.py - Stratified 80/20 train/test split by programming_language.
 
 Each language is split independently so both splits have ~equal language
 proportions (~80% train, ~20% test per language).
@@ -64,7 +64,3 @@ def split():
     print(f"{'TOTAL':<20} {len(train_records) + len(test_records):>6} {len(train_records):>6} {len(test_records):>5}")
     print(f"\nTrain -> {TRAIN_PATH}")
     print(f"Test  -> {TEST_PATH}")
-
-
-if __name__ == "__main__":
-    split()
