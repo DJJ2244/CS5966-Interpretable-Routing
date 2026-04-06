@@ -12,12 +12,13 @@ from route_llm_inference.router_client import client, ROUTER, THRESHOLD
 from route_llm_inference.inference import run_inference
 from util.dataset import load, count
 
+DATASET = "train"
 OUTPUT_PATH = "route_llm_results/router_results.jsonl"
 
 run_inference(
-    problems=load(),
+    problems=load(split=DATASET),
     create_fn=client.chat.completions.create,
     model_str=f"router-{ROUTER}-{THRESHOLD}",
     output_path=OUTPUT_PATH,
-    total=count(),
+    total=count(split=DATASET),
 )

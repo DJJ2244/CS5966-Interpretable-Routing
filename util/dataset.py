@@ -7,7 +7,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Generator, Optional
 
-DATA_PATH = Path("data/humaneval_xl_english.jsonl")
+PATHS = {
+    "test":  Path("data/humaneval_xl_english_test.jsonl"),
+    "train": Path("data/humaneval_xl_english_train.jsonl"),
+}
 
 
 @dataclass
@@ -21,15 +24,15 @@ class Problem:
     programming_language: str = "python"
 
 
-def count() -> int:
+def count(split: str = "test") -> int:
     """Return the total number of problems in the dataset."""
-    with open(DATA_PATH) as f:
+    with open(PATHS[split]) as f:
         return sum(1 for _ in f)
 
 
-def load(limit: Optional[int] = None) -> Generator[Problem, None, None]:
+def load(split: str = "test", limit: Optional[int] = None) -> Generator[Problem, None, None]:
     """Yield problems from the dataset, optionally capped at `limit`."""
-    with open(DATA_PATH) as f:
+    with open(PATHS[split]) as f:
         for i, line in enumerate(f):
             if limit is not None and i >= limit:
                 break

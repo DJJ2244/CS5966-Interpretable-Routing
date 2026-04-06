@@ -18,12 +18,14 @@ from util.dataset import load, count
 WEAK_MODEL   = os.environ["WEAK_MODEL"].removeprefix("ollama/")
 STRONG_MODEL = os.environ["STRONG_MODEL"].removeprefix("ollama/")
 
+DATASET = "train"
+
 client = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
-total = count()
+total = count(split=DATASET)
 
 print("\n=== Running WEAK model ===")
 run_inference(
-    problems=load(),
+    problems=load(split=DATASET),
     create_fn=client.chat.completions.create,
     model_str=WEAK_MODEL,
     output_path="route_llm_results/results_weak.jsonl",
@@ -32,7 +34,7 @@ run_inference(
 
 print("=== Running STRONG model ===")
 run_inference(
-    problems=load(),
+    problems=load(split=DATASET),
     create_fn=client.chat.completions.create,
     model_str=STRONG_MODEL,
     output_path="route_llm_results/results_strong.jsonl",

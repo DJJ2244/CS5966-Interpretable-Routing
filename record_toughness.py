@@ -15,10 +15,12 @@ from route_llm_inference.router_client import client, ROUTER
 
 OUTPUT_PATH = "route_llm_results/toughness.jsonl"
 
+DATASET = "train"
+
 router = client.routers[ROUTER]
 
 with open(OUTPUT_PATH, "w") as out:
-    for i, problem in enumerate(dataset.load()):
+    for i, problem in enumerate(dataset.load(DATASET)):
         prompt = dataset.as_message(problem)[-1]["content"]
         score = router.calculate_strong_win_rate(prompt)
         record = {

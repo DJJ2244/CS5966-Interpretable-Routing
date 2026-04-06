@@ -244,7 +244,7 @@ def _run_language(lang: str, records: list, container,
 # ---------------------------------------------------------------------------
 
 def run_tests(results_path: Path) -> None:
-    problems = {p.task_id: p for p in dataset.load()}
+    problems = {p.task_id: p for p in dataset.load(split="test")}
 
     by_lang: dict[str, list] = defaultdict(list)
     with open(results_path) as f:
