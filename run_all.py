@@ -13,7 +13,7 @@ import dataset
 from routellm.controller import Controller
 
 WEAK_MODEL   = "ollama/llama3.2:1b"
-STRONG_MODEL = "ollama/llama3"
+STRONG_MODEL = "ollama/llama3:8b"
 ROUTER       = "bert"
 THRESHOLD    = 0.11593
 OUTPUT_PATH  = "results.jsonl"
