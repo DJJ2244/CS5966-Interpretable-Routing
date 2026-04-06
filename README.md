@@ -4,43 +4,54 @@
 
 ```bash
 python -m venv .venv
+# ACTIVATE SESSION ----------
 # Mac/Linux
 source .venv/bin/activate
 # Windows
 .venv\Scripts\activate
+# INSTALL DEPENDENCIES ----------
 pip install -r requirements.txt
 ```
 
-note: use pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130 or similar for gpu acceleration on torch
+> For GPU acceleration on torch: `pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130` (adjust CUDA version as needed)
 
 Make sure [Ollama](https://ollama.com) is installed and running, then pull the models:
 
 ```bash
 ollama pull llama3.2:1b
-ollama pull llama3
+ollama pull llama3:8b
 ```
 
 ## Run
 
-Run a single problem (quick sanity check):
+Scripts are run from the project root with Ollama running locally.
 
 ```bash
-python main.py
+python record_toughness.py      # score all problems (no LLM inference)
+python run_strong_and_weak.py   # run strong and weak models individually
+python run_router.py            # run full router inference
 ```
 
-Run the full dataset and save results to `results.jsonl`:
+Results are written to `route_llm_results/`.
 
-```bash
-python run_all.py
-```
+### Output formats
 
-Each line of `results.jsonl` is a JSON object:
-
+**Inference scripts** (`run_router.py`, `run_strong_and_weak.py`) — one JSON object per line:
 ```json
-{"task_id": "...", "model": "...", "completion": "..."}
+{"task_id": "HumanEval/0", "model": "ollama/llama3:8b", "completion": "..."}
 ```
 
-Progress is flushed after each problem, so the file is safe to inspect mid-run or resume after an interruption.
+**Toughness script** (`record_toughness.py`) — one JSON object per line:
+```json
+{"task_id": "HumanEval/0", "score": 0.312}
+```
+
+### Inference modules (`route_llm_inference/`)
+
+| File | Purpose |
+|------|---------|
+| `router_client.py` | Shared RouteLLM `Controller` instance. Single source of truth for router configuration (`ROUTER`, `THRESHOLD`, model names). Guarantees toughness scores are consistent across scripts. |
+| `inference.py` | Shared inference loop — iterates a dataset, calls a model, writes `.jsonl` results. Accepts any OpenAI-compatible `create` callable. |
 
 ## Approach
 
@@ -50,7 +61,7 @@ The baseline router is RouteLLM's built-in `bert` router. The plan is to replace
 
 Inference and evaluation are intentionally split into two stages:
 
-**Stage 1 — Inference (cluster or local):** Run the dataset through RouteLLM. Each problem is routed to either the strong or weak model, which generates a completion. Results are saved to a JSONL file (task_id, chosen model, completion).
+**Stage 1 — Inference (cluster or local):** Run the dataset through RouteLLM. Each problem is routed to either the strong or weak model, which generates a completion. Results are saved to JSONL files under `route_llm_results/`.
 
 **Stage 2 — Evaluation (local):** Load the results file and run each completion against the problem's test cases. This is pure CPU logic — no GPUs, no LLMs — so it runs fast locally. Multi-language execution is handled here (see `testing/`).
 

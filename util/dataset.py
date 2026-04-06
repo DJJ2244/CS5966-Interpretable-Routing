@@ -21,6 +21,12 @@ class Problem:
     programming_language: str = "python"
 
 
+def count() -> int:
+    """Return the total number of problems in the dataset."""
+    with open(DATA_PATH) as f:
+        return sum(1 for _ in f)
+
+
 def load(limit: Optional[int] = None) -> Generator[Problem, None, None]:
     """Yield problems from the dataset, optionally capped at `limit`."""
     with open(DATA_PATH) as f:
