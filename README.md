@@ -4,10 +4,12 @@
 
 ```bash
 python -m venv .venv
+# ACTIVATE SESSION ----------
 # Mac/Linux
 source .venv/bin/activate
 # Windows
 .venv\Scripts\activate
+# INSTALL DEPENDENCIES ----------
 pip install -r requirements.txt
 ```
 
