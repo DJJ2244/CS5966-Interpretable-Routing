@@ -8,21 +8,10 @@ Each line of results.jsonl contains:
 from dotenv import load_dotenv
 load_dotenv()
 
-import os
-from routellm.controller import Controller
+from router_client import client, ROUTER, THRESHOLD
 from inference import run_inference
 
-WEAK_MODEL   = os.environ["WEAK_MODEL"]
-STRONG_MODEL = os.environ["STRONG_MODEL"]
-ROUTER       = "bert"
-THRESHOLD    = 0.11593
-OUTPUT_PATH  = "router_results.jsonl"
-
-client = Controller(
-    routers=[ROUTER],
-    strong_model=STRONG_MODEL,
-    weak_model=WEAK_MODEL,
-)
+OUTPUT_PATH = "router_results.jsonl"
 
 run_inference(
     create_fn=client.chat.completions.create,
