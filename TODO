@@ -1,3 +1,8 @@
 - Weak model (Llama-3.2-1B) produces garbage completions on low-resource languages (e.g. perl/64).
-  This is a model capability issue, not a pipeline bug. Consider whether these samples should be
-  filtered or handled separately in analysis.
+  This is a model capability issue, not a pipeline bug. The testing suite handles this correctly:
+  - Repetition loops (e.g. go/18): _brace_body extracts only the first balanced {}, ignoring repeats.
+  - Garbage completions (e.g. perl/64): _keyword_body won't find the function signature, appends
+    garbage to the prompt, and the test will correctly fail.
+  No changes needed to the testing suite for these cases.
+
+- Are we sure that the testing suite will work? code extraction is different now without the markdown set up.
