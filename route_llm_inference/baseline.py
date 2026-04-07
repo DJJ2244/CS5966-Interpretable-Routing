@@ -10,7 +10,7 @@ from route_llm_inference.inference import run_inference
 from util.dataset import load, count
 
 
-def run_baseline(model: str = "all", split: str = "train", output_dir: str = "route_llm_results") -> None:
+def run_baseline(model: str = "all", split: str = "train", output_dir: str = "route_llm_results", max_workers: int = 8) -> None:
     """
     Run baseline inference for the selected model(s).
 
@@ -43,4 +43,5 @@ def run_baseline(model: str = "all", split: str = "train", output_dir: str = "ro
             model_str=model_str,
             output_path=str(output_path),
             total=total,
+            max_workers=max_workers,
         )

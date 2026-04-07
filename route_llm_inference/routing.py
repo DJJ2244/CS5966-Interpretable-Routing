@@ -9,7 +9,7 @@ from route_llm_inference.inference import run_inference
 from util.dataset import load, count
 
 
-def run_routing(split: str = "train", output_dir: str = "route_llm_results") -> None:
+def run_routing(split: str = "train", output_dir: str = "route_llm_results", max_workers: int = 8) -> None:
     """
     Route each problem to weak or strong model via the BERT router.
 
@@ -26,4 +26,5 @@ def run_routing(split: str = "train", output_dir: str = "route_llm_results") -> 
         model_str=f"router-{ROUTER}-{THRESHOLD}",
         output_path=str(output_path),
         total=count(split=split),
+        max_workers=max_workers,
     )

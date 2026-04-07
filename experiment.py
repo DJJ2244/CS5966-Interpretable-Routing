@@ -73,12 +73,13 @@ def inference(
     model:      _Model  = "all",
     split:      _Split  = "train",
     output_dir: _OutDir = "route_llm_results",
+    workers:    Annotated[int, typer.Option("--workers", help="Concurrent inference requests")] = 8,
 ) -> None:
     """Run baseline inference (no routing) for weak, strong, or both models."""
     from servers.manager import require_up
     from route_llm_inference.baseline import run_baseline
     require_up()
-    run_baseline(model=model, split=split, output_dir=output_dir)
+    run_baseline(model=model, split=split, output_dir=output_dir, max_workers=workers)
 
 
 @app.command()
