@@ -23,7 +23,8 @@ from huggingface_hub import snapshot_download
 from huggingface_hub.utils import LocalEntryNotFoundError
 
 SESSION_FILE = Path(".session.json")
-LOG_DIR      = Path("logs/servers")
+LOG_DIR      = Path(os.environ.get("LOG_DIR", "logs/servers"))
+LOG          = False
 MAX_WAIT_SEC = 300
 
 WEAK_MODEL   = "meta-llama/Llama-3.2-1B"
@@ -70,8 +71,11 @@ def _wait_for(name: str, port: int) -> None:
 
 
 def _spawn(cmd: list, env: dict = None, log_name: str = "server", detach: bool = False) -> subprocess.Popen:
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    log = open(LOG_DIR / f"{log_name}.log", "w")
+    if LOG:
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        log = open(LOG_DIR / f"{log_name}.log", "w")
+    else:
+        log = open(os.devnull, "w")
     kwargs: dict = {"stdout": log, "stderr": subprocess.STDOUT}
     if detach:
         if sys.platform == "win32":
