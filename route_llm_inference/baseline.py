@@ -39,7 +39,7 @@ def run_baseline(model: str = "all", split: str = "train", output_dir: str = "ro
         print(f"\n=== Running {model_str} ===")
         run_inference(
             problems=load(split=split),
-            create_fn=client.chat.completions.create,
+            create_fn=client.completions.create,
             model_str=model_str,
             output_path=str(output_path),
             total=total,

@@ -28,12 +28,12 @@ def run_inference(problems, create_fn, model_str, output_path, total=None):
         for i, problem in enumerate(problems):
             response = create_fn(
                 model=model_str,
-                messages=[{"role": "user", "content": problem.prompt}],
+                prompt=problem.prompt,
             )
             record = {
                 "task_id":    problem.task_id,
                 "model":      response.model,
-                "completion": response.choices[0].message.content,
+                "completion": response.choices[0].text,
             }
             out.write(json.dumps(record) + "\n")
             if i % FLUSH_EVERY == 0:

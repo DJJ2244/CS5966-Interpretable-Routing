@@ -22,7 +22,7 @@ def run_routing(split: str = "train", output_dir: str = "route_llm_results") -> 
 
     run_inference(
         problems=load(split=split),
-        create_fn=client.chat.completions.create,
+        create_fn=client.completions.create,
         model_str=f"router-{ROUTER}-{THRESHOLD}",
         output_path=str(output_path),
         total=count(split=split),
