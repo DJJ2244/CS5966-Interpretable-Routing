@@ -1,16 +1,15 @@
 #!/bin/bash
 #SBATCH --job-name=interp-routing
-#SBATCH --account=cs6966
-#SBATCH --qos=granite-gpu-guest
-#SBATCH --partition=granite-gpu-guest
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
-#SBATCH --gres=gpu:a100:1        # needs 20+ GB VRAM for both models
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4
 #SBATCH --time=08:00:00
 #SBATCH --output=logs/slurm/%j.out
 #SBATCH --error=logs/slurm/%j.err
+
+#SBATCH --account=cs6966
+#SBATCH --qos=granite-gpu-guest
+#SBATCH --partition=granite-gpu-guest
 
 set -e
 
