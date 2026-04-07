@@ -102,7 +102,7 @@ def _vllm_cmd(model: str, port: int) -> list:
 
 
 def _litellm_cmd() -> list:
-    return [sys.executable, "-m", "litellm", "--config", "litellm_config.yaml", "--port", str(PROXY_PORT)]
+    return ["litellm", "--config", "litellm_config.yaml", "--port", str(PROXY_PORT)]
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
