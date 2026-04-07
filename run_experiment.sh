@@ -8,8 +8,8 @@
 #SBATCH --error=logs/slurm/%j.err
 
 #SBATCH --account=cs6966
-#SBATCH --qos=granite-gpu-guest
-#SBATCH --partition=granite-gpu-guest
+#SBATCH --qos=granite-gpu-freecycle
+#SBATCH --partition=granite-gpu
 #SBATCH --gres=gpu:2
 
 set -e
