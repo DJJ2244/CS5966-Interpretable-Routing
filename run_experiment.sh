@@ -9,7 +9,7 @@
 
 #SBATCH --account=cs6966
 #SBATCH --qos=granite-gpu-guest
-#SBATCH --partition=granite-gpu-gh200-guest
+#SBATCH --partition=granite-gpu-guest
 #SBATCH --gres=gpu:2
 
 set -e
