@@ -1,0 +1,960 @@
+{"task_id": "typescript/44", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let words: Array<string> = [];\n    s.split(\", \").forEach(word"}
+{"task_id": "go/23", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar divisors []int\n\tvar max int\n\tvar i int\n\tfor i"}
+{"task_id": "php/74", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (strlen($b) > strlen($a)) {\n        return false"}
+{"task_id": "csharp/49", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            // if array is empty, return true\n            if (arr.Count"}
+{"task_id": "python/1", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if not numbers:\n        return (0, 1)\n    else:\n"}
+{"task_id": "ruby/58", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  product = 1\n  n.to_s.split(\"\").each do |"}
+{"task_id": "ruby/9", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # 1, 2, 3, 4, 5,"}
+{"task_id": "scala/4", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (a == 0) b\n        else if (b =="}
+{"task_id": "javascript/67", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let result = [];\n  let map = new Map();\n  nums.forEach(("}
+{"task_id": "python/48", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    even = 0\n    odd = 0\n    for i in"}
+{"task_id": "ruby/16", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  \n    if text == \"\"\n        return true\n    else\n        return text"}
+{"task_id": "swift/26", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var a = 0\n    var b = 0\n    var"}
+{"task_id": "kotlin/28", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val counts = mutableMapOf<Int, Int>()\n    lst.forEach { counts"}
+{"task_id": "javascript/62", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  if (arr.length === 0) return -1;\n  let max"}
+{"task_id": "perl/20", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @chars0 = split //, $s0;\n  my @"}
+{"task_id": "go/5", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar arr []string\n\t//var arr2 []int\n\tvar result string"}
+{"task_id": "java/40", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int largestPrime = 0;\n        for (int i = 0"}
+{"task_id": "swift/15", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var sorted = l.sorted()\n    let length = sorted.count\n    let"}
+{"task_id": "ruby/33", "model": "meta-llama/Meta-Llama-3-8B", "completion": " :\n    if len(s) < 3 :\n        return False\n    for"}
+{"task_id": "python/30", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return q == q[::-1] and sum(q) <= w\n"}
+{"task_id": "javascript/15", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let sorted = l.sort((a, b) => a - b);\n"}
+{"task_id": "kotlin/75", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val roman = listOf(\"i\", \"ii\", \"iii\", \"iv"}
+{"task_id": "swift/63", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let negative = lst.filter{$0 as! Int < 0}\n   "}
+{"task_id": "typescript/2", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let result = \"\"\n    for (let i = 0; i <"}
+{"task_id": "java/46", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (n > m) {\n            return -1;\n        }\n       "}
+{"task_id": "kotlin/59", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var isClosed = false\n    var isNested = false\n    val"}
+{"task_id": "java/1", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int sum = 0;\n        int product = 1;\n        for"}
+{"task_id": "swift/39", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var boredomCount = 0\n    let words = s.componentsSeparatedBy"}
+{"task_id": "scala/0", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var acc = 0\n        for (i <- 0 until operations"}
+{"task_id": "typescript/58", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  // your code goes here\n  let product = 1\n  let"}
+{"task_id": "swift/78", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let md5 = CC_MD5\n    var digest = [UInt8"}
+{"task_id": "java/30", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int sum = 0;\n        for(int i : q){\n            sum"}
+{"task_id": "ruby/3", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # 1\n  if strings.empty? # 2\n    return nil"}
+{"task_id": "javascript/50", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  // write your code here\n  let count = 0;\n  for"}
+{"task_id": "csharp/21", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (n == 1 || n == 2) \n               "}
+{"task_id": "kotlin/58", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var result = 0\n    var num = n\n    while ("}
+{"task_id": "ruby/60", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  lst.map{|i| i.ceil**2}.reduce(:+)\n"}
+{"task_id": "java/39", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int count = 0;\n        String[] words = s.split(\"\\\\s"}
+{"task_id": "scala/36", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var sum = 0\n        var remainder = 0\n        var"}
+{"task_id": "go/21", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tif n == 0 {\n\t\treturn 0\n\t}\n\tif n =="}
+{"task_id": "csharp/55", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var comparer = new CompareLogic();\n            var diff = comparer.Compare(arr"}
+{"task_id": "kotlin/11", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var a = 1\n    var b = 1\n    var"}
+{"task_id": "perl/78", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $md5 = Digest::MD5->new();\n  $md"}
+{"task_id": "typescript/20", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let s0c = new Map<string, number>()\n    for (let"}
+{"task_id": "javascript/10", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  return l.filter((v, i, a) => a.indexOf(v)"}
+{"task_id": "scala/76", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (a * a + b * b == c * c || a"}
+{"task_id": "go/53", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar result []string\n\tfor _, word := range split(s) {\n\t\tif"}
+{"task_id": "swift/25", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var result = [AnyHashable]()\n    for i in 1..<"}
+{"task_id": "kotlin/18", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return l.all { it < t }\n}"}
+{"task_id": "csharp/45", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            int result = -1;\n            if (x <= y && x"}
+{"task_id": "swift/72", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var sum = 0\n    for i in lst {\n        if let"}
+{"task_id": "swift/53", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var result = [String]()\n    let words = s.components(separatedBy"}
+{"task_id": "csharp/50", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var c = new CompareLogic();\n            var r = c.CompareObject"}
+{"task_id": "go/64", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tf := 1\n\tfor i := n; i >= 1; i"}
+{"task_id": "kotlin/4", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var a = a\n    var b = b\n    while (b"}
+{"task_id": "scala/53", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var result : List[Any] = List()\n        var isWord = false"}
+{"task_id": "scala/69", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var max = 0\n        var a = Array.ofDim[Int]("}
+{"task_id": "scala/44", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        s.split(\" \").toList\n    }\n\n    println(wordsString(\"Hi,"}
+{"task_id": "csharp/12", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var comparer = new CompareLogic();\n            var result = comparer.Compare(l"}
+{"task_id": "scala/24", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (n == 1) {\n            1\n        } else"}
+{"task_id": "csharp/30", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var list = q.ToList();\n            var sum = list.Sum();\n           "}
+{"task_id": "scala/68", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        nums.filter((x: Any) => (x: Any) > "}
+{"task_id": "java/71", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // if n is prime, return x\n        // if n is not"}
+{"task_id": "ruby/63", "model": "meta-llama/Meta-Llama-3-8B", "completion": " :\n    if len(lst) == 0 :\n        return (None, None"}
+{"task_id": "javascript/41", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  // code goes here\n  if (Object.keys(dict).length === "}
+{"task_id": "kotlin/36", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val binary = n.toBinaryString()\n    var sum = 0\n"}
+{"task_id": "php/45", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $result = -1;\n    if($x >= $y){\n       "}
+{"task_id": "python/67", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if not nums:\n        return nums\n\n    # Your code here\n   "}
+{"task_id": "scala/28", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        lst.foldLeft(-1) {\n            case (max, i) =>"}
+{"task_id": "perl/42", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my ($integer, $decimal) = split(/\\./, $value);\n"}
+{"task_id": "scala/55", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val (l, r) = arr.splitAt(k)\n        l.filter"}
+{"task_id": "swift/59", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var stack = [String]()\n    for character in string {\n        if character"}
+{"task_id": "perl/52", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @bucket = ();\n  my $num_bucket = 0;\n "}
+{"task_id": "php/21", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if ($n <= 1){\n        return $n;\n    }\n\n   "}
+{"task_id": "javascript/76", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    // TODO: complete this function\n    return false;\n}\n\nmodule.exports ="}
+{"task_id": "ruby/4", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  \n  return a if b == 0\n  greatest_common_divisor(b"}
+{"task_id": "python/79", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return [x for x in range(a, b+1) if x"}
+{"task_id": "php/79", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $even = [];\n    for($i = $a; $i <="}
+{"task_id": "ruby/18", "model": "meta-llama/Meta-Llama-3-8B", "completion": " :\n    for i in l :\n        if i >= t :\n            return False"}
+{"task_id": "swift/61", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let txtArray = txt.components(separatedBy: \" \")\n    let last"}
+{"task_id": "csharp/19", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            return x + y;\n        }\n\n        /// <summary> \n       "}
+{"task_id": "go/72", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar sum int\n\tfor _, i := range lst {\n\t\tif reflect.TypeOf(i"}
+{"task_id": "java/60", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // write your code here\n        int sum = 0;\n        for"}
+{"task_id": "scala/5", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val numberList = numbers.split(\" \").toList\n        numberList.map(x"}
+{"task_id": "go/9", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tif n < 2 {\n\t\treturn false\n\t}\n\tfor i := "}
+{"task_id": "ruby/6", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # => [1.0, 2.0, 3.0"}
+{"task_id": "go/45", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tif x%2 == 0 && y%2 == 0 {\n\t"}
+{"task_id": "python/29", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (a + b) > c and (a + c) >"}
+{"task_id": "csharp/73", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            // write your code here\n            var extensionsWithStrength = new List"}
+{"task_id": "javascript/68", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let count = 0;\n  for (let num of nums) {\n"}
+{"task_id": "python/22", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return sorted(set(l1) & set(l2))\n"}
+{"task_id": "java/34", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        List<String> letterGrades = new ArrayList<>();\n        for (Number grade"}
+{"task_id": "kotlin/74", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val aList = a.toList()\n    val bList = b.toList()\n"}
+{"task_id": "java/44", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        List<String> words = new ArrayList<String>();\n        String[] sarray ="}
+{"task_id": "scala/22", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        l1.sorted ++ l2.sorted\n    }\n}\n"}
+{"task_id": "typescript/54", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    // Sort the array in descending order\n    // Use sort and compare the"}
+{"task_id": "php/23", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $primeFactors = [];\n    $current = $n;\n    $i"}
+{"task_id": "scala/15", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val sorted = l.sorted\n        val mid = sorted.length / 2"}
+{"task_id": "kotlin/20", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val s0List = s0.toList()\n    val s1List ="}
+{"task_id": "java/4", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // Your code here\n        if (a < 0 || b <"}
+{"task_id": "go/58", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar s string\n\ts = strconv.Itoa(n)\n\tvar r int\n\tfor i"}
+{"task_id": "typescript/32", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    // your code here\n    let binary = decimal.toString(2);\n   "}
+{"task_id": "javascript/36", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let binary = n.toString(2);\n    let sum = 0;\n"}
+{"task_id": "typescript/7", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let str = string0.split('')\n    for (let i = 0"}
+{"task_id": "kotlin/41", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    // Write your code here.\n    return false\n}\n"}
+{"task_id": "python/27", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    vowels = \"aeiouy\"\n    return len([c for c in"}
+{"task_id": "javascript/25", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  const n = xs.length;\n  const result = [];\n  for (let"}
+{"task_id": "ruby/31", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  if a <= 1\n    return false\n  end\n "}
+{"task_id": "ruby/22", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n    l1.sort!\n    l2.sort!\n    i = 0"}
+{"task_id": "go/60", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar res int\n\tfor _, i := range lst {\n\t\tswitch v := i"}
+{"task_id": "perl/68", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $count = 0;\n  for (@$nums) {\n   "}
+{"task_id": "swift/73", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var classString = className\n    var classStrength = 0\n   "}
+{"task_id": "perl/31", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  return 0 if ($a < 1);\n  my @primes"}
+{"task_id": "csharp/37", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            // Write your code here\n            var result = new List<List<int"}
+{"task_id": "go/17", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar vowels = \"aeiouAEIOU\"\n\tvar result = \"\"\n\tfor _,"}
+{"task_id": "kotlin/68", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var count = 0\n    for (i in nums) {\n       "}
+{"task_id": "csharp/51", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var result = s;\n            var compare = new CompareLogic();\n           "}
+{"task_id": "perl/30", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $sum = 0;\n  my $balanced = 0;\n"}
+{"task_id": "python/11", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    fibs = [0, 1]\n    primes = [2,"}
+{"task_id": "swift/41", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if dict.isEmpty {\n        return false\n    }\n    \n    let keys ="}
+{"task_id": "ruby/37", "model": "meta-llama/Meta-Llama-3-8B", "completion": " :\n    row = []\n    for i in range(len(lst)) :\n        if"}
+{"task_id": "java/58", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int product = 1;\n        int temp = n;\n        while(temp"}
+{"task_id": "ruby/64", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  result = 1\n  while n > 0 do\n   "}
+{"task_id": "go/25", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar x = reflect.ValueOf(xs).Elem()\n\tvar y = reflect.MakeSlice"}
+{"task_id": "java/54", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        List<Integer> result = new ArrayList<Integer>();\n        // Write your code here"}
+{"task_id": "typescript/5", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let sortedNumbers: string[] = numbers.split(' ').sort((a,"}
+{"task_id": "swift/22", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var common = [AnyHashable]()\n    var l1 = l1"}
+{"task_id": "perl/11", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @fib = (0, 1);\n  my $i ="}
+{"task_id": "swift/36", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var binary = \"\"\n    var num = n\n    while num > "}
+{"task_id": "csharp/76", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var comparer = new CompareLogic();\n            var result = comparer.Compare(new"}
+{"task_id": "typescript/21", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  if (n < 2) {\n    return n\n  }\n\n "}
+{"task_id": "python/36", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return bin(N)[2:]\n"}
+{"task_id": "php/71", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $isPrime = true;\n    $i = 2;\n    while"}
+{"task_id": "perl/61", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $lastChar = substr($txt, -1, 1);\n"}
+{"task_id": "typescript/33", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (s.length < 3) return false\n    for (let"}
+{"task_id": "scala/6", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (numbers.isEmpty) return List[Double]()\n        val min = numbers.min"}
+{"task_id": "scala/11", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var fib = 1\n        var prime = 2\n        var"}
+{"task_id": "go/27", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar vowels = \"aeiouy\"\n\tvar count = 0\n\tfor _,"}
+{"task_id": "scala/41", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // Your code goes here\n        // Check the keys of the dictionary\n"}
+{"task_id": "ruby/11", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  fib = [1,2]\n  prime = [2]\n "}
+{"task_id": "java/5", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // Create a List from the input string\n        List<String> list ="}
+{"task_id": "swift/49", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    \n    var arr = arr\n    var isSorted = false\n    while"}
+{"task_id": "go/46", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tif n > m {\n\t\treturn -1\n\t}\n\tvar total int ="}
+{"task_id": "perl/17", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  $text =~ s/[aeiouAEIOU]//g;\n "}
+{"task_id": "perl/74", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $b_len = length($b);\n  for (my $i"}
+{"task_id": "go/18", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tfor i := 0; i < len(l); i++ {\n\t\tif"}
+{"task_id": "typescript/35", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let string = string0.split(\"\")\n    let num = 1\n   "}
+{"task_id": "javascript/33", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let len = s.length;\n    if (len < 3) {\n"}
+{"task_id": "swift/18", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var b = true\n    for i in l {\n        if i >"}
+{"task_id": "go/75", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar roman = map[int]string{\n\t\t1: \"i\",\n\t\t"}
+{"task_id": "php/75", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $roman = array('I','IV','V','IX','X','"}
+{"task_id": "csharp/72", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (lst.Count == 0) return 0;\n            return"}
+{"task_id": "kotlin/38", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (lst.isEmpty()) return null\n    lst.sort()\n    val min"}
+{"task_id": "php/8", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $result = [];\n    foreach ($l as $num) {\n        if"}
+{"task_id": "ruby/12", "model": "meta-llama/Meta-Llama-3-8B", "completion": " :\n    for i in range(len(l)):\n        for j in range(i+"}
+{"task_id": "typescript/48", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    const palindromes = Array.from({length: n}, (_, i"}
+{"task_id": "python/46", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if n > m:\n        return -1\n    if n == m"}
+{"task_id": "csharp/33", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (s.Length < 3) return false;\n            var arr"}
+{"task_id": "python/57", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return [1, 3, 2, 8]\n"}
+{"task_id": "go/2", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar a_byte []byte = []byte(a)\n\tvar b_byte []byte ="}
+{"task_id": "php/63", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $largest = $smallest = null;\n    $largest_negative"}
+{"task_id": "scala/49", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // Write your code here\n        if (arr.isEmpty) return true\n"}
+{"task_id": "python/62", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if not arr:\n        return -1\n    max = 0\n"}
+{"task_id": "perl/76", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  return ($a**2 + $b**2 == $c**2"}
+{"task_id": "perl/56", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my ($start1, $end1) = $interval1;\n "}
+{"task_id": "java/10", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        List<Integer> res = new ArrayList<Integer>();\n        Set<Integer> s ="}
+{"task_id": "python/50", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    for i in lst1:\n        if i % 2 != 0"}
+{"task_id": "perl/64", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $result = 1;\n\n  if ($n > 0)"}
+{"task_id": "scala/23", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var i = 2\n        while (i * i < n)"}
+{"task_id": "php/19", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return $x + $y;\n}"}
+{"task_id": "javascript/20", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  if (s0.length !== s1.length) {\n    return false;\n"}
+{"task_id": "csharp/70", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            string[] planets = { \"Mercury\", \"Venus\", \""}
+{"task_id": "php/76", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $a = sqrt($a);\n    $b = sqrt($b);\n"}
+{"task_id": "scala/75", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val romanNumeral = new StringBuilder\n        val romanNumerals = Map"}
+{"task_id": "perl/37", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  return [] if $lst eq [];\n  my @row;\n  for my"}
+{"task_id": "php/7", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return strtr($string, ['a' => 'A', 'b"}
+{"task_id": "python/26", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if n == 0:\n        return 0\n    if n =="}
+{"task_id": "typescript/11", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let fib = math.fibonacci(n)\n  let isPrime = true"}
+{"task_id": "scala/7", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var flipped = \"\"\n        for (c <- string) {\n            if ("}
+{"task_id": "java/70", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        List<Object> planets = new ArrayList<Object>();\n        planets.add(\"Mercury"}
+{"task_id": "go/44", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\treturn s.Split(\",\")\n}\n\nfunc words_string_1(s string) []string {\n"}
+{"task_id": "perl/22", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my %hash;\n  my @res;\n  for my $i ("}
+{"task_id": "swift/8", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var result : [AnyHashable] = []\n    for i in l"}
+{"task_id": "typescript/37", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  const res = lst.reduce((acc: Array<Array<number>>, cur: Array"}
+{"task_id": "go/12", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\t// Your code here\n\t//return true\n\tvar result bool\n\tfor"}
+{"task_id": "kotlin/50", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var result = \"NO\"\n    if(lst1.filter{it % "}
+{"task_id": "typescript/52", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let total = 0\n  grid.forEach((row) => {\n   "}
+{"task_id": "go/70", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar planets = []string{\"Mercury\", \"Venus\", \"Earth\","}
+{"task_id": "ruby/67", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # -> Array\n  nums.sort_by do |num|\n    num.digits"}
+{"task_id": "swift/68", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var count = 0\n    for i in nums {\n        let number"}
+{"task_id": "typescript/13", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    const result: boolean = false;\n    let sum = 0;\n   "}
+{"task_id": "kotlin/12", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val n = l.size\n    for (i in 0 until n"}
+{"task_id": "swift/58", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var sum = 0\n    var n = n\n    while n"}
+{"task_id": "swift/27", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let vowels = \"aeiouy\"\n    var count = 0\n"}
+{"task_id": "javascript/40", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let largest = 0;\n  let sum = 0;\n  let"}
+{"task_id": "swift/4", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var a = a\n    var b = b\n    while b !="}
+{"task_id": "swift/20", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let s0 = Array(s0)\n    let s1 = Array(s"}
+{"task_id": "javascript/32", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let binary = '';\n  while (decimal > 0) {\n    binary"}
+{"task_id": "java/21", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (n <= 1) return n;\n        int a = "}
+{"task_id": "scala/52", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var totalFill = 0\n        for (row <- grid) {\n"}
+{"task_id": "php/17", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $vowels = ['a', 'e', 'i', '"}
+{"task_id": "perl/59", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $count = 0;\n  for (my $i = "}
+{"task_id": "swift/45", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if x > y {\n        let temp = x\n        x = y"}
+{"task_id": "go/39", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar bored int\n\tvar words []string\n\tvar b string\n\tvar i int"}
+{"task_id": "php/30", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $sum = 0;\n    $palindrom = true;\n   "}
+{"task_id": "swift/9", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if n <= 1 { return false }\n    if n <= 3"}
+{"task_id": "ruby/36", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  n.to_s(2)\nend\n\n# test cases\n# n"}
+{"task_id": "scala/45", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (x % 2 == 0) {\n            if (y"}
+{"task_id": "kotlin/43", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val pile = mutableListOf<Int>()\n    var current = n\n    while ("}
+{"task_id": "perl/65", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @words = split ' ', $sentence;\n  my @prime_words"}
+{"task_id": "go/6", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tmin := numbers[0]\n\tmax := numbers[0]\n\tfor _, v :="}
+{"task_id": "java/31", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // write your code here\n        int[] primeNumbers = {2,"}
+{"task_id": "kotlin/27", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var count = 0\n    for (i in s.indices) {\n"}
+{"task_id": "scala/35", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val length = string.length\n        var isPrime = true\n        for"}
+{"task_id": "typescript/77", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let newStr = '';\n    for(let i = 0; i <"}
+{"task_id": "csharp/8", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            List<int> positiveNumbers = new List<int>();\n            foreach (int"}
+{"task_id": "javascript/3", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  if (strings.length === 0) {\n    return \"none\";\n "}
+{"task_id": "typescript/41", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let isLower = true;\n  let isUpper = true;\n  if"}
+{"task_id": "java/42", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // your code here\n        return Math.round(Double.parseDouble(value));\n    }\n\n"}
+{"task_id": "swift/65", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var words = sentence.components(separatedBy: \" \")\n    var primeWords"}
+{"task_id": "java/61", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (txt.isEmpty()) {\n            return false;\n        }\n        String[]"}
+{"task_id": "swift/35", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let count = string.count\n    let primeNumbers = [2,3"}
+{"task_id": "javascript/19", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  return x + y;\n}\n\nconsole.log(add(2, 3));\n"}
+{"task_id": "ruby/2", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  a = a.split('')\n  b = b.split('')\n  a.map"}
+{"task_id": "javascript/46", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (n > m) return -1;\n    let sum = "}
+{"task_id": "ruby/76", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  if (a**2 + b**2 == c**2)"}
+{"task_id": "javascript/43", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  const pile = [];\n  let nextOdd = n;\n  let nextEven"}
+{"task_id": "javascript/56", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let start1 = Math.max(interval1[0], interval2[0"}
+{"task_id": "ruby/27", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  s.downcase!\n  s.split('').count { |char| char =="}
+{"task_id": "php/18", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    foreach ($l as $item) {\n        if ($item >= $t"}
+{"task_id": "ruby/13", "model": "meta-llama/Meta-Llama-3-8B", "completion": " :\n    if len(l) == 1 :\n        return False\n    l"}
+{"task_id": "ruby/42", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  if value.to_i == value\n    return value.to_i\n "}
+{"task_id": "go/57", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\t// The first n + 1 numbers of the Tribonacci sequence\n\tresult"}
+{"task_id": "java/11", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int fib[] = new int[n + 1];\n        fib[0"}
+{"task_id": "php/35", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $length = strlen($string);\n    $i = 2;\n   "}
+{"task_id": "perl/60", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $sum = 0;\n  foreach my $num (@$lst"}
+{"task_id": "csharp/47", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var result = new List<int>();\n            for (int i = "}
+{"task_id": "javascript/7", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let newString = ''\n  for (let i = 0; i"}
+{"task_id": "ruby/25", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  result = []\n  xs.each_with_index do |x, i|\n"}
+{"task_id": "go/56", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\t// your code here\n\tif interval1[0] > interval2["}
+{"task_id": "kotlin/70", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val planets = listOf(\"Mercury\", \"Venus\", \"Earth\","}
+{"task_id": "csharp/5", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var sortNumbers = Regex.Split(numbers, @\"\\s+\").Select(int"}
+{"task_id": "csharp/75", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            return \"\";\n        }\n\n        /// <summary> \n        /// You're"}
+{"task_id": "scala/17", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        text.filterNot(char => char.isLower && char == 'a' ||"}
+{"task_id": "typescript/22", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  //TODO: Write your code here\n  const arr1 = l1"}
+{"task_id": "php/57", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if($n == 0){\n        return 1;\n    }\n   "}
+{"task_id": "typescript/79", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let arr = []\n    if (a < b) {\n        for ("}
+{"task_id": "php/2", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $result = \"\";\n    $a = str_split($a);\n    $"}
+{"task_id": "java/7", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        String result = \"\";\n        for (int i = 0; i <"}
+{"task_id": "go/66", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tx1 := parse(x)\n\tn1 := parse(n)\n\t\n\treturn reflect.DeepEqual"}
+{"task_id": "javascript/64", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let res = 1;\n  for (let i = n; i"}
+{"task_id": "typescript/67", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    const sortedNums = nums.sort((a, b) => {\n       "}
+{"task_id": "ruby/57", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n    return 1 if n == 1\n    return 3 if"}
+{"task_id": "python/68", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    # your code here\n    return 0\n"}
+{"task_id": "javascript/44", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let array = s.split(\",\");\n    return array;\n}"}
+{"task_id": "javascript/66", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  var [numeratorX, denominatorX] = x.split('/');\n  var"}
+{"task_id": "java/36", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (n == 0) {\n            return \"0\";\n        }\n"}
+{"task_id": "javascript/69", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let a = [];\n  for (let i = 1; i <="}
+{"task_id": "typescript/59", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let bracketCounter = 0;\n    for (let i = 0"}
+{"task_id": "scala/27", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val lowerCase = s.toLowerCase()\n        var count = 0\n       "}
+{"task_id": "csharp/32", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var binary = Convert.ToString(decimal, 2);\n            return $\"db"}
+{"task_id": "perl/25", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @result = ();\n  for (my $i = 1;"}
+{"task_id": "typescript/47", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    const arr: Array<number> = new Array(n);\n    for (let"}
+{"task_id": "php/13", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $array = [];\n    foreach($l as $v){\n        if ("}
+{"task_id": "javascript/1", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let sum = 0;\n  let product = 1;\n  for"}
+{"task_id": "ruby/43", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n    pile = []\n    while n > 0 \n        pile << n"}
+{"task_id": "csharp/9", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (n <= 1) return false;\n            for (int"}
+{"task_id": "php/70", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $planets = [\"Mercury\", \"Venus\", \"Earth\","}
+{"task_id": "csharp/16", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (string.IsNullOrWhiteSpace(text)) \n                return true; \n            if"}
+{"task_id": "typescript/30", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let sum = 0;\n  let reverse = q.reverse();\n  let"}
+{"task_id": "go/10", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tm := make(map[int]bool)\n\tfor _, v := range l {\n\t\tm"}
+{"task_id": "java/14", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        //TODO: Write your code here.\n        if (n == 0"}
+{"task_id": "java/9", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if(n < 2) return false;\n        for(int i = "}
+{"task_id": "swift/31", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var isMultiplyPrime = false\n    var a = a\n    if"}
+{"task_id": "kotlin/0", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var sum = 0\n    for (i in operations) {\n       "}
+{"task_id": "java/73", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (className == null || className.length() == 0 || extensions =="}
+{"task_id": "csharp/10", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            List<int> sorted = l.OrderBy(x => x).ToList();\n           "}
+{"task_id": "php/9", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    for($i = 2; $i < $n; $i"}
+{"task_id": "javascript/49", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if(arr.length==0) return true;\n    let max=arr["}
+{"task_id": "kotlin/69", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var count = 0\n    for(i in 1..n)"}
+{"task_id": "typescript/68", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let count = 0;\n    for (let i = 0;"}
+{"task_id": "javascript/37", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let res = [];\n  let row = 0;\n  let col ="}
+{"task_id": "typescript/18", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return l.every(v => v < t);\n}\n\nexport default below_threshold;"}
+{"task_id": "kotlin/67", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val sorted = nums.sortedWith(compareBy { it.toString().sumOf {"}
+{"task_id": "perl/45", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  if($x > $y)\n  {\n    my $tmp = $"}
+{"task_id": "perl/2", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  return unpack(\"B*\", $a ^ $b);\n}\n"}
+{"task_id": "typescript/69", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let a = new Array<number>(n);\n    for (let i ="}
+{"task_id": "perl/58", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @digits = split(//, $n);\n  my $product"}
+{"task_id": "php/64", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $result = 1;\n    for($i = 1; $"}
+{"task_id": "javascript/38", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (lst.length === 0) {\n        return \"none\"\n   "}
+{"task_id": "typescript/24", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let sum = 0;\n    for (let i = 1;"}
+{"task_id": "perl/35", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @array = split(//, $string);\n  my $count"}
+{"task_id": "java/66", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        //TODO: Implement this method\n        return true;\n    }\n\n    public"}
+{"task_id": "python/32", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return \"db\" + \"1\" * decimal + \"db\"\n"}
+{"task_id": "python/14", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if n < 4:\n        return n\n    else:\n        fib"}
+{"task_id": "java/75", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // Convert the number into a string\n        String numberAsString = Integer.toString"}
+{"task_id": "kotlin/60", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var sum = 0\n    for (item in lst) {\n       "}
+{"task_id": "scala/30", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val isBalanced = q == q.reverse\n        val isLightEnough"}
+{"task_id": "ruby/15", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  l.sort!\n  l.length.odd? ? l[l.length/"}
+{"task_id": "csharp/2", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var sb = new System.Text.StringBuilder();\n            for (int i"}
+{"task_id": "perl/12", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  for my $i (0..$#{$l})\n  {\n   "}
+{"task_id": "typescript/25", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return xs.map((x, i) => i > 0 ? x"}
+{"task_id": "typescript/0", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let balance = 0\n  operations.forEach((operation: number) =>"}
+{"task_id": "scala/33", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if(s.length < 3) return false\n        var prev = s"}
+{"task_id": "php/34", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $grade = array();\n    $grades = array_unique($grades);\n   "}
+{"task_id": "javascript/51", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let newString = \"\";\n  for (let i = 0; i"}
+{"task_id": "perl/3", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $longest = $strings[0];\n  foreach my $string"}
+{"task_id": "javascript/39", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  //code here\n  let boredom = 0;\n  let sentence ="}
+{"task_id": "javascript/16", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  const textLength = text.length;\n  const halfLength = Math.floor(text"}
+{"task_id": "swift/13", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var dict = [Int:Bool]()\n    for i in l {\n       "}
+{"task_id": "perl/15", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @sorted = sort {$a <=> $b} @$l;\n "}
+{"task_id": "scala/58", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (n == 0) 0 else {\n            if (n"}
+{"task_id": "typescript/42", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    const number = Number(value);\n    if (Number.isNaN(number)) {\n"}
+{"task_id": "python/10", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return sorted(set(l))\n\n\ndef unique2(l: list):\n    \"\"\"Return"}
+{"task_id": "kotlin/1", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var sum = 0\n    var product = 1\n    for"}
+{"task_id": "swift/19", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return x + y\n}\n"}
+{"task_id": "kotlin/42", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val num = value.toDouble()\n    val floor = num.floorToInt()\n   "}
+{"task_id": "php/26", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $fibs = [0,0,1];\n    for($i"}
+{"task_id": "kotlin/14", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val fib4Table = Array(n + 1) { 0 }\n"}
+{"task_id": "javascript/0", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let balance = 0;\n  for (let i = 0;"}
+{"task_id": "scala/34", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val gpaMap = Map(4.0 -> \"A+\", "}
+{"task_id": "kotlin/6", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (numbers.isEmpty()) return numbers\n    var max = numbers[0"}
+{"task_id": "kotlin/44", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var words = s.split(\",|\\\\s\")\n    var result : MutableList"}
+{"task_id": "php/27", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $vowels = array(\"a\", \"e\", \"i\","}
+{"task_id": "javascript/61", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  if (txt === \"\") {\n    return false;\n  }\n\n  const last"}
+{"task_id": "javascript/8", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    const pos = [];\n    for (let i = 0; i <"}
+{"task_id": "php/67", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $nums = array_values($nums);\n    $sorted = array();\n   "}
+{"task_id": "python/77", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    new_string = \"\"\n    for i in s:\n        if i.isalpha"}
+{"task_id": "kotlin/7", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val sb = StringBuilder()\n    string.forEach { char ->\n        if (char"}
+{"task_id": "javascript/14", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  if (n < 0) {\n    throw new Error(\"Invalid input"}
+{"task_id": "perl/21", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  return 1 if $n < 2;\n  return fib($n"}
+{"task_id": "typescript/50", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    // Write your code here\n    let lst1Even = false\n   "}
+{"task_id": "python/21", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if n == 1:\n        return 1\n    elif n =="}
+{"task_id": "python/64", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if n == 0:\n        return 1\n    else:\n       "}
+{"task_id": "ruby/14", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  fibs = [0, 0, 2, 0"}
+{"task_id": "java/27", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // Your code here\n        int count = 0;\n        for ("}
+{"task_id": "kotlin/34", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val gpaList = mutableListOf<String>()\n    for (grade in grades)"}
+{"task_id": "go/77", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar result string\n\tfor i:=0; i<len(s); i++{\n"}
+{"task_id": "perl/43", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @pile;\n  while ($n > 0)\n  {\n   "}
+{"task_id": "python/74", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if len(a) < len(b):\n        return False\n    for i"}
+{"task_id": "scala/57", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (n == 0) {\n            List(1)\n        }"}
+{"task_id": "csharp/38", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (lst.Count() < 2)\n                return null;\n            \n"}
+{"task_id": "perl/53", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $consonants = \"bcdfghjklmnpqrst"}
+{"task_id": "csharp/26", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            int fibfib = 0;\n            if (n == 0"}
+{"task_id": "python/42", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    number = float(value)\n    return round(number) if number % 1"}
+{"task_id": "java/45", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int max = Math.max(x, y);\n        int min = Math.min"}
+{"task_id": "ruby/30", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n    q = q.sort\n    if q == q.reverse\n        return"}
+{"task_id": "go/24", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\ttotal := 0\n\tfor i := 1; i <= n; i"}
+{"task_id": "go/30", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar isBalanced bool\n\tvar sum int\n\tvar lenQ int = len"}
+{"task_id": "perl/6", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $min = min($numbers);\n  my $max = max($"}
+{"task_id": "swift/42", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let num = Double(value)\n    return Int(round(num))\n}\n\nprint(close"}
+{"task_id": "ruby/74", "model": "meta-llama/Meta-Llama-3-8B", "completion": " :\n  if len(b) > len(a):\n    return False\n  for"}
+{"task_id": "swift/16", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var textArray = Array(text)\n    var reversedArray = Array(text.re"}
+{"task_id": "java/16", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        String s = text.toLowerCase();\n        String s1 = s.replaceAll(\"[^"}
+{"task_id": "php/54", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $arr = array_unique($arr);\n    sort($arr, SORT_NUMERIC"}
+{"task_id": "go/35", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tstring1 := reflect.ValueOf(string0).String()\n\tstring2 := string1"}
+{"task_id": "swift/50", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var lst1 = lst1\n    var lst2 = lst2\n"}
+{"task_id": "go/63", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tif len(lst) == 0 {\n\t\treturn []interface{}{nil,"}
+{"task_id": "kotlin/49", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var arr = arr\n    var temp = 0\n    var index"}
+{"task_id": "csharp/36", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var result = \"\";\n            var sum = 0;\n            while ("}
+{"task_id": "go/43", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar arr []int\n\tfor i := 1; i <= n; i"}
+{"task_id": "scala/38", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (lst.isEmpty) return null\n        if (lst.length == "}
+{"task_id": "go/61", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tif len(txt) == 0 {\n\t\treturn false\n\t}\n\tlastChar"}
+{"task_id": "swift/43", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var pile = [Int]()\n    var number = n\n    \n    while number"}
+{"task_id": "ruby/24", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # Your code here\n  sum = 0\n  for i in "}
+{"task_id": "csharp/20", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var chars0 = s0.ToCharArray();\n            var chars1 ="}
+{"task_id": "csharp/15", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            l.Sort();\n            if (l.Count % 2 == 0"}
+{"task_id": "scala/54", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val sorted = arr.sorted\n        sorted.slice(sorted.length - k, sorted"}
+{"task_id": "perl/72", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $sum = 0;\n  foreach my $i (@$lst"}
+{"task_id": "typescript/49", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (arr.length === 0) {\n        return true;\n    }\n"}
+{"task_id": "go/49", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tsort.Ints(arr)\n\t// if len(arr) == 0 {\n\t"}
+{"task_id": "scala/64", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (n < 0) {\n            throw new IllegalArgumentException(\"n must"}
+{"task_id": "python/6", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    min_num = min(numbers)\n    max_num = max(numbers)\n    return"}
+{"task_id": "typescript/76", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (a*a + b*b === c*c || a*a + c"}
+{"task_id": "csharp/77", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var sb = new StringBuilder();\n            var letters = new List<char>();\n"}
+{"task_id": "go/3", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tif len(strings) == 0 {\n\t\treturn nil\n\t}\n\tmaxLen"}
+{"task_id": "java/78", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if(text == null || text.length() == 0){\n            return null"}
+{"task_id": "python/12", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return any([a + b + c == 0 for a in l"}
+{"task_id": "csharp/7", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            return string.Join(\"\", string0.Select(c => Regex.IsMatch(c.ToString(),"}
+{"task_id": "java/3", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        String longest = \"\";\n        for (Object s : strings) {\n            if"}
+{"task_id": "typescript/72", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if(lst.length === 0){\n        return 0;\n    }\n   "}
+{"task_id": "typescript/55", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let sum = 0;\n    for (let i = 0;"}
+{"task_id": "python/41", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    for key in dict:\n        if not isinstance(key, str):\n            return"}
+{"task_id": "perl/29", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $s = ($a + $b + $c) / "}
+{"task_id": "php/29", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if($a + $b > $c && $a + $c"}
+{"task_id": "typescript/74", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let b1 = b;\n    let b2 = b;\n    let"}
+{"task_id": "php/31", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if($a<=1){\n        return false;\n    }\n    if($"}
+{"task_id": "php/41", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $upper = true;\n    $lower = true;\n    foreach($dict"}
+{"task_id": "javascript/26", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  const fibfib = [0, 0, 1];\n  for"}
+{"task_id": "go/15", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\t// YOUR CODE HERE\n    sort.Ints(l)\n    if len(l"}
+{"task_id": "php/10", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $l = array_unique($l);\n    sort($l);\n    return"}
+{"task_id": "ruby/35", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # => bool\n  length = string.length\n  prime = true\n "}
+{"task_id": "csharp/25", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            List<int> result = new List<int>();\n            int i = "}
+{"task_id": "java/49", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int N = arr.size();\n        if (N == 0) {\n"}
+{"task_id": "swift/17", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let vowels = [\"a\", \"e\", \"i\", \"o\","}
+{"task_id": "kotlin/77", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var result = \"\"\n    var isLetter = false\n    var isUpper"}
+{"task_id": "typescript/12", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  // your code here\n  let count = 0\n  for(let"}
+{"task_id": "ruby/47", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  arr = []\n  (1..n).each do |i|\n"}
+{"task_id": "perl/23", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $i = 2;\n  while ($i * $i <="}
+{"task_id": "python/52", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    # Initialize variables\n    grid_length = len(grid)\n    bucket_capacity ="}
+{"task_id": "go/33", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tif len(s) < 3 {\n\t\treturn false\n\t}\n\tif len"}
+{"task_id": "perl/26", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @cache = (0, 0, 1);\n  for"}
+{"task_id": "scala/67", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val sorted = nums.sortBy {\n            case x if x.isInstanceOf[Int"}
+{"task_id": "ruby/46", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  if n > m\n    return -1\n  end\n "}
+{"task_id": "javascript/9", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  if (n < 2) return false;\n  if (n ==="}
+{"task_id": "python/20", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if len(s0) != len(s1):\n        return False\n   "}
+{"task_id": "typescript/29", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (a + b > c && a + c > b && b"}
+{"task_id": "perl/13", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @l = @$l;\n  for (my $i = "}
+{"task_id": "perl/62", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $i = 0;\n  my $j = 1;\n"}
+{"task_id": "java/23", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (n == 1) {\n            return 1;\n        }\n"}
+{"task_id": "ruby/65", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  # your code here\n  sentence.split(' ').select { |word"}
+{"task_id": "javascript/18", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  return l.every(num => num < t);\n}\n\nconsole.log(belowThreshold"}
+{"task_id": "go/26", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\t// Your code here\n\treturn 0\n}\n\n// You're an expert"}
+{"task_id": "typescript/4", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let gcd = 1;\n    for (let i = 1;"}
+{"task_id": "swift/5", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let numberArr = numbers.componentsSeparatedByString(\" \")\n    let sortedNumber"}
+{"task_id": "csharp/48", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            //Write your code here\n            int even = 0;\n           "}
+{"task_id": "python/55", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if k <= 1:\n        return sum(arr[:k])\n    return"}
+{"task_id": "javascript/21", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (n < 2) {\n        return n;\n    }\n\n   "}
+{"task_id": "typescript/3", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  if (strings.length === 0) {\n    return null\n  }\n"}
+{"task_id": "csharp/1", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var sum = numbers.Sum();\n            var product = numbers.Aggregate("}
+{"task_id": "csharp/67", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            return nums.OrderBy(x => SumDigits(x)).ToList();\n        }\n\n       "}
+{"task_id": "swift/3", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var max = 0\n    var maxIndex = 0\n   "}
+{"task_id": "csharp/41", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if(dict.Count == 0)\n            {\n                return false;\n           "}
+{"task_id": "javascript/42", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let num = Number(value);\n  let numFloor = Math.floor(num);\n"}
+{"task_id": "ruby/51", "model": "meta-llama/Meta-Llama-3-8B", "completion": " :\n    s = list(s)\n    for i in range(len(s)):\n       "}
+{"task_id": "java/55", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int sum = 0;\n        int index = 0;\n        while"}
+{"task_id": "perl/50", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @evens = ();\n  my @odds = ();\n  my"}
+{"task_id": "typescript/27", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    // TODO: write your code here\n    return s.match(/[aeiou"}
+{"task_id": "scala/37", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        lst.map(_.toList).flatten.filter(_ == x).zipWithIndex.toList"}
+{"task_id": "scala/79", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var list : List[Int] = List()\n        for (i <- a"}
+{"task_id": "csharp/65", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            // Your code goes here.\n            string[] words = sentence.Split('"}
+{"task_id": "typescript/64", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (n < 0) {\n        throw new Error(\"brazil"}
+{"task_id": "go/16", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tif len(text) == 0 {\n\t\treturn true\n\t}\n\t\n\t"}
+{"task_id": "kotlin/19", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return x + y\n}\n\n/**\n * You are an expert Kotlin programmer,"}
+{"task_id": "python/76", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if a**2 + b**2 == c**2:\n        return"}
+{"task_id": "kotlin/65", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var words = sentence.split(\" \")\n    var result = \"\"\n    for ("}
+{"task_id": "kotlin/16", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (text.isEmpty()) return true\n    val reverse = text.reversed"}
+{"task_id": "csharp/59", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (string0.Length == 0) return false;\n\n            var"}
+{"task_id": "javascript/11", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let fib = [0, 1, 1, 2,"}
+{"task_id": "go/73", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\t// your code here\n\t//var result string\n\t//var max"}
+{"task_id": "python/65", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    words = sentence.split()\n    primes = []\n    for word in words:\n"}
+{"task_id": "swift/33", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    guard s.count >= 3 else { return false }\n    for i in"}
+{"task_id": "java/59", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (string.length() == 0) {\n            return false;\n       "}
+{"task_id": "perl/40", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @arr = sort {$a <=> $b} @lst;\n "}
+{"task_id": "ruby/1", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # -> Tuple\n  sum = 0\n  product = 1\n"}
+{"task_id": "typescript/56", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let start = Math.max(interval1[0], interval2[0]);\n"}
+{"task_id": "kotlin/32", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var result = \"\"\n    var number = decimal\n    var i = "}
+{"task_id": "swift/14", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var a = 0, b = 0, c = 0"}
+{"task_id": "scala/60", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        lst.map(math.ceil(_).toInt).map(_ * _).sum\n"}
+{"task_id": "ruby/72", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  return 0 if lst.empty?\n\n  odd_squares = lst.select"}
+{"task_id": "perl/0", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $balance = 0;\n  for my $operation (@$operations"}
+{"task_id": "java/56", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int x1 = interval1.get(0);\n        int x2 ="}
+{"task_id": "scala/16", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val rev = text.reverse\n        text == rev\n    }\n}"}
+{"task_id": "csharp/68", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var result = new List<int>();\n            for (var i = "}
+{"task_id": "kotlin/47", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val result = mutableListOf<Int>()\n    for (i in 1..n"}
+{"task_id": "java/65", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        String[] words = sentence.split(\" \");\n        List<String> primeWords ="}
+{"task_id": "csharp/46", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (n > m) \n            {\n                return -1;\n"}
+{"task_id": "javascript/23", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  var factors = [];\n  var i = 2;\n  while (i"}
+{"task_id": "php/6", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $max = max($numbers);\n    $min = min($numbers);\n"}
+{"task_id": "typescript/78", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return text == '' ? null : require('crypto').createHash('md"}
+{"task_id": "python/39", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    # Your code here\n    return 0\n\n"}
+{"task_id": "kotlin/21", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (n == 0) return 0\n    var a ="}
+{"task_id": "python/71", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if n > 1:\n        for i in range(2, n"}
+{"task_id": "php/56", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $start1 = $interval1[0];\n    $end1 ="}
+{"task_id": "ruby/26", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n    if n <= 3\n        return 0\n    elsif n"}
+{"task_id": "perl/28", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $ans = -1;\n  my $max = -1;\n"}
+{"task_id": "swift/47", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var array = [Int]()\n    for i in 1...n {\n"}
+{"task_id": "scala/63", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var positive = List[Int]()\n        var negative = List[Int]()\n        for"}
+{"task_id": "php/61", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $txt = strtolower($txt);\n    $lastChar = substr($txt"}
+{"task_id": "go/69", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar a = make([]int, n)\n\tfor i := 0; i"}
+{"task_id": "scala/42", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val number = value.toDouble\n        if (number == (number.toInt))"}
+{"task_id": "go/1", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar sum int = 0\n\tvar product int = 1\n\n\tfor _,"}
+{"task_id": "csharp/24", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            return Enumerable.Range(1, n).Sum();\n        }\n\n        ///"}
+{"task_id": "scala/26", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (n <= 2) 0\n        else if (n"}
+{"task_id": "csharp/44", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            return s.Split(new[] {',',' '}, StringSplitOptions.RemoveEmptyEntries).ToList"}
+{"task_id": "php/33", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (strlen($s) < 3) return false;\n    $"}
+{"task_id": "java/50", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // Write your code here\n        List<Integer> list1 = new ArrayList"}
+{"task_id": "php/42", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $value = (float) $value;\n    return $value > "}
+{"task_id": "scala/19", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        x + y\n    }\n}\n"}
+{"task_id": "scala/51", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val result = s.toList.filterNot(x => c.contains(x))\n        if"}
+{"task_id": "typescript/70", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    const planets = [\"Mercury\", \"Venus\", \"Earth\", \""}
+{"task_id": "swift/23", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var i = 2\n    var factor = 0\n    while"}
+{"task_id": "php/11", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $f = 0;\n    $a = 1;\n    $"}
+{"task_id": "python/47", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return [1, 2, 6, 24, 15"}
+{"task_id": "java/37", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        List<Object> ret = new ArrayList<>();\n        for(int i=0;"}
+{"task_id": "go/38", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tif len(lst) == 0 {\n\t\treturn nil\n\t}\n\tlst"}
+{"task_id": "swift/1", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var sum = 0\n    var product = 1\n    for"}
+{"task_id": "swift/75", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var result = \"\"\n    var num = number\n    var i = "}
+{"task_id": "ruby/32", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # -> string\n  decimal.to_s(2).gsub(/0b/,"}
+{"task_id": "ruby/23", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # n > 1 and is not a prime\n  # 1."}
+{"task_id": "scala/56", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (interval1(1) < interval2(0) || interval"}
+{"task_id": "java/53", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // Your code here\n        List<Object> result = new ArrayList<Object>();\n"}
+{"task_id": "swift/12", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var set = Set<Int>()\n    var set2 = Set<Int>()\n   "}
+{"task_id": "kotlin/64", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var res = 1\n    var i = n\n    while ("}
+{"task_id": "php/15", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    sort($l);\n    $count = count($l);\n    $middle"}
+{"task_id": "python/35", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return len(string) in [2,3,5,7,11"}
+{"task_id": "scala/1", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        def sumProductHelper(numbers: List[Any], sum: Int, product:"}
+{"task_id": "go/19", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\treturn x + y\n}\n\n// Add two numbers x and y\n// >>>"}
+{"task_id": "javascript/48", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let even = 0;\n    let odd = 0;\n    for"}
+{"task_id": "perl/57", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @result = (1, 3, 2);\n  for"}
+{"task_id": "java/33", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int n = s.length();\n        if (n < 3) {\n"}
+{"task_id": "java/74", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // write your code here\n        int n = a.length();\n        int"}
+{"task_id": "typescript/43", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let pile: Array<number> = [];\n    for (let i = "}
+{"task_id": "csharp/66", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            //TODO: implement this function\n            var xParts = x.Split"}
+{"task_id": "go/42", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar value_int float64\n\tjson.Unmarshal([]byte(value), &value_int)\n"}
+{"task_id": "perl/49", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $size = scalar(@$arr);\n  my $sorted = "}
+{"task_id": "java/51", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        List<Object> result = new ArrayList<>();\n        StringBuilder sb = new StringBuilder();\n"}
+{"task_id": "kotlin/22", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val l3 = l1.toSet().intersect(l2.toSet())\n"}
+{"task_id": "csharp/56", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            //check if the intervals intersect\n            if ((interval1[0"}
+{"task_id": "javascript/30", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let sum = 0;\n    for (let i = 0;"}
+{"task_id": "php/16", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return $text == strrev($text);\n}\n\nvar_dump(isPalindrome('"}
+{"task_id": "kotlin/25", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var temp = xs\n    var count = 0\n    var result"}
+{"task_id": "typescript/65", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  return sentence.split(\" \").filter(word => {\n    return is_prime(word.length"}
+{"task_id": "go/54", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar result []int\n\tvar length = len(arr)\n\tif length <= k {\n"}
+{"task_id": "java/29", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // Your code here\n        return null;\n    }\n}\n\npublic class Main"}
+{"task_id": "scala/8", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        l.filter(x => x.asInstanceOf[Int] > 0)\n    }\n}\n"}
+{"task_id": "javascript/63", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let negative = null;\n  let positive = null;\n  if (lst"}
+{"task_id": "javascript/13", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  const set = new Set();\n  for (let i = 0;"}
+{"task_id": "perl/48", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $even = 0;\n  my $odd = 0;\n"}
+{"task_id": "javascript/35", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  // Check if string length is prime\n  if (isPrime(string.length"}
+{"task_id": "kotlin/79", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var list = ArrayList<Any>()\n    for (i in a..b){\n"}
+{"task_id": "python/44", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    words = s.split(',')\n    for i in range(len(words)):\n        words"}
+{"task_id": "csharp/0", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var comparer = new CompareLogic();\n            var result = comparer.Compare("}
+{"task_id": "csharp/57", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var result = new List<object>();\n            if (n == 0"}
+{"task_id": "kotlin/45", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var answer = -1\n    if (x <= y) {\n       "}
+{"task_id": "php/59", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $array = str_split($string);\n    $count = 0;\n"}
+{"task_id": "csharp/18", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            // Your code here\n            var result = false;\n\n            if ("}
+{"task_id": "ruby/7", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # => 'hELLO'\n  string.chars.map do |char|\n   "}
+{"task_id": "kotlin/52", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var counter = 0\n    var grid = grid\n    while(grid"}
+{"task_id": "ruby/10", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n    l.uniq.sort\nend\n\n# def unique(l) \n#"}
+{"task_id": "scala/29", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val s = (a + b + c) / 2\n       "}
+{"task_id": "javascript/27", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let count = 0;\n  let vowels = \"aeiouy\";\n"}
+{"task_id": "go/65", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar words []string\n\tvar result string\n\tfor _, word := range sentence {\n"}
+{"task_id": "swift/32", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var decimal = decimal\n    var binary = \"\"\n    \n    while decimal >"}
+{"task_id": "php/1", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $sum = 0;\n    $product = 1;\n    foreach"}
+{"task_id": "javascript/78", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  if (text === \"\") {\n    return \"none\";\n  }\n\n  const"}
+{"task_id": "kotlin/48", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var odd = 0\n    var even = 0\n    for"}
+{"task_id": "swift/69", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var result = 0\n    var arr = [Int]()\n    for"}
+{"task_id": "typescript/40", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    const primeNumbers = lst.filter(n => isPrime(n));\n    const max"}
+{"task_id": "php/52", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $max = 0;\n    $bucket_capacity = $capacity;\n   "}
+{"task_id": "ruby/21", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # 0, 1, 1, 2, 3,"}
+{"task_id": "scala/2", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val result = a.zip(b).map{ case (x, y)"}
+{"task_id": "swift/44", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var array = [String]()\n    var str = s\n    var temp"}
+{"task_id": "go/79", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar result []int\n\tfor i := a; i <= b; i++"}
+{"task_id": "java/57", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        List<Number> result = new ArrayList<>();\n        result.add(1);\n"}
+{"task_id": "scala/46", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (n > m) -1\n        else {\n            val avg"}
+{"task_id": "python/2", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return \"\".join(str(int(a[i]) ^ int(b[i])) for i"}
+{"task_id": "csharp/39", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            return S.Split(new char[] { '.', '?', '!' }, StringSplitOptions"}
+{"task_id": "kotlin/2", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var a = a\n    var b = b\n    var result ="}
+{"task_id": "python/23", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    # if n is even, divide it by 2\n    while n"}
+{"task_id": "kotlin/63", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var largest : Int? = null\n    var smallest : Int? ="}
+{"task_id": "swift/38", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let sorted = lst.sorted(by: { $0 as! Int < $"}
+{"task_id": "javascript/4", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let min = a < b ? a : b;\n  let max ="}
+{"task_id": "java/24", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // YOUR CODE HERE\n        int sum = 0;\n        for ("}
+{"task_id": "python/61", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return txt[-1].isalpha() and not txt[-1].is"}
+{"task_id": "javascript/58", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let odd = 0;\n    let temp = n;\n    while ("}
+{"task_id": "php/4", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if ($a < $b){\n        $tmp = $a;\n       "}
+{"task_id": "go/0", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar balance int\n\tfor _, operation := range operations {\n\t\tbalance = balance"}
+{"task_id": "typescript/26", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (n < 0) {\n        throw new Error(\"Invalid argument"}
+{"task_id": "java/8", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        List<Object> result = new ArrayList<Object>();\n        for (Object o :"}
+{"task_id": "java/15", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        Collections.sort(l);\n        int mid = l.size() / 2;\n"}
+{"task_id": "typescript/23", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let max = 0;\n    for (let i = 1;"}
+{"task_id": "ruby/50", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # -> String\n  lst1.select! {|x| x.even?"}
+{"task_id": "javascript/70", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let planets = [\"Mercury\", \"Venus\", \"Earth\", \""}
+{"task_id": "java/68", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int count = 0;\n        for (int i = 0;"}
+{"task_id": "php/20", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $arr0 = str_split($s0);\n    $arr1 ="}
+{"task_id": "perl/66", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $x_den = $x =~ s/\\/\\d+//"}
+{"task_id": "perl/10", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my %h;\n  my @r;\n  foreach my $e (@"}
+{"task_id": "kotlin/13", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val s = l.toSet()\n    for (i in s){\n       "}
+{"task_id": "csharp/34", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var letterGrade = new List<string>();\n            var compare = new Compare"}
+{"task_id": "perl/51", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $result = \"\";\n  my @chars = split(//, $"}
+{"task_id": "csharp/58", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var result = 1;\n            var str = n.ToString();\n           "}
+{"task_id": "swift/34", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var letterGrades = [String]()\n    \n    for grade in grades {\n"}
+{"task_id": "kotlin/55", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val sum = arr.slice(0 until k).filter { it.toString()."}
+{"task_id": "java/35", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        //TODO: Complete this function\n        return false;\n    }\n\n    public"}
+{"task_id": "python/66", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    # split numerator and denominator of x\n    x_numerator, x_den"}
+{"task_id": "scala/18", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        l forall (_ < t)\n    }\n}\n"}
+{"task_id": "go/32", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\t// Your code here\n\treturn \"\"\n}\n\n// You're an expert Golang"}
+{"task_id": "php/58", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $result = 1;\n    while($n > 0){\n       "}
+{"task_id": "go/67", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var temp []int\n    var temp2 []int\n    var temp"}
+{"task_id": "javascript/53", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let list = [];\n    let count = 0;\n    for (let"}
+{"task_id": "swift/7", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return string.reduce(\"\") {\n        switch $0 {\n        case \"a\""}
+{"task_id": "javascript/17", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  return text.replace(/[aeiou]/gi, '');\n}\n\nmodule.exports = remove"}
+{"task_id": "go/47", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tresult := make([]int, n)\n\tfor i := 0; i <"}
+{"task_id": "csharp/22", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var result = new List<int>();\n            var comparer = new CompareLogic"}
+{"task_id": "ruby/41", "model": "meta-llama/Meta-Llama-3-8B", "completion": " :\n    if len(dict) == 0 :\n        return False\n    else"}
+{"task_id": "python/8", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return [i for i in l if i > 0]\n\n"}
+{"task_id": "perl/33", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $len = length($s);\n  if ($len < 3"}
+{"task_id": "php/78", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (empty($text)) {\n        return null;\n    }\n    return"}
+{"task_id": "ruby/20", "model": "meta-llama/Meta-Llama-3-8B", "completion": " :\n    if len(s0) != len(s1):\n        return False\n"}
+{"task_id": "perl/34", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @letter_grades = ();\n\n  foreach my $g (@$grades"}
+{"task_id": "typescript/39", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let boredom = 0;\n  let sentences = S.split(/[.?!"}
+{"task_id": "php/62", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $sorted = sort($arr);\n    $result = -1;\n   "}
+{"task_id": "perl/7", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  $string =~ tr/[a-z]/[A-Z]/;\n  $"}
+{"task_id": "kotlin/54", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    // sort array in descending order\n    arr.sortDescending()\n    // return"}
+{"task_id": "python/69", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return 0\n\n\nif __name__ == '__main__':\n    print(get"}
+{"task_id": "go/22", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\t// your code here\n\tl1 = append(l1, l2...)\n"}
+{"task_id": "java/63", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        List<Integer> result = new ArrayList<Integer>();\n        Integer max = Integer.MIN"}
+{"task_id": "php/53", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $words = explode(' ', $s);\n    $result = [];\n   "}
+{"task_id": "java/17", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        String result = \"\";\n        for (int i = 0; i <"}
+{"task_id": "csharp/62", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var comparer = new CompareLogic();\n            var result = comparer.Compare(arr"}
+{"task_id": "swift/77", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var result = \"\"\n    var isLetter = false\n    var isU"}
+{"task_id": "ruby/40", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # You need to implement this function\n  sum = 0\n  lst"}
+{"task_id": "scala/61", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val lastChar = txt.takeRight(1)\n        val lastCharIs"}
+{"task_id": "python/72", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return sum([i**2 for i in lst if i%2=="}
+{"task_id": "go/14", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tif n < 4 {\n\t\treturn 0\n\t}\n\tif n =="}
+{"task_id": "perl/8", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @res = ();\n  for my $n (@$l)\n "}
+{"task_id": "scala/70", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val planets = List(\"Mercury\", \"Venus\", \"Earth\","}
+{"task_id": "ruby/56", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n    if (interval1[1] < interval2[0] ||"}
+{"task_id": "java/6", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (numbers.size() < 2) {\n            return null;\n       "}
+{"task_id": "typescript/75", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let result = '';\n    const roman = ['i', 'v', '"}
+{"task_id": "typescript/17", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  const vowels = ['a', 'e', 'i', 'o',"}
+{"task_id": "java/43", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        List<Integer> pile = new ArrayList<>();\n        int level = 0;\n"}
+{"task_id": "php/28", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $result = -1;\n    $lst_count = count($lst);\n"}
+{"task_id": "php/38", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $len = count($lst);\n    if($len < 2)"}
+{"task_id": "python/43", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return [n] + make_a_pile(n) if n % "}
+{"task_id": "perl/27", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @vowels = (\"a\", \"e\", \"i\","}
+{"task_id": "csharp/52", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            // Write your code here.\n            int count = 0;\n           "}
+{"task_id": "php/50", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $result = \"NO\";\n    $even = true;\n    for($"}
+{"task_id": "javascript/29", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  if (a + b > c && a + c > b && b"}
+{"task_id": "swift/54", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var arr = arr\n    arr.sort()\n    return Array(arr[(arr"}
+{"task_id": "scala/71", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (n % 2 == 0) {\n            y\n       "}
+{"task_id": "javascript/28", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    const obj = {}\n    let max = -1\n    lst.forEach(("}
+{"task_id": "javascript/2", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let result = '';\n  let i = 0;\n  while (i"}
+{"task_id": "perl/44", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  return split(/\\s*,\\s*|\\s+/, $s);\n"}
+{"task_id": "python/19", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return x + y\n\n"}
+{"task_id": "php/22", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $l1 = array_unique($l1);\n    $l2 ="}
+{"task_id": "ruby/79", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # => [2, 4, 6, 8]\n  even"}
+{"task_id": "swift/6", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var result = [Double]()\n    let min = numbers.minElement()\n   "}
+{"task_id": "perl/38", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $smallest = $lst[0];\n  my $smallest"}
+{"task_id": "perl/75", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $roman = '';\n  while ($number > 0) {\n   "}
+{"task_id": "python/56", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if interval1[0] >= interval2[1] or interval2"}
+{"task_id": "ruby/54", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  arr.sort! do |a,b|\n    b <=> a\n "}
+{"task_id": "python/5", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return ' '.join(sorted(numbers.split(), key=lambda x: int(x)))\n"}
+{"task_id": "java/32", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        //Your code here\n        String result = \"\";\n        for (int i"}
+{"task_id": "python/7", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return string.swapcase()\n"}
+{"task_id": "scala/12", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        def triplesSumToZeroHelper(l: List[Int], current: List[Int"}
+{"task_id": "typescript/66", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  // your code goes here\n  let xArr = x.split(\"/\");\n "}
+{"task_id": "kotlin/39", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var boredCount = 0\n    var index = 0\n   "}
+{"task_id": "kotlin/56", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var int1 = interval1[0]..interval1[1]\n"}
+{"task_id": "csharp/23", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            //if (n == 1)\n            //{\n            //    return"}
+{"task_id": "typescript/45", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let max = -1;\n    for(let i = x; i <="}
+{"task_id": "ruby/77", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n    if s.chars.all? { |char| char =~ /[a-zA"}
+{"task_id": "perl/41", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $lower = 0;\n  my $upper = 0;\n"}
+{"task_id": "php/48", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $even = 0;\n    $odd = 0;\n    for"}
+{"task_id": "kotlin/57", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val arr = mutableListOf(1, 3)\n    var x = "}
+{"task_id": "go/11", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar fib []int\n\tvar prime []int\n\tvar fib_prime []int\n\n"}
+{"task_id": "java/26", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (n == 0) {\n            return 0;\n        }\n"}
+{"task_id": "ruby/19", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # <<<< add method\n  x + y\nend\nputs add("}
+{"task_id": "scala/66", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val xSplit = x.split(\"/\")\n        val nSplit = n.split(\"/\")\n"}
+{"task_id": "javascript/47", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    const result = [];\n    for (let i = 1; i <="}
+{"task_id": "php/3", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (empty($strings)) {\n        return null;\n    }\n    $"}
+{"task_id": "java/18", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        for(int i : l) {\n            if(i >= t) {\n               "}
+{"task_id": "swift/79", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var result = [AnyHashable]()\n    for i in a...b"}
+{"task_id": "python/4", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if b == 0:\n        return a\n    else:\n        return"}
+{"task_id": "javascript/65", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    const words = sentence.split(' ');\n    const result = [];\n\n    for ("}
+{"task_id": "python/16", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return text == text[::-1]\n\n\ndef is_palindrome_rec(text: str"}
+{"task_id": "python/38", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if len(lst) < 2:\n        return None\n    else:\n"}
+{"task_id": "php/12", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $l = array_unique($l);\n    sort($l);\n    $"}
+{"task_id": "kotlin/37", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val result = mutableListOf<Pair<Int, Int>>()\n    lst.forEachIndexed {"}
+{"task_id": "ruby/78", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # rubocop:disable Naming/MethodName\n  text.empty? ? nil : Digest"}
+{"task_id": "kotlin/61", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var lastChar = txt.substring(txt.length - 1)\n    return ("}
+{"task_id": "swift/21", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if n <= 1 {\n        return n\n    }\n    var a"}
+{"task_id": "java/28", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();\n        int"}
+{"task_id": "swift/0", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var balance = 0\n    for operation in operations {\n        let operation"}
+{"task_id": "go/13", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    // YOUR CODE HERE\n    var temp map[int]bool\n    for _,"}
+{"task_id": "python/37", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return [(i, j) for i, row in enumerate(lst) for"}
+{"task_id": "go/55", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\t// Your code here\n\tvar sum int\n\tfor i := 0;"}
+{"task_id": "javascript/5", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let numArray = numbers.split(' ').map((num) => {\n   "}
+{"task_id": "go/50", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar ret = \"NO\"\n\tvar lst1Even = []int{}\n\tvar lst"}
+{"task_id": "php/37", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $result = [];\n    $index = 0;\n    foreach($lst"}
+{"task_id": "ruby/29", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # 1\n  if a + b > c && b + c >"}
+{"task_id": "csharp/42", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            double number = double.Parse(value);\n            int floor = (int)Math"}
+{"task_id": "ruby/8", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # [1, 2, 3, 4, 5,"}
+{"task_id": "kotlin/73", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val result = extensions.map {\n        val strength = it.count { c ->"}
+{"task_id": "java/12", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // write your code here\n        Collections.sort(l);\n        for(int i"}
+{"task_id": "javascript/34", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let gradesArray = grades.sort((a, b) => a - b"}
+{"task_id": "scala/78", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val md5 = new java.security.MessageDigest(\"MD5\")\n        val"}
+{"task_id": "swift/48", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var oddPalindromes = 0\n    var evenPalind"}
+{"task_id": "csharp/61", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (txt.Length == 0) return false;\n            return Regex"}
+{"task_id": "go/36", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar bin string\n\tvar arr []int\n\tfor N > 0 {\n\t"}
+{"task_id": "python/59", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    # your code here\n    return string\n"}
+{"task_id": "typescript/36", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let binary = N.toString(2);\n  let sum = 0;\n"}
+{"task_id": "kotlin/62", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val max = arr.max()\n    val min = arr.min()\n    val"}
+{"task_id": "java/48", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        List<Integer> result = new ArrayList<>();\n        int even = 0;\n"}
+{"task_id": "ruby/66", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  x = x.split(\"/\")\n  n = n.split(\"/\")\n  if x"}
+{"task_id": "kotlin/35", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val strLength = string.length\n    var isPrime = true\n   "}
+{"task_id": "javascript/22", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return l1.filter(function(v) {\n        return l2.indexOf(v)"}
+{"task_id": "csharp/74", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var c = new CompareLogic();\n            var a1 = a.ToLower"}
+{"task_id": "typescript/1", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let sum = 0;\n    let product = 1;\n\n    for"}
+{"task_id": "swift/46", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if n > m {\n        return -1\n    } else {\n       "}
+{"task_id": "python/70", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    planets = ['Mercury', 'Venus', 'Earth', 'M"}
+{"task_id": "scala/43", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // n is odd, so we start with 1\n        // then"}
+{"task_id": "perl/79", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @a = split //, $a;\n  my @b ="}
+{"task_id": "ruby/44", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # => [\"Hi\", \"my\", \"name\", \"is\", \"John"}
+{"task_id": "javascript/75", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let roman = '';\n  let nums = [1000, 900,"}
+{"task_id": "csharp/79", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (a > b) \n            {\n                int temp = a"}
+{"task_id": "php/72", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $sum = 0;\n    for ($i=0; $i"}
+{"task_id": "python/75", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return 'i' * number\n"}
+{"task_id": "ruby/5", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n    numbers = numbers.split\n    numbers.sort! {|a,b| a"}
+{"task_id": "swift/56", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let (start1, end1) = (interval1[0],"}
+{"task_id": "csharp/63", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            List<object> result = new List<object>();\n            var comparer = new"}
+{"task_id": "ruby/75", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  roman_numeral = \"\"\n  if number >= 1000\n   "}
+{"task_id": "php/43", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $res = [];\n    while($n > 0){\n        $res"}
+{"task_id": "go/78", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar result interface{}\n\tif text == \"\" {\n\t\tresult = nil\n\t}"}
+{"task_id": "perl/63", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @lst = ();\n  my $largest = undef;\n  my"}
+{"task_id": "kotlin/71", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (n % 2 == 0) {\n        return y\n"}
+{"task_id": "perl/67", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @nums = @$nums;\n  my %sums;\n  my"}
+{"task_id": "go/76", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\ta = 3\n\tb = 4\n\tc = 5\n\tif"}
+{"task_id": "python/25", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return [xs[i] * (i + 1) for i in"}
+{"task_id": "csharp/40", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            int largestPrime = 0;\n            for (int i = "}
+{"task_id": "ruby/39", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  return s.split(\".\").count{|x| x[0] =="}
+{"task_id": "php/47", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $arr = [];\n    for ($i = 1; $i <="}
+{"task_id": "swift/67", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var result : [AnyHashable] = []\n    var temp : ["}
+{"task_id": "kotlin/46", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (n > m) return -1\n    val avg = ("}
+{"task_id": "python/33", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    # your code here\n\n    return False\n"}
+{"task_id": "typescript/46", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (n > m) return -1;\n    let sum = "}
+{"task_id": "php/36", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $sum = 0;\n    $binary = decbin($n);\n"}
+{"task_id": "perl/73", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $max_strength = 0;\n  my $strongest_extension;\n"}
+{"task_id": "java/76", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // Write your code here\n        if (a == 0 || b"}
+{"task_id": "go/37", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar result [][]int\n\tfor i, v := range lst {\n\t\tfor j"}
+{"task_id": "swift/70", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var planets = [\"Mercury\", \"Venus\", \"Earth\", \""}
+{"task_id": "perl/77", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $r = \"\";\n  my $i = 0;\n  while"}
+{"task_id": "perl/32", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $binary = sprintf(\"%b\", $decimal);\n  return \"db"}
+{"task_id": "php/68", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $result = 0;\n    foreach($nums as $num){\n       "}
+{"task_id": "perl/24", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $sum = 0;\n  my $i = 1;\n"}
+{"task_id": "typescript/60", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  const squaredList = lst.map((item) => math.ceil(item) **"}
+{"task_id": "typescript/16", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    const arr = text.toLowerCase().split('');\n    const arrReversed = arr"}
+{"task_id": "python/15", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    l.sort()\n    n = len(l)\n    if n % 2"}
+{"task_id": "swift/64", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var specialFactorial = 1\n    for i in 1..."}
+{"task_id": "php/60", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $lst = array_map(function($item) {\n        return ceil($item"}
+{"task_id": "scala/62", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val sorted = arr.sorted\n        val max = sorted.last\n        val"}
+{"task_id": "java/72", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int sum = 0;\n        for (Object i : lst) {\n"}
+{"task_id": "kotlin/3", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (strings.isEmpty()) {\n        return null\n    }\n    var result"}
+{"task_id": "python/40", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if len(lst) == 0:\n        return 0\n\n    max"}
+{"task_id": "swift/40", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var sum = 0\n    var largestPrime = 0\n   "}
+{"task_id": "ruby/17", "model": "meta-llama/Meta-Llama-3-8B", "completion": " :\n    vowels = 'aeiou'\n    new_text = ''\n    for i"}
+{"task_id": "python/17", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    vowels = \"aeiouAEIOU\"\n    result = \"\"\n    for"}
+{"task_id": "java/52", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int ans = 0;\n        int n = grid.size();\n        int"}
+{"task_id": "csharp/60", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            List<double> list = new List<double>();\n            foreach (object o"}
+{"task_id": "scala/74", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val bRots = b + b + b + b\n        a"}
+{"task_id": "kotlin/9", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (n == 2) return true\n    if (n %"}
+{"task_id": "swift/29", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let area = (a + b + c) * (a + b"}
+{"task_id": "csharp/53", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            List<string> words = new List<string>();\n            string[] array ="}
+{"task_id": "scala/10", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        l.distinct.sorted\n    }\n}\n"}
+{"task_id": "scala/77", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var result = \"\"\n        for (c <- s) {\n            if ("}
+{"task_id": "swift/55", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var sum = 0\n    for i in 0..<k {\n"}
+{"task_id": "javascript/57", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let result = [1, 3, 2];\n  let index"}
+{"task_id": "go/62", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    // your code here\n    var largest = -1\n    for i"}
+{"task_id": "csharp/43", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var result = new List<int>();\n            var stones = new List<int"}
+{"task_id": "kotlin/24", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var sum = 0\n    for (i in 1..n"}
+{"task_id": "scala/65", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var result = \"\"\n        for (word <- sentence.split(\" \")) {\n           "}
+{"task_id": "perl/36", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @r = split //, sprintf(\"%b\", $n);\n "}
+{"task_id": "typescript/63", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    // Write your code here\n    let max = -Infinity;\n    let"}
+{"task_id": "php/39", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $words = explode(' ', $s);\n    $bored = "}
+{"task_id": "csharp/6", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var rescaled = new List<double>();\n            var min = numbers.Min"}
+{"task_id": "scala/40", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        def getLargestPrimeValue(lst : List[Int]) : Int = {\n"}
+{"task_id": "go/52", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\t// use a 2D array to represent the state of the wells\n"}
+{"task_id": "python/45", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if x % 2 == 0:\n        if x <= y:\n"}
+{"task_id": "python/3", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if not strings:\n        return None\n    return max(strings, key=len"}
+{"task_id": "ruby/52", "model": "meta-llama/Meta-Llama-3-8B", "completion": " :\n    max_fill = 0\n    for i in range(len(grid))"}
+{"task_id": "ruby/59", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  stack = []\n  for char in string:\n    if char == \"[\""}
+{"task_id": "kotlin/17", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val vowels = listOf('a', 'e', 'i', 'o"}
+{"task_id": "php/51", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $arrS = str_split($s);\n    $arrC = str"}
+{"task_id": "typescript/57", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let a = 1;\n    let b = 3;\n    let"}
+{"task_id": "kotlin/29", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var area = 0.0\n    var sides = arrayOf(a,"}
+{"task_id": "typescript/34", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let letter_grade: Array<string> = [];\n    for (let i ="}
+{"task_id": "python/34", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return [grade for grade in grades]\n"}
+{"task_id": "ruby/28", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n    lst.each do |i|\n        if lst.count(i) >= i"}
+{"task_id": "go/7", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\t//TODO: Write - Your - Code\n\tvar string1 string\n\tstring"}
+{"task_id": "python/73", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    max_strength = -1\n    strongest_extension = None\n    for extension"}
+{"task_id": "python/31", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    primes = [2, 3, 5, 7, "}
+{"task_id": "perl/39", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $boredom = 0;\n  my $in_bored"}
+{"task_id": "swift/51", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var sArr = Array(s)\n    var cArr = Array(c)\n"}
+{"task_id": "csharp/31", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            return true; \n        }\n\n        /// <summary> \n        ///"}
+{"task_id": "php/40", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $prime = array(2,3,5,7,11,"}
+{"task_id": "java/19", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        return x + y;\n    }\n}\n\nclass Sub {\n    /**\n     *"}
+{"task_id": "python/51", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    #solution\n    s = s.replace(c,'')\n    return (s"}
+{"task_id": "go/68", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar count int\n\tfor _, v := range nums {\n\t\tif v > "}
+{"task_id": "javascript/52", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let rows = grid.length;\n    let cols = grid[0].length"}
+{"task_id": "scala/21", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (n == 1) 1\n        else if (n"}
+{"task_id": "swift/30", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let sum = q.reduce(0, +)\n    return q == q"}
+{"task_id": "kotlin/78", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return text.md5()\n}"}
+{"task_id": "go/34", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tletter_grade := make([]string, len(grades))\n\tfor i, grade"}
+{"task_id": "typescript/38", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (lst.length < 2) {\n        return null;\n    }\n\n"}
+{"task_id": "python/24", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    result = 0\n    for i in range(n):\n        result +="}
+{"task_id": "perl/54", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @result;\n  my %hash;\n  my $max;\n "}
+{"task_id": "typescript/10", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    const a = l.sort((a,b) => a - b);\n   "}
+{"task_id": "java/38", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        Collections.sort(lst);\n        if (lst.size() == 0) {\n"}
+{"task_id": "kotlin/51", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val sb = StringBuilder(s)\n    for (i in 0..s"}
+{"task_id": "javascript/79", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let arr = [];\n\n  for (let i = a; i <= b"}
+{"task_id": "scala/31", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var isMultiply = false\n        var i = 2\n        while"}
+{"task_id": "ruby/70", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  planets = [\"Mercury\", \"Venus\", \"Earth\", \""}
+{"task_id": "java/69", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int[] a = new int[n];\n        for(int i = 0"}
+{"task_id": "javascript/73", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let result = '';\n    let max = -999999999999999999"}
+{"task_id": "ruby/62", "model": "meta-llama/Meta-Llama-3-8B", "completion": " # [1,2,4,3,5]\n  return -1"}
+{"task_id": "typescript/73", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let strongest_extension = '';\n    let strongest_extension_strength = 0;\n   "}
+{"task_id": "swift/11", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    \n    var fib = [Int](count: n+1, repeatedValue"}
+{"task_id": "ruby/71", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n    return y if n == 1\n    return x if n =="}
+{"task_id": "typescript/71", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let prime = true;\n    if (n == 1 || n =="}
+{"task_id": "csharp/11", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            int fibIndex = 1;\n            int fibValue = 1"}
+{"task_id": "go/48", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar result []int\n\tfor i := 1; i <= n; i"}
+{"task_id": "ruby/49", "model": "meta-llama/Meta-Llama-3-8B", "completion": " :\n    n=len(arr)\n    if n==0:\n        return True\n"}
+{"task_id": "scala/25", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val xs1 = xs.map(x => x * 1)\n        val"}
+{"task_id": "javascript/54", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let sortedArr = arr.sort((a, b) => b - a"}
+{"task_id": "scala/3", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (strings.isEmpty) {\n            return null\n        }\n        val max"}
+{"task_id": "typescript/61", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let lastChar = txt.charAt(txt.length - 1);\n    if ("}
+{"task_id": "perl/9", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $i = 2;\n  while ($i < $n)\n"}
+{"task_id": "csharp/4", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (a < b) \n            { \n                return GreatestCommon"}
+{"task_id": "csharp/64", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (n <= 0) return 0;\n            int factorial"}
+{"task_id": "python/0", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    balance = 0\n    for operation in operations:\n        balance += operation"}
+{"task_id": "scala/72", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        def sumOddSquared(lst : List[Int]) : Int = {\n            lst"}
+{"task_id": "php/77", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $result = \"\";\n    $length = strlen($s);\n    $is"}
+{"task_id": "php/44", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $s = trim($s);\n    return explode(',', $s);\n}\n\n"}
+{"task_id": "javascript/74", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    for (let i = 0; i < a.length; i++)"}
+{"task_id": "php/14", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $a = 0;\n    $b = 0;\n    $"}
+{"task_id": "scala/59", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var count = 0\n        for (c <- string) {\n           "}
+{"task_id": "python/78", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if text == '':\n        return None\n    return hashlib.md5(text.encode"}
+{"task_id": "csharp/27", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            int count = 0;\n            for (int i = 0"}
+{"task_id": "csharp/69", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var list = new List<int> ();\n\n            for (int i ="}
+{"task_id": "ruby/45", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  if (x % 2 == 0 && y % 2"}
+{"task_id": "kotlin/10", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val result = mutableListOf<Int>()\n    l.forEach { if (!result.contains(it"}
+{"task_id": "typescript/19", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return x + y;\n}\n\nexport { add };"}
+{"task_id": "ruby/0", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  balance = 0\n  operations.each do |operation|\n    balance"}
+{"task_id": "java/79", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        List<Integer> result = new ArrayList<Integer>();\n        if (a > b"}
+{"task_id": "kotlin/31", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var isPrime = true\n    var b = a\n    var c"}
+{"task_id": "perl/69", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $a = [];\n  my $max_triples = 0;\n\n"}
+{"task_id": "typescript/51", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let result = s.split('');\n    let resultString = \"\";\n    let check"}
+{"task_id": "perl/14", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $a = 0;\n  my $b = 0;\n"}
+{"task_id": "csharp/29", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            // Write your code here\n            var compare = new CompareLogic();\n"}
+{"task_id": "csharp/3", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (strings.Count == 0) \n            {\n                return null"}
+{"task_id": "php/5", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $numbers = explode(\" \", $numbers);\n    $numbers = array_map"}
+{"task_id": "perl/16", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  $text = lc $text;\n  $text =~ s/[\\W"}
+{"task_id": "typescript/15", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    // Write your code here\n    return 0;\n};\n"}
+{"task_id": "python/18", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    for x in l:\n        if x > t:\n            return False\n"}
+{"task_id": "swift/66", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let xArr = x.components(separatedBy: \"/\")\n    let n"}
+{"task_id": "python/54", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    # your code here\n    return []\n"}
+{"task_id": "javascript/59", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let open = 0;\n    let close = 0;\n\n    for"}
+{"task_id": "scala/14", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val f = Array(0, 0, 2, 0"}
+{"task_id": "php/24", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $result = 0;\n    for($i = 1; $"}
+{"task_id": "csharp/71", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (IsPrime(n))\n                return x;\n            return y;\n"}
+{"task_id": "java/13", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (l == null || l.size() == 0) {\n           "}
+{"task_id": "perl/46", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @numbers = $n..$m;\n  if (scalar @"}
+{"task_id": "go/59", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar stack []byte\n\tfor _, b := range string0 {\n\t\tif b"}
+{"task_id": "scala/32", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var binary = \"\"\n        var number = decimal\n\n        while(number > "}
+{"task_id": "javascript/72", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let total = 0;\n    for (let i = 0;"}
+{"task_id": "go/51", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar result []interface{}\n\tvar temp []string\n\tvar isPalindrome bool\n\tvar"}
+{"task_id": "kotlin/33", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (s.length < 3) {\n        return false\n    }\n"}
+{"task_id": "python/63", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if len(lst) == 0:\n        return (None, None)\n"}
+{"task_id": "java/41", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // Write your code here\n        if (dict == null) return false"}
+{"task_id": "php/46", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if($n > $m) return -1;\n    $sum ="}
+{"task_id": "csharp/17", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            return Regex.Replace(text, \"[aeiou]\", \"\"); \n        }\n\n       "}
+{"task_id": "python/13", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    for i in l:\n        for j in l:\n            if i =="}
+{"task_id": "csharp/14", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (n == 0) \n                return 0;\n           "}
+{"task_id": "kotlin/40", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var largestPrime = 0\n    var sum = 0\n   "}
+{"task_id": "csharp/35", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            return false; \n        }\n        public static void Main()\n        {\n"}
+{"task_id": "kotlin/5", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val numbersList = numbers.split(\" \")\n    val sortedList = numbersList"}
+{"task_id": "php/55", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $sum = 0;\n    $len = count($arr);\n   "}
+{"task_id": "javascript/60", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var sum = 0;\n    for (var i = 0;"}
+{"task_id": "perl/5", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @sorted_numbers = split / /, $numbers;\n  @sorted"}
+{"task_id": "csharp/54", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var comparer = new CollectionComparer<int>(new CollectionComparisonOptions\n           "}
+{"task_id": "swift/37", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var result = [(Int, Int)]()\n    for (index, row"}
+{"task_id": "go/74", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\t// write your code here\n\t//return a==b\n\t//"}
+{"task_id": "kotlin/76", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var a = a\n    var b = b\n    var c ="}
+{"task_id": "swift/74", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    for i in 1..<b.characters.count {\n        if b.hasPrefix"}
+{"task_id": "typescript/31", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (a === 0 || a === 1) return false;\n"}
+{"task_id": "javascript/45", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (x % 2 !== 0) {\n        x++;\n   "}
+{"task_id": "kotlin/66", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val xParts = x.split(\"/\")\n    val nParts = n.split(\"/\")\n"}
+{"task_id": "typescript/6", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (numbers.length < 2) {\n        throw new Error('Numbers"}
+{"task_id": "javascript/71", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let isPrime = true;\n  for (let i = 2;"}
+{"task_id": "php/66", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $x = explode('/', $x);\n    $n = explode('/', $"}
+{"task_id": "python/53", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    words = s.split()\n    selected_words = []\n    for word in words"}
+{"task_id": "typescript/9", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  if (n < 2) {\n    return false;\n  }\n "}
+{"task_id": "javascript/77", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let result = '';\n    for(let i = 0; i < s"}
+{"task_id": "python/9", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if n < 2:\n        return False\n    for i in range"}
+{"task_id": "kotlin/15", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val sortedList = l.sorted()\n    val mid = sortedList.size /"}
+{"task_id": "ruby/61", "model": "meta-llama/Meta-Llama-3-8B", "completion": " :\n    if len(txt) > 0 :\n        if txt[-1]."}
+{"task_id": "java/64", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        long result = 1;\n        for (int i = n; i"}
+{"task_id": "typescript/8", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let positive: Array<number> = [];\n    for (let i = "}
+{"task_id": "php/49", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $arr = array_values($arr);\n    $n = count($arr"}
+{"task_id": "python/60", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return sum([int(round(x)**2) for x in lst])\n"}
+{"task_id": "python/49", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return True\n"}
+{"task_id": "php/32", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return \"db\".bindec(decbin($decimal)).\"db\";\n}\n\n"}
+{"task_id": "ruby/68", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n    count = 0\n    nums.each do |num|\n        if"}
+{"task_id": "go/31", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\t// Your code here\n\t// Get all prime numbers up to 100"}
+{"task_id": "kotlin/53", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val list = mutableListOf<String>()\n    var count = 0\n    var"}
+{"task_id": "go/20", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar arr0 = []string{}\n\tvar arr1 = []string{}\n\tvar result"}
+{"task_id": "scala/50", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var lst1Even = false\n        for (i <- lst1)"}
+{"task_id": "swift/52", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var count = 0\n    var bucket = capacity\n    for row"}
+{"task_id": "perl/70", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $planets = (\"Mercury\", \"Venus\", \"Earth"}
+{"task_id": "ruby/53", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  s.split(\" \").select {|word| word.count('aeiou')"}
+{"task_id": "typescript/28", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    const counts = {};\n    lst.forEach( n => {\n        if (counts"}
+{"task_id": "kotlin/8", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var result = mutableListOf<Any>()\n    for (i in l){\n        if"}
+{"task_id": "javascript/12", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  for (let i = 0; i < l.length; i++)"}
+{"task_id": "scala/73", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val sortedExtensions = extensions.sortWith((x,y) => {\n            val"}
+{"task_id": "javascript/31", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (a <= 1) {\n        return false;\n    }\n   "}
+{"task_id": "perl/71", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $prime = 1;\n  for (my $i = "}
+{"task_id": "php/73", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $strongest = array();\n    $strength = array();\n    $alphabet"}
+{"task_id": "csharp/28", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            var result = new CompareToFactory();\n            var compare = new Compare"}
+{"task_id": "python/28", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return max(set(lst), key=lst.count) if lst.count(max(set"}
+{"task_id": "java/77", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        StringBuilder sb = new StringBuilder();\n        for (int i = 0;"}
+{"task_id": "scala/39", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var count = 0\n        var currentWord = \"\"\n        var boredom"}
+{"task_id": "java/25", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // TODO: implement me\n        return null;\n    }\n\n    /**\n    "}
+{"task_id": "scala/9", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (n <= 1) false\n        else if (n <="}
+{"task_id": "swift/57", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var a = [1.0, 3.0]\n    var"}
+{"task_id": "swift/62", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var arr = arr\n    var largestIndex = -1\n    for"}
+{"task_id": "perl/47", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my @ret;\n  for (my $i = 1; $"}
+{"task_id": "csharp/13", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            // your code here\n            return l.Where(x => l.Contains(-"}
+{"task_id": "swift/28", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var dict : [Int:Int] = [:]\n    var max = "}
+{"task_id": "ruby/38", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  lst.sort\n  if lst[0] == lst[1]\n"}
+{"task_id": "ruby/55", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  sum = 0\n  i = 0\n  while i"}
+{"task_id": "go/71", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\t// your code here\n\tvar isPrime bool\n\tfor i := 2"}
+{"task_id": "kotlin/30", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    val sum = q.sum()\n    return sum <= w && q == q"}
+{"task_id": "go/40", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar largestPrime int\n\tvar largestPrimeIndex int\n\tvar sumOfDigits int"}
+{"task_id": "java/47", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        List<Integer> result = new ArrayList<>();\n        for (int i = "}
+{"task_id": "java/0", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int balance = 0;\n        for (int i = 0;"}
+{"task_id": "javascript/24", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let sum = 0;\n    for (let i = 1;"}
+{"task_id": "javascript/6", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  let min = Math.min(...numbers);\n  let max = Math.max(..."}
+{"task_id": "python/58", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    product = 1\n    while n > 0:\n        if n"}
+{"task_id": "perl/4", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  return 0 if $a == 0 || $b == 0"}
+{"task_id": "javascript/55", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let sum = 0;\n    for (let i = 0;"}
+{"task_id": "java/22", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        List<Object> commonElements = new ArrayList<Object>();\n        for (int i"}
+{"task_id": "typescript/62", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    let i = 0;\n    let j = 1;\n    let"}
+{"task_id": "scala/47", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if(n == 1) List(1)\n        else {\n            val"}
+{"task_id": "csharp/78", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n            if (text == null)\n                return null;\n            if (string"}
+{"task_id": "perl/1", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $sum = 0;\n  my $product = 1;\n"}
+{"task_id": "ruby/34", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n    grades.each do |grade|\n        if grade >= 4.0"}
+{"task_id": "php/65", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $primeWords = [];\n    $words = explode(' ', $sentence);\n"}
+{"task_id": "go/41", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar keys = make([]string, 0)\n\tfor k := range dict {\n"}
+{"task_id": "ruby/69", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  n = n - 1\n  (1..n).map"}
+{"task_id": "java/2", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        StringBuilder res = new StringBuilder();\n        int length = Math.max(a.length(),"}
+{"task_id": "typescript/14", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    const fib4 = new Array<number>(n + 1);\n    fib"}
+{"task_id": "swift/2", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var a = a\n    var b = b\n    var result ="}
+{"task_id": "php/69", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $count = 0;\n    $a = [];\n\n    for ($i"}
+{"task_id": "ruby/73", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n  extensions = extensions.sort\n  extensions.each do |extension|\n    if"}
+{"task_id": "swift/24", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var sum = 0\n    for i in 1...n {\n"}
+{"task_id": "go/29", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar result float64\n\tif (a+b)>c && (a+c)>"}
+{"task_id": "scala/13", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        l.foldLeft((List[Int](), false))((acc, curr)"}
+{"task_id": "java/62", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        int i = 0;\n        int j = 1;\n        int"}
+{"task_id": "php/0", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $balance = 0;\n    foreach ($operations as $operation){\n       "}
+{"task_id": "typescript/53", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    if (s === \"\") {\n        return [];\n    }\n    const words ="}
+{"task_id": "swift/60", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var sum = 0\n    for i in lst {\n        sum +="}
+{"task_id": "kotlin/23", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var maxFactor = 1\n    var i = 2\n   "}
+{"task_id": "perl/19", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  return $x + $y;\n}\n\nprint add(2, 3"}
+{"task_id": "java/67", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        // your code here\n        List<Integer> list = new ArrayList<>();\n       "}
+{"task_id": "swift/71", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var primeNumber = true\n    for i in 2...n {\n"}
+{"task_id": "scala/48", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        val palindromes = for (i <- 1 to n if"}
+{"task_id": "go/4", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tif a == 0 {\n\t\treturn b\n\t}\n\tif b == "}
+{"task_id": "perl/18", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $flag = 1;\n  for (my $i=0"}
+{"task_id": "java/20", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        if (s0.length() != s1.length()) {\n            return false"}
+{"task_id": "scala/20", "model": "meta-llama/Meta-Llama-3-8B", "completion": "        var c0 = s0.toList\n        var c1 = s1"}
+{"task_id": "swift/76", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    return a*a + b*b == c*c\n}\n"}
+{"task_id": "kotlin/26", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    // your code goes here\n    if (n <= 1) {\n"}
+{"task_id": "kotlin/72", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    var sum = 0\n    for (i in lst) {\n       "}
+{"task_id": "php/25", "model": "meta-llama/Meta-Llama-3-8B", "completion": "    $result = [];\n    foreach ($xs as $index => $x)"}
+{"task_id": "swift/10", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  var result : [Int] = []\n  var i = 0\n"}
+{"task_id": "ruby/48", "model": "meta-llama/Meta-Llama-3-8B", "completion": " \n    even = 0\n    odd = 0\n    i ="}
+{"task_id": "go/28", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar m = make(map[int]int)\n\tfor _, v := range lst {\n\t"}
+{"task_id": "perl/55", "model": "meta-llama/Meta-Llama-3-8B", "completion": "  my $sum = 0;\n\n  for my $i (0.."}
+{"task_id": "go/8", "model": "meta-llama/Meta-Llama-3-8B", "completion": "\tvar positiveNumbers []int\n\tfor _, number := range l {\n\t\tif number"}
