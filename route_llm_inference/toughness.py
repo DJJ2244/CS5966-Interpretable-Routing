@@ -26,7 +26,7 @@ def record_toughness(split: str = "train", output_dir: str = "route_llm_results"
     with open(output_path, "w") as out:
         for i, problem in enumerate(load(split=split)):
             score = router.calculate_strong_win_rate(problem.prompt)
-            record = {"task_id": problem.task_id, "score": score}
+            record = {"task_id": problem.task_id, "score": float(score)}
             out.write(json.dumps(record) + "\n")
             out.flush()
             print(f"[{i + 1}] {problem.task_id} -> {score:.4f}")
