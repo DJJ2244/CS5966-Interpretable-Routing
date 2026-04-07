@@ -14,8 +14,7 @@
 set -e
 
 # ── Environment ───────────────────────────────────────────────────────────────
-module load cuda/13.0                    # adjust to CHPC's available version
-module load python/3.11                  # vllm doesn't support 3.13 well
+module load python/3.13.5
 
 # Point HuggingFace cache to scratch so model weights persist between jobs
 export HF_HOME=/scratch/YOUR_UNAME/hf_cache
