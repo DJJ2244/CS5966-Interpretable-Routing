@@ -41,8 +41,8 @@ python experiment.py up --weak-gpu 0 --strong-gpu 1 --detach
 echo "Running inference..."
 python experiment.py inference --model all --split all
 
-echo "Running routing..."
-python experiment.py route --split all
+# echo "Running routing..."
+# python experiment.py route --split all
 
 echo "Running toughness..."
 python experiment.py toughness --split all
@@ -50,6 +50,6 @@ python experiment.py toughness --split all
 # ── Activations ───────────────────────────────────────────────────────────────
 # Stop servers first to free VRAM before TransformerLens loads full models
 python experiment.py down
-python _activations_extraction/extractActivation.py
+# python _activations_extraction/extractActivation.py
 
 echo "Done."
