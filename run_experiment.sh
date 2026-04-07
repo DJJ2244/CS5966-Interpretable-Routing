@@ -19,6 +19,7 @@ module load python/3.13.5
 # Point HuggingFace cache to scratch so model weights persist between jobs
 export HF_HOME=/scratch/$USER/hf_cache
 export TRANSFORMERS_CACHE=$HF_HOME
+export HF_TOKEN_PATH=$HOME/.cache/huggingface/token
 
 cd $SLURM_SUBMIT_DIR
 source .venv/bin/activate
