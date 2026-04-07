@@ -97,6 +97,7 @@ def _vllm_cmd(model: str, port: int) -> list:
         "--dtype",         "float16",
         "--port",          str(port),
         "--max-model-len", "4096",
+        "--enforce-eager",
     ]
 
 
