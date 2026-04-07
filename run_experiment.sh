@@ -10,10 +10,12 @@
 #SBATCH --account=cs6966
 #SBATCH --qos=granite-gpu-guest
 #SBATCH --partition=granite-gpu-guest
+#SBATCH --gres=gpu:2
 
 set -e
 
 # ── Environment ───────────────────────────────────────────────────────────────
+module load cuda
 module load python/3.13.5
 
 # Point HuggingFace cache to scratch so model weights persist between jobs
