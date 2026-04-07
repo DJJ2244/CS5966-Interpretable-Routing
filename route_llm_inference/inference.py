@@ -30,6 +30,7 @@ def run_inference(problems, create_fn, model_str, output_path, total=None):
                 model=model_str,
                 prompt=problem.prompt,
                 max_tokens=2048,
+                temperature=0,
             )
             record = {
                 "task_id":    problem.task_id,
