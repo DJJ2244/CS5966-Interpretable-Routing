@@ -1,7 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=interp-routing
-#SBATCH --account=YOUR_ACCOUNT
-#SBATCH --partition=gpu
+#SBATCH --account=cs6966
+#SBATCH --qos=granite-gpu-guest
+#SBATCH --partition=granite-gpu-guest
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
