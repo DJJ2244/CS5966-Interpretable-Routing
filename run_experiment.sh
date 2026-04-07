@@ -35,7 +35,7 @@ trap cleanup EXIT
 # Blocks until both servers are healthy, then returns
 mkdir -p logs/slurm
 echo "Starting servers..."
-python experiment.py up --weak-gpu 0 --strong-gpu 0 --detach
+python experiment.py up --weak-gpu 0 --strong-gpu 1 --detach
 
 # ── Experiment ────────────────────────────────────────────────────────────────
 echo "Running inference..."
