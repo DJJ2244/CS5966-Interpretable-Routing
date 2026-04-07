@@ -3,6 +3,8 @@ litellm
 python-dotenv
 torch
 transformers
+transformer_lens
+huggingface_hub
 docker
 vllm>=0.4.0
 typer>=0.9.0
