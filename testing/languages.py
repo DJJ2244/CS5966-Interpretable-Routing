@@ -100,8 +100,16 @@ LANGUAGES: dict[str, dict] = {
     "typescript": {
         "image":     "node:20-alpine",
         "filename":  "solution.ts",
-        "setup_cmd": "npm install --silent ts-node typescript @types/node @types/assert",
-        "run_cmd":   "npx ts-node solution.ts",
+        # After npm install, overwrite package.json to force CommonJS so Node
+        # doesn't treat .ts files as ESM before ts-node can intercept them.
+        "setup_cmd": (
+            "npm install --silent ts-node typescript @types/node @types/assert "
+            "&& echo '{\"type\":\"commonjs\"}' > /tmp/package.json"
+        ),
+        # --transpile-only skips type checking.
+        # --skip-project avoids the default tsconfig whose moduleResolution=node10
+        # is deprecated in TS 6+ and conflicts with --module settings.
+        "run_cmd":   "npx ts-node --transpile-only --skip-project solution.ts",
         "assemble":  _brace,
     },
     "go": {
@@ -112,7 +120,9 @@ LANGUAGES: dict[str, dict] = {
         "assemble":  _brace,
     },
     "kotlin": {
-        "image":     "eclipse-temurin:21-jdk-jammy",
+        # JDK 17 avoids the module-info corruption error that apt's kotlinc
+        # hits on JDK 21 (-Xverify:none was removed in JDK 13+).
+        "image":     "eclipse-temurin:17-jdk-jammy",
         "filename":  "solution.kt",
         "setup_cmd": "apt-get update -qq && apt-get install -yqq kotlin",
         "run_cmd":   "kotlinc solution.kt -include-runtime -d solution.jar && java -jar solution.jar",
@@ -120,7 +130,9 @@ LANGUAGES: dict[str, dict] = {
         "mem_limit": "1g",
     },
     "scala": {
-        "image":     "eclipse-temurin:21-jdk-jammy",
+        # Scala 2 (apt) requires tools.jar which was removed in JDK 9.
+        # JDK 11 is the last LTS that ships tools.jar.
+        "image":     "eclipse-temurin:11-jdk-jammy",
         "filename":  "solution.scala",
         "setup_cmd": "apt-get update -qq && apt-get install -yqq scala",
         "run_cmd":   "scala solution.scala",
@@ -151,7 +163,13 @@ LANGUAGES: dict[str, dict] = {
     "perl": {
         "image":     "perl:5.38-slim",
         "filename":  "solution.pl",
-        "setup_cmd": "cpanm --notest Data::Compare",
+        # Install deps explicitly before Data::Compare; --force ensures
+        # installation proceeds even if tests fail (common for XS modules
+        # on this platform). apt deps provide the C toolchain for XS.
+        "setup_cmd": (
+            "apt-get update -qq && apt-get install -yqq build-essential "
+            "&& cpanm --notest --force Clone File::Find::Rule Data::Compare"
+        ),
         "run_cmd":   "perl solution.pl",
         "assemble":  _perl,
     },

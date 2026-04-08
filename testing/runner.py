@@ -73,7 +73,8 @@ def extract_code(completion: str) -> str:
     match = re.search(r"```(?:\w+)?\n(.*?)```", completion, re.DOTALL)
     if match:
         return match.group(1).strip()
-    return completion.strip()
+    # rstrip only: preserve leading whitespace (e.g. 4-space indent on Python bodies)
+    return completion.rstrip()
 
 
 def _write_file_to_container(container, filename: str, source: str) -> None:
@@ -151,10 +152,13 @@ def _start_container(lang: str, config: dict):
         return None, str(e)
 
     if config["setup_cmd"]:
-        result = container.exec_run(["sh", "-c", config["setup_cmd"]], workdir="/tmp")
+        result = container.exec_run(
+            ["sh", "-c", config["setup_cmd"]], workdir="/tmp",
+        )
         if result.exit_code != 0:
-            warning = result.output.decode().strip()[:300]
-            return container, f"setup warning:\n{warning}"
+            output = result.output.decode(errors="replace").strip()
+            tqdm.write(f"  {lang:<14} ✗ setup FAILED (exit {result.exit_code}):\n{output[:400]}")
+            return None, f"setup failed (exit {result.exit_code})"
 
     return container, None
 
@@ -242,7 +246,7 @@ def _run_language(lang: str, records: list, container,
 # ---------------------------------------------------------------------------
 
 def run_tests(results_path: Path) -> None:
-    problems = {p.task_id: p for p in dataset.load(split="test")}
+    problems = {p.task_id: p for p in dataset.load(split="all")}
 
     by_lang: dict[str, list] = defaultdict(list)
     with open(results_path) as f:
