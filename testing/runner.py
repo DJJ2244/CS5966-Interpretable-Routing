@@ -245,7 +245,7 @@ def _run_language(lang: str, records: list, container,
 # Main entry point
 # ---------------------------------------------------------------------------
 
-def run_tests(results_path: Path) -> None:
+def run_tests(results_path: Path, model: str) -> None:
     problems = {p.task_id: p for p in dataset.load(split="all")}
 
     by_lang: dict[str, list] = defaultdict(list)
@@ -304,7 +304,7 @@ def run_tests(results_path: Path) -> None:
 
     # ── Phase 2: evaluate with per-language progress bars ───────────────────
     print("── Evaluating ──────────────────────────────────────────")
-    testing_results_path = results_path.parent / "testing_results.jsonl"
+    testing_results_path = results_path.parent / ("testing_results_" + model + ".jsonl")
     log_dir = results_path.parent / "logs"
     log_dir.mkdir(exist_ok=True)
     write_lock = threading.Lock()

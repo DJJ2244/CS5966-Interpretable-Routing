@@ -107,10 +107,13 @@ def toughness(
 @app.command()
 def test(
     results: Annotated[Path, typer.Option("--results", help="Path to inference results .jsonl")],
+    result_name: Annotated[str, typer.Option("--name", help="Value to append to the results file")]
 ) -> None:
+    if result_name == None:
+        result_name = ""
     """Evaluate inference results against test cases using Docker."""
     from testing.runner import run_tests
-    run_tests(results)
+    run_tests(results, result_name)
 
 
 @app.command()
