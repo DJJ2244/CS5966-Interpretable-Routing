@@ -9,8 +9,6 @@ logs/
 # Large binary files — transfer separately from cluster
 activations/
 sae_output/
-mlp_output/
-*.pt
 *.safetensors
 
 # Generated outputs
