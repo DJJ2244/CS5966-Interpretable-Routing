@@ -14,8 +14,9 @@ Experiment commands (require servers to be up):
   python experiment.py run-all
 
 Utility:
-  python experiment.py split          Regenerate train/test data split
-  python experiment.py to-csv <file>  Convert a JSONL file to CSV
+  python experiment.py split              Regenerate train/test data split
+  python experiment.py to-csv <file>      Convert a JSONL file to CSV
+  python experiment.py filter <file>      Filter a JSONL to train or test task IDs
 """
 
 from dotenv import load_dotenv
@@ -167,6 +168,18 @@ def to_csv(
     from util.jsonl_to_csv import jsonl_to_csv
     cols = [c.strip() for c in columns.split(",")] if columns else None
     out = jsonl_to_csv(input_file, output_file, columns=cols)
+    typer.echo(f"Wrote {out}")
+
+
+@app.command()
+def filter(
+    source_file: Annotated[Path, typer.Argument(help="Path to the source .jsonl file")],
+    split:       Annotated[str,  typer.Argument(help="train | test")],
+    output_dir:  Annotated[Path, typer.Option("--output-dir", "-o", help="Directory to write filtered file")] = Path("route_llm_results"),
+) -> None:
+    """Filter a JSONL file to only records whose task_id belongs to the train or test split."""
+    from util.filter_to_test_or_train import filter_to_split
+    out = filter_to_split(source_file, split, output_dir)
     typer.echo(f"Wrote {out}")
 
 
