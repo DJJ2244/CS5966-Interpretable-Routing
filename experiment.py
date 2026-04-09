@@ -14,7 +14,8 @@ Experiment commands (require servers to be up):
   python experiment.py run-all
 
 Utility:
-  python experiment.py split     Regenerate train/test data split
+  python experiment.py split          Regenerate train/test data split
+  python experiment.py to-csv <file>  Convert a JSONL file to CSV
 """
 
 from dotenv import load_dotenv
@@ -154,6 +155,19 @@ def split() -> None:
     """Regenerate the stratified train/test data split."""
     from util.split import split as _split
     _split()
+
+
+@app.command()
+def to_csv(
+    input_file: Annotated[Path, typer.Argument(help="Path to the .jsonl file to convert")],
+    output_file: Annotated[Path, typer.Option("--output", "-o", help="Output CSV path (default: same name as input with .csv extension)")] = None,
+    columns: Annotated[str, typer.Option("--columns", "-c", help="Comma-separated list of columns to include (default: all)")] = None,
+) -> None:
+    """Convert a JSONL file to CSV."""
+    from util.jsonl_to_csv import jsonl_to_csv
+    cols = [c.strip() for c in columns.split(",")] if columns else None
+    out = jsonl_to_csv(input_file, output_file, columns=cols)
+    typer.echo(f"Wrote {out}")
 
 
 if __name__ == "__main__":
