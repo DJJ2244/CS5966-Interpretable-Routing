@@ -13,7 +13,7 @@ MODELS = {
 OUTPUT_DIR = "activations"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-DATA_PATH = Path("data/humaneval_xl_english.jsonl")
+DATA_PATH  = Path("data/humaneval_xl_english_train.jsonl")
 
 # ── Load Dataset ──────────────────────────────────────────
 problems = []
