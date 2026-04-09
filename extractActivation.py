@@ -13,16 +13,15 @@ MODELS = {
 OUTPUT_DIR = "activations"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-DATA_PATH = Path("data/humaneval_xl_english_train.jsonl")
+DATA_PATH = Path("data/humaneval_xl_english.jsonl")
 
 # ── Load Dataset ──────────────────────────────────────────
 problems = []
 with open(DATA_PATH) as f:
     for line in f:
         rec = json.loads(line.strip())
-        if rec.get("programming_language", "python") == "python":
-            problems.append((rec["task_id"], rec["prompt"]))
-print(f"Loaded {len(problems)} Python problems from {DATA_PATH}")
+        problems.append((rec["task_id"], rec["prompt"]))
+print(f"Loaded {len(problems)} problems from {DATA_PATH}")
 
 
 # ── Extraction Function ───────────────────────────────────
@@ -97,12 +96,10 @@ def extract_activations(model_name, model_key, problems):
     return activation_matrix
 
 
-# ── Run for Both Models ───────────────────────────────────
-for model_key, model_name in MODELS.items():
-    extract_activations(model_name, model_key, problems)
+# ── Run for Weak Model Only ───────────────────────────────
+extract_activations(MODELS["weak"], "weak", problems)
 
 print("\nDone. Files saved:")
-for model_key in MODELS:
-    path = f"{OUTPUT_DIR}/{model_key}_activations.pt"
-    data = torch.load(path)
-    print(f"  {path}: activations={data['activations'].shape}, ids={len(data['task_ids'])}")
+path = f"{OUTPUT_DIR}/weak_activations.pt"
+data = torch.load(path)
+print(f"  {path}: activations={data['activations'].shape}, ids={len(data['task_ids'])}")
