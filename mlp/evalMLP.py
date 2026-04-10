@@ -13,9 +13,12 @@ import json
 import torch
 import torch.nn as nn
 
-FEATURES_PATH = "activations/weak_sae_features_test.pt"
-LABELS_PATH   = "testing_results_weak_test.jsonl"
-MODEL_PATH    = "mlp_output/weak_mlp.pt"
+MODEL_KEY     = "weak"   # weak | strong
+SPLIT_KEY     = "test"   # train | test
+
+FEATURES_PATH = f"activations/activations_{SPLIT_KEY}_{MODEL_KEY}_sparse.pt"
+LABELS_PATH   = f"route_llm_results/testing_results_{MODEL_KEY}_{SPLIT_KEY}.jsonl"
+MODEL_PATH    = f"mlp_output/mlp_train_{MODEL_KEY}.pt"
 HIDDEN_DIM    = 256
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
