@@ -80,16 +80,28 @@ class Router:
 
     def route(self, prompt: str) -> dict:
         """Route a single prompt. Returns dict with decision and confidence."""
-        # Step 1: residual stream activation (LLM on GPU)
+        # Step 1: residual stream activation — early exit after target layer
         tokens = self.lm.to_tokens(prompt, truncate=True)
+
+        class _EarlyStop(Exception):
+            pass
+
+        captured = {}
+
+        def _hook(value, _hook):
+            captured["act"] = value
+            raise _EarlyStop()
+
         with torch.no_grad():
-            _, cache = self.lm.run_with_cache(
-                tokens,
-                names_filter=f"blocks.{self.layer}.hook_resid_post"
-            )
-        residual = cache[f"blocks.{self.layer}.hook_resid_post"]
-        activation = residual.mean(dim=1).squeeze(0).float().cpu()  # [d_model] — move to CPU
-        del cache
+            try:
+                self.lm.run_with_hooks(
+                    tokens,
+                    fwd_hooks=[(f"blocks.{self.layer}.hook_resid_post", _hook)],
+                )
+            except _EarlyStop:
+                pass
+
+        activation = captured["act"].mean(dim=1).squeeze(0).float().cpu()  # [d_model]
 
         # Free LLM from GPU so SAE fits
         self.lm.to("cpu")
@@ -148,6 +160,7 @@ def main():
         print(f"Decision : {result['routed_to'].upper()}")
         print(f"Logit    : {result['logit']}")
         print(f"Confidence (weak): {result['confidence']:.1%}")
+        print(f"\nFull result: {json.dumps(result, indent=2)}")
 
     elif args.file:
         prompt = args.file.read_text()
