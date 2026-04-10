@@ -16,8 +16,11 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
 # ── Config ────────────────────────────────────────────────
-FEATURES_PATH  = "activations/weak_sae_features.pt"
-LABELS_PATH    = "testing_results_weak_train.jsonl"
+MODEL_KEY      = "weak"   # weak | strong
+SPLIT_KEY      = "train"  # train | test
+
+FEATURES_PATH  = f"activations/activations_{SPLIT_KEY}_{MODEL_KEY}_sparse.pt"
+LABELS_PATH    = f"route_llm_results/testing_results_{MODEL_KEY}_{SPLIT_KEY}.jsonl"
 OUTPUT_DIR     = "mlp_output"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -118,7 +121,7 @@ def train():
                 acc    = (preds == dataset.y).float().mean().item()
             print(f"  Epoch {epoch:3d} | loss: {total_loss/len(loader):.4f} | train acc: {acc:.3f}")
 
-    save_path = os.path.join(OUTPUT_DIR, "weak_mlp.pt")
+    save_path = os.path.join(OUTPUT_DIR, f"mlp_{SPLIT_KEY}_{MODEL_KEY}.pt")
     torch.save(model.state_dict(), save_path)
     print(f"\nSaved → {save_path}")
 
