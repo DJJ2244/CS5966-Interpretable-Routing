@@ -88,7 +88,7 @@ class Router:
 
         captured = {}
 
-        def _hook(value, _hook):
+        def _hook(value, hook=None):
             captured["act"] = value
             raise _EarlyStop()
 
