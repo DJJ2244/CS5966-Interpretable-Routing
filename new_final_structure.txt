@@ -32,6 +32,8 @@ jobs/
     run_calculate_sae_router_choices.sh
     run_calculate_route_llm_choices.sh
     run_calculate_result_stats.sh
+eval/
+    evaluate_results.py
 cli.py
 requirements.txt
 
