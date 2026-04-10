@@ -1,1 +1,13 @@
+MOVE ALL CONNECTIONS INTO DAOS! NOTHING SHOULD HAVE ANY DB LOGIC OTHER THAN THE DAOS
+
 Code Review Assignments:
+Samir:
+jobs/
+mlp/
+sae/
+
+Dawson:
+daos/
+route_llm/
+util/
+cli.py
