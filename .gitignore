@@ -6,10 +6,13 @@ logs/
 .DS_Store
 .session.json
 
-# Large binary files — transfer separately from cluster
+# Stateful outputs
 activations/
 sae_output/
+mlp_output/
+data/routing.db
 *.safetensors
+*.pt
 
 # Generated outputs
 output/
