@@ -1,3 +1,10 @@
+# Overview
+This is a pipeline for a machine learning project. the main entry point will be through cli.py which will act as a CLI which opens up all of the necessary commands. Some but not all of the commands will be used by .sh files which will be used in jobs files used in SLURM.
+
+## Database
+- sqlite
+- init database creates the sqlite file
+
 ## DAOs
 
 DAOs are the only layer that constructs queries or reads raw database results. No business logic, service, or controller should touch a raw row — only domain objects returned by a DAO.
