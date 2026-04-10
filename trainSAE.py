@@ -6,6 +6,8 @@ Trains one SAE per model, saving results to sae_output/<model_key>/
 """
 
 import os
+import shutil
+import glob
 import argparse
 from sae_lens import LanguageModelSAERunnerConfig, LanguageModelSAETrainingRunner, StandardTrainingSAEConfig
 
@@ -75,7 +77,25 @@ def train_sae(model_key: str):
     runner = LanguageModelSAETrainingRunner(runner_cfg)
     runner.run()
 
-    print(f"\nDone. SAE saved to {os.path.join(OUTPUT_DIR, model_key)}")
+    # ── Copy to consistent named paths ─────────────────────
+    run_dirs = sorted(
+        glob.glob(os.path.join(OUTPUT_DIR, model_key, "*", "final_*")),
+        key=os.path.getmtime,
+        reverse=True,
+    )
+    if run_dirs:
+        src         = run_dirs[0]
+        weights_dst = os.path.join(OUTPUT_DIR, f"sae_train_{model_key}_weights")
+        cfg_dst     = os.path.join(OUTPUT_DIR, f"cfg_train_{model_key}.json")
+        if os.path.exists(weights_dst):
+            shutil.rmtree(weights_dst)
+        shutil.copytree(src, weights_dst)
+        shutil.copy2(os.path.join(src, "cfg.json"), cfg_dst)
+        print(f"\nDone.")
+        print(f"  Weights → {weights_dst}")
+        print(f"  Config  → {cfg_dst}")
+    else:
+        print(f"\nDone. SAE saved to {os.path.join(OUTPUT_DIR, model_key)}")
 
 
 if __name__ == "__main__":
