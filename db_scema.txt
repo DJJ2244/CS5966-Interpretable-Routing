@@ -1,0 +1,40 @@
+tasks (based off of human_xl_english.jsonl)
+    - id
+    - prompt
+    - entry_point
+    - test
+    - description
+    - language
+    - canonical_solution
+    - natural_language
+    - programming_language
+
+split
+    - id (auto increment)
+    - name
+
+model
+    - id (auto increment)
+    - model_string
+
+task_split
+    - split_id
+    - task_id
+    - is_test
+
+model_task_result
+    - task_id
+    - model_id
+    - result
+    - run_millis
+    - extracted_code
+    - passed
+
+runs
+    - id (auto_increment)
+    - weak_model_id
+    - strong_model_id
+    - split_id
+    - route_llm_threshold
+    - created_at
+
