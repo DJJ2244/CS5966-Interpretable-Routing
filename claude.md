@@ -21,3 +21,15 @@ DAOs are the only layer that constructs queries or reads raw database results. N
 **Logic**
 - DAOs only contain database related logic
 - DAOs are the only place where queries are ran on the datbase
+
+## Jobs
+Inference
+Test Model Code
+Calculate Route LLM Threshold
+Extract Activations
+Train SAE
+Extract Sparse Feature Vectors
+Train MLP
+Calculate Our Router Choices
+Calculate Route LLM Choices
+Calculate Result Stats
