@@ -13,10 +13,6 @@ split
     - id (auto increment)
     - name
 
-model
-    - id (auto increment)
-    - model_string
-
 task_split
     - split_id
     - task_id
