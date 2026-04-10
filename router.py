@@ -174,6 +174,7 @@ def main():
         print(f"\nWrote {len(results)} decisions → {args.output}")
         print(f"  Weak:   {to_weak} ({to_weak/len(results):.1%})")
         print(f"  Strong: {to_strong} ({to_strong/len(results):.1%})")
+        print(f"\nFirst result: {json.dumps(results[0], indent=2)}")
 
 
 if __name__ == "__main__":
