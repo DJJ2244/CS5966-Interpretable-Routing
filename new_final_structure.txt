@@ -1,0 +1,45 @@
+# packages
+util/
+    database_connection_util.py
+    database_util.py # contains init db command which also creates and initial split
+    tensor_util.py
+    model_util.py
+    unit_test_util.py
+    smart_file_util.py
+daos/
+    tasks_dao.py
+    split_dao.py
+    model_dao.py
+    task_split_dao.py
+    model_task_result_dao.py
+    runs_dao.py
+route_llm/
+    toughness.py
+    calculate_threshold.py
+sae/
+    train_sae.py 
+    extract_spv.py
+mlp/
+    mlp_train.py
+    eval_mlp.py
+jobs/
+    run_inference.sh
+    run_test_model_code.sh
+    run_calculate_route_llm_threshold.sh
+    run_extract_activations.sh
+    run_train_sae.sh
+    run_train_mlp.sh
+    run_calculate_sae_router_choices.sh
+    run_calculate_route_llm_choices.sh
+    run_calculate_result_stats.sh
+cli.py
+requirements.txt
+
+# .gitingore-d stateful directories for files like .pt, json, etc…
+activations/
+    activations_<split id>_<model id>.pt     #dense feature vector of activations
+sae_output/
+        sae_<split id>_<model id>_weights.safetensors.pt           #trained sae weights for inference
+        cfg_<split id>_<model id>.json           #sae architecture and hyperparams for reconstruction 
+mlp_output/
+   mlp_<split id>_<model id>.pt            #trained mlp weights for inference
