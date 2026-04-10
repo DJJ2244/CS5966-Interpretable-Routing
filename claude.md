@@ -20,7 +20,8 @@ DAOs are the only layer that constructs queries or reads raw database results. N
 
 **Logic**
 - DAOs only contain database related logic
-- DAOs are the only place where queries are ran on the datbase
+- DAOs are the only place where queries are ran on the database
+- No SQL (conn.execute, executemany, etc.) outside of daos/ — the exception is DDL and seeding in database_util.py
 
 ## Jobs
 Inference
