@@ -33,7 +33,7 @@ jobs/
     run_calculate_route_llm_choices.sh
     run_calculate_result_stats.sh
 eval/
-    evaluate_results.py
+    evaluate_results.py # pareto frontier analysis with accuracy across effiency for two router test choices. 
 cli.py
 requirements.txt
 
