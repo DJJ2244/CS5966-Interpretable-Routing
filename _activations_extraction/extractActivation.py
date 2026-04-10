@@ -10,10 +10,12 @@ MODELS = {
     "strong": "meta-llama/Meta-Llama-3-8B",
 }
 
-OUTPUT_DIR = "activations"
+OUTPUT_DIR  = "activations"
+MODEL_KEY   = "weak"   # weak | strong
+SPLIT_KEY   = "train"  # train | test
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-DATA_PATH  = Path("data/humaneval_xl_english_train.jsonl")
+DATA_PATH  = Path(f"data/humaneval_xl_english_{SPLIT_KEY}.jsonl")
 
 # ── Load Dataset ──────────────────────────────────────────
 problems = []
@@ -85,7 +87,7 @@ def extract_activations(model_name, model_key, problems):
     activation_matrix = torch.stack(all_vectors)
 
     # Save both the tensor and ordered task IDs together
-    save_path = os.path.join(OUTPUT_DIR, f"{model_key}_activations.pt")
+    save_path = os.path.join(OUTPUT_DIR, f"activations_{SPLIT_KEY}_{model_key}.pt")
     torch.save({"task_ids": task_ids, "activations": activation_matrix}, save_path)
     print(f"Saved {activation_matrix.shape} + {len(task_ids)} task IDs → {save_path}")
 
@@ -96,10 +98,10 @@ def extract_activations(model_name, model_key, problems):
     return activation_matrix
 
 
-# ── Run for Weak Model Only ───────────────────────────────
-extract_activations(MODELS["weak"], "weak", problems)
+# ── Run for configured model and split ───────────────────
+extract_activations(MODELS[MODEL_KEY], MODEL_KEY, problems)
 
 print("\nDone. Files saved:")
-path = f"{OUTPUT_DIR}/weak_activations.pt"
+path = f"{OUTPUT_DIR}/activations_{SPLIT_KEY}_{MODEL_KEY}.pt"
 data = torch.load(path)
 print(f"  {path}: activations={data['activations'].shape}, ids={len(data['task_ids'])}")
