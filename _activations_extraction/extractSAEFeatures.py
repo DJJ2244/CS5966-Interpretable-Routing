@@ -10,9 +10,12 @@ import os
 import torch
 import argparse
 
-SAE_CHECKPOINT = "sae_output/weak/3ca7qrr9/final_5001216"
-ACTIVATIONS_IN = "activations/weak_activations.pt"
-FEATURES_OUT   = "activations/weak_sae_features.pt"
+MODEL_KEY      = "weak"   # weak | strong
+SPLIT_KEY      = "train"  # train | test
+
+SAE_CHECKPOINT = f"sae_output/sae_{SPLIT_KEY}_{MODEL_KEY}_weights"
+ACTIVATIONS_IN = f"activations/activations_{SPLIT_KEY}_{MODEL_KEY}.pt"
+FEATURES_OUT   = f"activations/activations_{SPLIT_KEY}_{MODEL_KEY}_sparse.pt"
 
 
 def extract_sae_features(sae_checkpoint: str, activations_path: str, output_path: str):
