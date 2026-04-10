@@ -1,5 +1,7 @@
 MOVE ALL CONNECTIONS INTO DAOS! NOTHING SHOULD HAVE ANY DB LOGIC OTHER THAN THE DAOS
 
+Do we need a routing.db committed to github?
+
 Code Review Assignments:
 Samir:
 jobs/
