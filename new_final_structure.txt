@@ -1,9 +1,10 @@
 # packages
 util/
+    model_util.py          # server lifecycle only (renamed from servers/manager.py)
+    inference_util.py      # run_inference(), client setup
     database_connection_util.py
     database_util.py # contains init db command which also creates and initial split
     tensor_util.py
-    model_util.py
     unit_test_util.py
     smart_file_util.py
 daos/
