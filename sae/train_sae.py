@@ -55,6 +55,7 @@ def train_sae(model_key: str, split_id: int = None, model_id: int = None) -> Non
         l1_coefficient = 5e-2,
     )
 
+    #point of optmization is maybe tokenize before training
     runner_cfg = LanguageModelSAERunnerConfig(
         sae                       = sae_cfg,
         model_name                = cfg_args["model_name"],
@@ -85,7 +86,6 @@ def train_sae(model_key: str, split_id: int = None, model_id: int = None) -> Non
     runner = LanguageModelSAETrainingRunner(runner_cfg)
     runner.run()
 
-    # Copy to canonical named paths
     run_dirs = sorted(
         glob.glob(os.path.join(OUTPUT_DIR, model_key, "*", "final_*")),
         key=os.path.getmtime,
@@ -97,11 +97,11 @@ def train_sae(model_key: str, split_id: int = None, model_id: int = None) -> Non
 
     src = run_dirs[0]
 
+    #TODO shouldn't this be done by util?
     if split_id is not None and model_id is not None:
         weights_dst = str(sae_weights_path(split_id, model_id))
         cfg_dst     = str(sae_cfg_path(split_id, model_id))
     else:
-        # Fallback: use string-keyed names for backward compatibility
         weights_dst = os.path.join(OUTPUT_DIR, f"sae_train_{model_key}_weights")
         cfg_dst     = os.path.join(OUTPUT_DIR, f"cfg_train_{model_key}.json")
 
