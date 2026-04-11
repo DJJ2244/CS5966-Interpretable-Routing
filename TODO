@@ -4,12 +4,15 @@ Do we need a routing.db committed to github?
 
 Code Review Assignments:
 Samir:
-jobs/
 mlp/
 sae/
+
 
 Dawson:
 daos/
 route_llm/
 util/
+
+Team:
+jobs/
 cli.py
