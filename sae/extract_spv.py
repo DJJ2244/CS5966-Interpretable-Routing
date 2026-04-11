@@ -11,6 +11,8 @@ Output paths follow the smart_file_util convention:
   activations/activations_<split_id>_<model_id>_sparse.pt  (sparse)
 """
 
+from asyncio import tasks
+
 import torch
 from pathlib import Path
 
@@ -20,7 +22,7 @@ MODELS = {
     "strong": "meta-llama/Meta-Llama-3-8B",
 }
 
-
+#TODO DAWSON FIX THE CONN PARAM HERE
 def extract_activations(
     model_id: int,
     split_id: int,
@@ -52,8 +54,12 @@ def extract_activations(
             raise ValueError("Provide model_key or model_name")
         model_name = MODELS[model_key]
 
+    #TODO Ask Dawson is this the proper way
     tasks = tasks_dao.get_all_for_split(conn, split_id, is_test=is_test)
-    problems = [(t.id, t.prompt) for t in tasks]
+
+    problems = []
+    for t in tasks:
+        problems.append((t.id, t.prompt))
     print(f"Loaded {len(problems)} tasks from split {split_id} ({'test' if is_test else 'train'})")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -68,6 +74,8 @@ def extract_activations(
     )
     model.eval()
 
+
+    #make sure that cfg.json contains the full num of sae layers not just the half
     num_layers   = model.cfg.n_layers
     middle_layer = num_layers // 2
     print(f"  {num_layers} layers — extracting layer {middle_layer}")
@@ -93,9 +101,6 @@ def extract_activations(
             print(f"  Failed on {task_id}: {e}")
             all_vectors.append(torch.zeros(model.cfg.d_model))
             task_ids.append(task_id)
-
-        if i % 20 == 0:
-            print(f"  {i}/{len(problems)} processed")
 
     activation_matrix = torch.stack(all_vectors)
     del model
@@ -136,7 +141,7 @@ def extract_sparse_features(
     sae = SAE.load_from_disk(sae_path, device=device)
     sae.eval()
     print(f"  d_in={sae.cfg.d_in}, d_sae={sae.cfg.d_sae}")
-
+    
     data        = tensor_util.load_activations(split_id, model_id)
     activations = data["activations"].to(device)
     task_ids    = data["task_ids"]
