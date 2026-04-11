@@ -1,6 +1,8 @@
 import sqlite3
 from dataclasses import dataclass
 
+from util.database_connection_util import get_connection
+
 
 TABLE = "task_split"
 F_SPLIT_ID = TABLE + ".split_id"
@@ -27,25 +29,32 @@ def _map(row: sqlite3.Row) -> TaskSplit:
     )
 
 
-def bulk_insert(conn: sqlite3.Connection, rows: list[TaskSplit]) -> None:
-    conn.executemany(
-        f"""
-        INSERT OR IGNORE INTO {TABLE}
-            ({_col(F_SPLIT_ID)}, {_col(F_TASK_ID)}, {_col(F_IS_TEST)})
-        VALUES (?, ?, ?)
-        """,
-        [(r.split_id, r.task_id, 1 if r.is_test else 0) for r in rows],
-    )
+def bulk_insert(rows: list[TaskSplit]) -> None:
+    conn = get_connection()
+    try:
+        conn.executemany(
+            f"""
+            INSERT OR IGNORE INTO {TABLE}
+                ({_col(F_SPLIT_ID)}, {_col(F_TASK_ID)}, {_col(F_IS_TEST)})
+            VALUES (?, ?, ?)
+            """,
+            [(r.split_id, r.task_id, 1 if r.is_test else 0) for r in rows],
+        )
+        conn.commit()
+    finally:
+        conn.close()
 
 
-def get_task_ids_for_split(
-    conn: sqlite3.Connection, split_id: int, is_test: bool
-) -> list[str]:
-    rows = conn.execute(
-        f"""
-        SELECT {F_TASK_ID} FROM {TABLE}
-        WHERE {F_SPLIT_ID} = ? AND {F_IS_TEST} = ?
-        """,
-        (split_id, 1 if is_test else 0),
-    ).fetchall()
-    return [r[_col(F_TASK_ID)] for r in rows]
+def get_task_ids_for_split(split_id: int, is_test: bool) -> list[str]:
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            f"""
+            SELECT {F_TASK_ID} FROM {TABLE}
+            WHERE {F_SPLIT_ID} = ? AND {F_IS_TEST} = ?
+            """,
+            (split_id, 1 if is_test else 0),
+        ).fetchall()
+        return [r[_col(F_TASK_ID)] for r in rows]
+    finally:
+        conn.close()

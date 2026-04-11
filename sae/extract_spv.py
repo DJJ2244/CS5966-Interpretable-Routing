@@ -22,12 +22,10 @@ MODELS = {
     "strong": "meta-llama/Meta-Llama-3-8B",
 }
 
-#TODO DAWSON FIX THE CONN PARAM HERE
 def extract_activations(
     model_id: int,
     split_id: int,
     is_test: bool,
-    conn,
     model_key: str = None,
     model_name: str = None,
 ) -> Path:
@@ -37,7 +35,6 @@ def extract_activations(
         model_id:   DB model id (used for output path naming).
         split_id:   DB split id (used for output path naming and task loading).
         is_test:    Whether to extract from the test partition.
-        conn:       Open DB connection for loading tasks.
         model_key:  "weak" or "strong" — used to look up model_name if not provided.
         model_name: HuggingFace model identifier. Overrides model_key lookup.
 
@@ -54,8 +51,7 @@ def extract_activations(
             raise ValueError("Provide model_key or model_name")
         model_name = MODELS[model_key]
 
-    #TODO Ask Dawson is this the proper way
-    tasks = tasks_dao.get_all_for_split(conn, split_id, is_test=is_test)
+    tasks = tasks_dao.get_all_for_split(split_id, is_test=is_test)
 
     problems = []
     for t in tasks:
@@ -167,7 +163,6 @@ def run(
     split_id: int,
     model_id: int,
     is_test: bool,
-    conn,
     sae_path: str = None,
 ) -> None:
     """Full pipeline: extract activations then encode through SAE."""
@@ -175,7 +170,6 @@ def run(
         model_id=model_id,
         split_id=split_id,
         is_test=is_test,
-        conn=conn,
         model_key=model_key,
     )
     extract_sparse_features(

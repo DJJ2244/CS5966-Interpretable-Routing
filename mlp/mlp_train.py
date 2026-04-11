@@ -20,12 +20,12 @@ SEED       = 42
 
 
 class SAEDataset(Dataset):
-    def __init__(self, split_id: int, model_id: int, conn):
+    def __init__(self, split_id: int, model_id: int):
         from daos import model_task_result_dao
 
         features_dict = tensor_util.load_features(split_id, model_id)
         labels        = model_task_result_dao.get_all_for_model_split(
-            conn, model_id, split_id, is_test=False
+            model_id, split_id, is_test=False
         )
 
         self.X, self.y, self.ids = tensor_util.align_features_with_labels(
@@ -43,18 +43,17 @@ class SAEDataset(Dataset):
         return self.X[idx], self.y[idx]
 
 
-def train_mlp(split_id: int, model_id: int, conn) -> None:
+def train_mlp(split_id: int, model_id: int) -> None:
     """Train an MLP router for the given split/model pair.
 
     Args:
         split_id: DB split id (selects the training partition).
         model_id: DB model id (selects which model's features + results to use).
-        conn:     Open DB connection.
     """
     torch.manual_seed(SEED)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    dataset   = SAEDataset(split_id, model_id, conn)
+    dataset   = SAEDataset(split_id, model_id)
     loader    = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 
     model     = MLP(d_in=dataset.X.shape[1], hidden=HIDDEN_DIM).to(device)

@@ -4,6 +4,7 @@ from typing import Optional
 
 import daos.model_dao as model_dao
 import daos.task_split_dao as task_split_dao
+from util.database_connection_util import get_connection
 
 
 TABLE = "model_task_result"
@@ -41,7 +42,7 @@ def _map(row: sqlite3.Row) -> ModelTaskResult:
     )
 
 
-def upsert(conn: sqlite3.Connection, r: ModelTaskResult) -> None:
+def _upsert(conn: sqlite3.Connection, r: ModelTaskResult) -> None:
     conn.execute(
         f"""
         INSERT INTO {TABLE}
@@ -64,9 +65,23 @@ def upsert(conn: sqlite3.Connection, r: ModelTaskResult) -> None:
     )
 
 
-def bulk_upsert(conn: sqlite3.Connection, results: list[ModelTaskResult]) -> None:
-    for r in results:
-        upsert(conn, r)
+def upsert(r: ModelTaskResult) -> None:
+    conn = get_connection()
+    try:
+        _upsert(conn, r)
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def bulk_upsert(results: list[ModelTaskResult]) -> None:
+    conn = get_connection()
+    try:
+        for r in results:
+            _upsert(conn, r)
+        conn.commit()
+    finally:
+        conn.close()
 
 
 @dataclass
@@ -76,47 +91,50 @@ class ModelPassRate:
     passed: int
 
 
-def get_pass_rates_for_split(
-    conn: sqlite3.Connection,
-    split_id: int,
-    is_test: bool,
-) -> list[ModelPassRate]:
+def get_pass_rates_for_split(split_id: int, is_test: bool) -> list[ModelPassRate]:
     """Return per-model pass counts for all tasks in a split partition."""
-    rows = conn.execute(
-        f"""
-        SELECT {model_dao.F_NAME}, COUNT(*) as total, SUM({F_PASSED}) as passed
-        FROM {TABLE}
-        JOIN {model_dao.TABLE} ON {model_dao.F_ID} = {F_MODEL_ID}
-        JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_TASK_ID}
-        WHERE {task_split_dao.F_SPLIT_ID} = ? AND {task_split_dao.F_IS_TEST} = ?
-        GROUP BY {model_dao.F_ID}
-        """,
-        (split_id, 1 if is_test else 0),
-    ).fetchall()
-    return [
-        ModelPassRate(
-            model_name=row[_col(model_dao.F_NAME)],
-            total=row["total"] or 0,
-            passed=int(row["passed"] or 0),
-        )
-        for row in rows
-    ]
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            f"""
+            SELECT {model_dao.F_NAME}, COUNT(*) as total, SUM({F_PASSED}) as passed
+            FROM {TABLE}
+            JOIN {model_dao.TABLE} ON {model_dao.F_ID} = {F_MODEL_ID}
+            JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_TASK_ID}
+            WHERE {task_split_dao.F_SPLIT_ID} = ? AND {task_split_dao.F_IS_TEST} = ?
+            GROUP BY {model_dao.F_ID}
+            """,
+            (split_id, 1 if is_test else 0),
+        ).fetchall()
+        return [
+            ModelPassRate(
+                model_name=row[_col(model_dao.F_NAME)],
+                total=row["total"] or 0,
+                passed=int(row["passed"] or 0),
+            )
+            for row in rows
+        ]
+    finally:
+        conn.close()
 
 
 def get_all_for_model_split(
-    conn: sqlite3.Connection,
     model_id: int,
     split_id: int,
     is_test: bool,
 ) -> list[ModelTaskResult]:
-    rows = conn.execute(
-        f"""
-        SELECT {TABLE}.* FROM {TABLE}
-        JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_TASK_ID}
-        WHERE {F_MODEL_ID} = ?
-          AND {task_split_dao.F_SPLIT_ID} = ?
-          AND {task_split_dao.F_IS_TEST} = ?
-        """,
-        (model_id, split_id, 1 if is_test else 0),
-    ).fetchall()
-    return [_map(r) for r in rows]
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            f"""
+            SELECT {TABLE}.* FROM {TABLE}
+            JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_TASK_ID}
+            WHERE {F_MODEL_ID} = ?
+              AND {task_split_dao.F_SPLIT_ID} = ?
+              AND {task_split_dao.F_IS_TEST} = ?
+            """,
+            (model_id, split_id, 1 if is_test else 0),
+        ).fetchall()
+        return [_map(r) for r in rows]
+    finally:
+        conn.close()

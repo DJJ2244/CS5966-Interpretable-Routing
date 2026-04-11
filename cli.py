@@ -113,16 +113,14 @@ def inference_run(
     from util.model_util import require_up
     from util.inference_util import run_inference, get_openai_client
     from daos import tasks_dao, model_dao
-    from util.database_connection_util import get_connection
 
     require_up()
-    conn = get_connection()
 
     weak_name   = os.environ["WEAK_MODEL"].removeprefix("openai/")
     strong_name = os.environ["STRONG_MODEL"].removeprefix("openai/")
     client      = get_openai_client()
 
-    tasks = tasks_dao.get_all_for_split(conn, split_id, is_test=False)
+    tasks = tasks_dao.get_all_for_split(split_id, is_test=False)
 
     targets = []
     if model in ("weak", "all"):
@@ -134,19 +132,17 @@ def inference_run(
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     for model_str, output_path in targets:
-        db_model = model_dao.get_or_create(conn, model_str)
+        db_model = model_dao.get_or_create(model_str)
         typer.echo(f"\n=== Running {model_str} ===")
         run_inference(
             problems=tasks,
             create_fn=client.completions.create,
             model_str=model_str,
             output_path=str(output_path),
-            conn=conn,
             model_id=db_model.id,
             total=len(tasks),
             max_workers=workers,
         )
-    conn.close()
 
 
 @inference_app.command("route")
@@ -159,11 +155,9 @@ def inference_route(
     from util.model_util import require_up
     from util.inference_util import run_inference, get_router_client, ROUTER, THRESHOLD
     from daos import tasks_dao
-    from util.database_connection_util import get_connection
 
     require_up()
-    conn  = get_connection()
-    tasks = tasks_dao.get_all_for_split(conn, split_id, is_test=False)
+    tasks = tasks_dao.get_all_for_split(split_id, is_test=False)
 
     client     = get_router_client()
     model_str  = f"router-{ROUTER}-{THRESHOLD}"
@@ -178,7 +172,6 @@ def inference_route(
         total=len(tasks),
         max_workers=workers,
     )
-    conn.close()
 
 
 @inference_app.command("toughness")
@@ -189,11 +182,8 @@ def inference_toughness(
 ) -> None:
     """Score all problems with the BERT router. No model inference required."""
     from route_llm.toughness import record_toughness
-    from util.database_connection_util import get_connection
 
-    conn = get_connection()
-    record_toughness(split_id=split_id, is_test=is_test, output_dir=output_dir, conn=conn)
-    conn.close()
+    record_toughness(split_id=split_id, is_test=is_test, output_dir=output_dir)
 
 
 # =============================================================================
@@ -221,12 +211,9 @@ def sae_extract(
 ) -> None:
     """Extract dense activations and encode through SAE to produce sparse feature vectors."""
     from sae.extract_spv import run
-    from util.database_connection_util import get_connection
 
-    conn = get_connection()
     run(model_key=model_key, split_id=split_id, model_id=model_id,
-        is_test=is_test, conn=conn, sae_path=sae_path)
-    conn.close()
+        is_test=is_test, sae_path=sae_path)
 
 
 # =============================================================================
@@ -240,11 +227,8 @@ def mlp_train(
 ) -> None:
     """Train the MLP router on SAE sparse features and test results from the DB."""
     from mlp.mlp_train import train_mlp
-    from util.database_connection_util import get_connection
 
-    conn = get_connection()
-    train_mlp(split_id=split_id, model_id=model_id, conn=conn)
-    conn.close()
+    train_mlp(split_id=split_id, model_id=model_id)
 
 
 @mlp_app.command("eval")
@@ -254,11 +238,8 @@ def mlp_eval(
 ) -> None:
     """Evaluate the trained MLP router on the test split."""
     from mlp.eval_mlp import evaluate_mlp
-    from util.database_connection_util import get_connection
 
-    conn = get_connection()
-    evaluate_mlp(split_id=split_id, model_id=model_id, conn=conn)
-    conn.close()
+    evaluate_mlp(split_id=split_id, model_id=model_id)
 
 
 # =============================================================================
@@ -300,9 +281,7 @@ def router_batch(
     from util import tensor_util
     from util.smart_file_util import mlp_path, write_jsonl
     from daos import model_task_result_dao
-    from util.database_connection_util import get_connection
 
-    conn    = get_connection()
     device  = "cuda" if torch.cuda.is_available() else "cpu"
 
     features_dict = tensor_util.load_features(split_id, model_id)
@@ -318,7 +297,7 @@ def router_batch(
         logits = model(features).cpu()
 
     # Load existing pass/fail labels for correctness annotation
-    results = model_task_result_dao.get_all_for_model_split(conn, model_id, split_id, is_test=is_test)
+    results = model_task_result_dao.get_all_for_model_split(model_id, split_id, is_test=is_test)
     label_map = {r.task_id: r.passed for r in results}
 
     decisions = []
@@ -335,7 +314,6 @@ def router_batch(
 
     write_jsonl(Path(output), decisions)
     typer.echo(f"Routing decisions saved to {output}  ({len(decisions)} problems)")
-    conn.close()
 
 
 # =============================================================================
@@ -363,10 +341,8 @@ def stats_calculate(
 ) -> None:
     """Print summary statistics: pass rates, routing breakdown, accuracy."""
     from daos import model_task_result_dao
-    from util.database_connection_util import get_connection
 
-    conn  = get_connection()
-    rates = model_task_result_dao.get_pass_rates_for_split(conn, split_id, is_test=True)
+    rates = model_task_result_dao.get_pass_rates_for_split(split_id, is_test=True)
 
     typer.echo(f"\n── Results for split {split_id} (test partition) ─────")
     typer.echo(f"{'MODEL':<40} {'PASS':>6} {'TOTAL':>6} {'ACC':>7}")
@@ -376,8 +352,6 @@ def stats_calculate(
         passed = row.passed
         acc    = passed / total if total else 0.0
         typer.echo(f"{row.model_name:<40} {passed:>6} {total:>6} {acc:>6.1%}")
-
-    conn.close()
 
 
 # =============================================================================
@@ -409,11 +383,8 @@ def file_filter(
     """Filter a JSONL file to records whose task_id belongs to the specified split partition."""
     from util.smart_file_util import load_jsonl, write_jsonl, filter_by_task_ids
     from daos import task_split_dao
-    from util.database_connection_util import get_connection
 
-    conn     = get_connection()
-    task_ids = set(task_split_dao.get_task_ids_for_split(conn, split_id, is_test=is_test))
-    conn.close()
+    task_ids = set(task_split_dao.get_task_ids_for_split(split_id, is_test=is_test))
 
     records  = load_jsonl(source_file)
     filtered = filter_by_task_ids(records, task_ids)

@@ -12,13 +12,12 @@ from util import tensor_util
 from util.smart_file_util import mlp_path
 
 
-def evaluate_mlp(split_id: int, model_id: int, conn) -> None:
+def evaluate_mlp(split_id: int, model_id: int) -> None:
     """Evaluate the MLP router for the given split/model pair.
 
     Args:
         split_id: DB split id (selects the test partition).
         model_id: DB model id.
-        conn:     Open DB connection.
     """
     from daos import model_task_result_dao
 
@@ -26,7 +25,7 @@ def evaluate_mlp(split_id: int, model_id: int, conn) -> None:
 
     features_dict = tensor_util.load_features(split_id, model_id)
     labels        = model_task_result_dao.get_all_for_model_split(
-        conn, model_id, split_id, is_test=True
+        model_id, split_id, is_test=True
     )
     X, y, _ = tensor_util.align_features_with_labels(features_dict, labels)
     X = X.to(device)
