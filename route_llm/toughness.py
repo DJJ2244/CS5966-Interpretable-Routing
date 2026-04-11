@@ -24,7 +24,7 @@ def record_toughness(
     from daos import tasks_dao
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    output_path = Path(output_dir) / "toughness.jsonl"  # TODO: delegate to smart_file_util
+    output_path = Path(output_dir) / "toughness.jsonl"  # TODO: Move to DB store
 
     router_client = get_router_client()
     router = router_client.routers[ROUTER]
