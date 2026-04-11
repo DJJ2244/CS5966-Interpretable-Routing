@@ -13,12 +13,13 @@ from mlp.model import MLP, HIDDEN_DIM
 from util import tensor_util
 from util.smart_file_util import mlp_path
 
+#TODO Grid search for these hyperparams
 LR         = 1e-3
 EPOCHS     = 50
 BATCH_SIZE = 64
 SEED       = 42
 
-
+#TODO Dawson could this be done with database? Or just cause of .pt its necessary here
 class SAEDataset(Dataset):
     def __init__(self, split_id: int, model_name: str):
         from daos import model_task_result_dao
