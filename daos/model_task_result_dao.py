@@ -2,13 +2,13 @@ import sqlite3
 from dataclasses import dataclass
 from typing import Optional
 
-import daos.model_dao as model_dao
 import daos.task_split_dao as task_split_dao
+from util.database_connection_util import get_connection
 
 
 TABLE = "model_task_result"
 F_TASK_ID = TABLE + ".task_id"
-F_MODEL_ID = TABLE + ".model_id"
+F_MODEL_NAME = TABLE + ".model_name"
 F_RESULT = TABLE + ".result"
 F_RUN_MILLIS = TABLE + ".run_millis"
 F_EXTRACTED_CODE = TABLE + ".extracted_code"
@@ -22,7 +22,7 @@ def _col(f: str) -> str:
 @dataclass
 class ModelTaskResult:
     task_id: str
-    model_id: int
+    model_name: str
     result: Optional[str]
     run_millis: Optional[int]
     extracted_code: Optional[str]
@@ -33,7 +33,7 @@ def _map(row: sqlite3.Row) -> ModelTaskResult:
     passed_val = row[_col(F_PASSED)]
     return ModelTaskResult(
         task_id=row[_col(F_TASK_ID)],
-        model_id=row[_col(F_MODEL_ID)],
+        model_name=row[_col(F_MODEL_NAME)],
         result=row[_col(F_RESULT)],
         run_millis=row[_col(F_RUN_MILLIS)],
         extracted_code=row[_col(F_EXTRACTED_CODE)],
@@ -41,13 +41,13 @@ def _map(row: sqlite3.Row) -> ModelTaskResult:
     )
 
 
-def upsert(conn: sqlite3.Connection, r: ModelTaskResult) -> None:
+def _upsert(conn: sqlite3.Connection, r: ModelTaskResult) -> None:
     conn.execute(
         f"""
         INSERT INTO {TABLE}
-            ({_col(F_TASK_ID)}, {_col(F_MODEL_ID)}, {_col(F_RESULT)}, {_col(F_RUN_MILLIS)}, {_col(F_EXTRACTED_CODE)}, {_col(F_PASSED)})
+            ({_col(F_TASK_ID)}, {_col(F_MODEL_NAME)}, {_col(F_RESULT)}, {_col(F_RUN_MILLIS)}, {_col(F_EXTRACTED_CODE)}, {_col(F_PASSED)})
         VALUES (?, ?, ?, ?, ?, ?)
-        ON CONFLICT({_col(F_TASK_ID)}, {_col(F_MODEL_ID)}) DO UPDATE SET
+        ON CONFLICT({_col(F_TASK_ID)}, {_col(F_MODEL_NAME)}) DO UPDATE SET
             {_col(F_RESULT)}         = excluded.{_col(F_RESULT)},
             {_col(F_RUN_MILLIS)}     = excluded.{_col(F_RUN_MILLIS)},
             {_col(F_EXTRACTED_CODE)} = excluded.{_col(F_EXTRACTED_CODE)},
@@ -55,7 +55,7 @@ def upsert(conn: sqlite3.Connection, r: ModelTaskResult) -> None:
         """,
         (
             r.task_id,
-            r.model_id,
+            r.model_name,
             r.result,
             r.run_millis,
             r.extracted_code,
@@ -64,9 +64,23 @@ def upsert(conn: sqlite3.Connection, r: ModelTaskResult) -> None:
     )
 
 
-def bulk_upsert(conn: sqlite3.Connection, results: list[ModelTaskResult]) -> None:
-    for r in results:
-        upsert(conn, r)
+def upsert(r: ModelTaskResult) -> None:
+    conn = get_connection()
+    try:
+        _upsert(conn, r)
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def bulk_upsert(results: list[ModelTaskResult]) -> None:
+    conn = get_connection()
+    try:
+        for r in results:
+            _upsert(conn, r)
+        conn.commit()
+    finally:
+        conn.close()
 
 
 @dataclass
@@ -76,47 +90,49 @@ class ModelPassRate:
     passed: int
 
 
-def get_pass_rates_for_split(
-    conn: sqlite3.Connection,
-    split_id: int,
-    is_test: bool,
-) -> list[ModelPassRate]:
+def get_pass_rates_for_split(split_id: int, is_test: bool) -> list[ModelPassRate]:
     """Return per-model pass counts for all tasks in a split partition."""
-    rows = conn.execute(
-        f"""
-        SELECT {model_dao.F_NAME}, COUNT(*) as total, SUM({F_PASSED}) as passed
-        FROM {TABLE}
-        JOIN {model_dao.TABLE} ON {model_dao.F_ID} = {F_MODEL_ID}
-        JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_TASK_ID}
-        WHERE {task_split_dao.F_SPLIT_ID} = ? AND {task_split_dao.F_IS_TEST} = ?
-        GROUP BY {model_dao.F_ID}
-        """,
-        (split_id, 1 if is_test else 0),
-    ).fetchall()
-    return [
-        ModelPassRate(
-            model_name=row[_col(model_dao.F_NAME)],
-            total=row["total"] or 0,
-            passed=int(row["passed"] or 0),
-        )
-        for row in rows
-    ]
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            f"""
+            SELECT {F_MODEL_NAME}, COUNT(*) as total, SUM({F_PASSED}) as passed
+            FROM {TABLE}
+            JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_TASK_ID}
+            WHERE {task_split_dao.F_SPLIT_ID} = ? AND {task_split_dao.F_IS_TEST} = ?
+            GROUP BY {F_MODEL_NAME}
+            """,
+            (split_id, 1 if is_test else 0),
+        ).fetchall()
+        return [
+            ModelPassRate(
+                model_name=row[_col(F_MODEL_NAME)],
+                total=row["total"] or 0,
+                passed=int(row["passed"] or 0),
+            )
+            for row in rows
+        ]
+    finally:
+        conn.close()
 
 
 def get_all_for_model_split(
-    conn: sqlite3.Connection,
-    model_id: int,
+    model_name: str,
     split_id: int,
     is_test: bool,
 ) -> list[ModelTaskResult]:
-    rows = conn.execute(
-        f"""
-        SELECT {TABLE}.* FROM {TABLE}
-        JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_TASK_ID}
-        WHERE {F_MODEL_ID} = ?
-          AND {task_split_dao.F_SPLIT_ID} = ?
-          AND {task_split_dao.F_IS_TEST} = ?
-        """,
-        (model_id, split_id, 1 if is_test else 0),
-    ).fetchall()
-    return [_map(r) for r in rows]
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            f"""
+            SELECT {TABLE}.* FROM {TABLE}
+            JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_TASK_ID}
+            WHERE {F_MODEL_NAME} = ?
+              AND {task_split_dao.F_SPLIT_ID} = ?
+              AND {task_split_dao.F_IS_TEST} = ?
+            """,
+            (model_name, split_id, 1 if is_test else 0),
+        ).fetchall()
+        return [_map(r) for r in rows]
+    finally:
+        conn.close()

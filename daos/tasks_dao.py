@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 import daos.task_split_dao as task_split_dao
+from util.database_connection_util import get_connection
 
 
 TABLE = "tasks"
@@ -48,27 +49,37 @@ def _map(row: sqlite3.Row) -> Task:
     )
 
 
-def get_by_id(conn: sqlite3.Connection, task_id: str) -> Optional[Task]:
-    row = conn.execute(
-        f"SELECT * FROM {TABLE} WHERE {F_ID} = ?", (task_id,)
-    ).fetchone()
-    return _map(row) if row else None
+def get_by_id(task_id: str) -> Optional[Task]:
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            f"SELECT * FROM {TABLE} WHERE {F_ID} = ?", (task_id,)
+        ).fetchone()
+        return _map(row) if row else None
+    finally:
+        conn.close()
 
 
-def get_all(conn: sqlite3.Connection) -> list[Task]:
-    rows = conn.execute(f"SELECT * FROM {TABLE}").fetchall()
-    return [_map(r) for r in rows]
+def get_all() -> list[Task]:
+    conn = get_connection()
+    try:
+        rows = conn.execute(f"SELECT * FROM {TABLE}").fetchall()
+        return [_map(r) for r in rows]
+    finally:
+        conn.close()
 
 
-def get_all_for_split(
-    conn: sqlite3.Connection, split_id: int, is_test: bool
-) -> list[Task]:
-    rows = conn.execute(
-        f"""
-        SELECT {TABLE}.* FROM {TABLE}
-        JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_ID}
-        WHERE {task_split_dao.F_SPLIT_ID} = ? AND {task_split_dao.F_IS_TEST} = ?
-        """,
-        (split_id, 1 if is_test else 0),
-    ).fetchall()
-    return [_map(r) for r in rows]
+def get_all_for_split(split_id: int, is_test: bool) -> list[Task]:
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            f"""
+            SELECT {TABLE}.* FROM {TABLE}
+            JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_ID}
+            WHERE {task_split_dao.F_SPLIT_ID} = ? AND {task_split_dao.F_IS_TEST} = ?
+            """,
+            (split_id, 1 if is_test else 0),
+        ).fetchall()
+        return [_map(r) for r in rows]
+    finally:
+        conn.close()

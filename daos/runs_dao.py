@@ -2,11 +2,13 @@ import sqlite3
 from dataclasses import dataclass
 from typing import Optional
 
+from util.database_connection_util import get_connection
+
 
 TABLE = "runs"
 F_ID = TABLE + ".id"
-F_WEAK_MODEL_ID = TABLE + ".weak_model_id"
-F_STRONG_MODEL_ID = TABLE + ".strong_model_id"
+F_WEAK_MODEL_NAME = TABLE + ".weak_model_name"
+F_STRONG_MODEL_NAME = TABLE + ".strong_model_name"
 F_SPLIT_ID = TABLE + ".split_id"
 F_THRESHOLD = TABLE + ".route_llm_threshold"
 F_CREATED_AT = TABLE + ".created_at"
@@ -19,8 +21,8 @@ def _col(f: str) -> str:
 @dataclass
 class Run:
     id: int
-    weak_model_id: int
-    strong_model_id: int
+    weak_model_name: str
+    strong_model_name: str
     split_id: int
     route_llm_threshold: Optional[float]
     created_at: str
@@ -29,42 +31,57 @@ class Run:
 def _map(row: sqlite3.Row) -> Run:
     return Run(
         id=row[_col(F_ID)],
-        weak_model_id=row[_col(F_WEAK_MODEL_ID)],
-        strong_model_id=row[_col(F_STRONG_MODEL_ID)],
+        weak_model_name=row[_col(F_WEAK_MODEL_NAME)],
+        strong_model_name=row[_col(F_STRONG_MODEL_NAME)],
         split_id=row[_col(F_SPLIT_ID)],
         route_llm_threshold=row[_col(F_THRESHOLD)],
         created_at=row[_col(F_CREATED_AT)],
     )
 
 
-def create(
-    conn: sqlite3.Connection,
-    weak_model_id: int,
-    strong_model_id: int,
-    split_id: int,
-    route_llm_threshold: Optional[float] = None,
-) -> Run:
-    cursor = conn.execute(
-        f"""
-        INSERT INTO {TABLE}
-            ({_col(F_WEAK_MODEL_ID)}, {_col(F_STRONG_MODEL_ID)}, {_col(F_SPLIT_ID)}, {_col(F_THRESHOLD)})
-        VALUES (?, ?, ?, ?)
-        """,
-        (weak_model_id, strong_model_id, split_id, route_llm_threshold),
-    )
-    conn.commit()
-    return get_by_id(conn, cursor.lastrowid)
-
-
-def get_by_id(conn: sqlite3.Connection, run_id: int) -> Optional[Run]:
+def _get_by_id(conn: sqlite3.Connection, run_id: int) -> Optional[Run]:
     row = conn.execute(
         f"SELECT * FROM {TABLE} WHERE {F_ID} = ?", (run_id,)
     ).fetchone()
     return _map(row) if row else None
 
 
-def get_latest(conn: sqlite3.Connection) -> Optional[Run]:
-    row = conn.execute(
-        f"SELECT * FROM {TABLE} ORDER BY {F_ID} DESC LIMIT 1"
-    ).fetchone()
-    return _map(row) if row else None
+def create(
+    weak_model_name: str,
+    strong_model_name: str,
+    split_id: int,
+    route_llm_threshold: Optional[float] = None,
+) -> Run:
+    conn = get_connection()
+    try:
+        cursor = conn.execute(
+            f"""
+            INSERT INTO {TABLE}
+                ({_col(F_WEAK_MODEL_NAME)}, {_col(F_STRONG_MODEL_NAME)}, {_col(F_SPLIT_ID)}, {_col(F_THRESHOLD)})
+            VALUES (?, ?, ?, ?)
+            """,
+            (weak_model_name, strong_model_name, split_id, route_llm_threshold),
+        )
+        conn.commit()
+        return _get_by_id(conn, cursor.lastrowid)
+    finally:
+        conn.close()
+
+
+def get_by_id(run_id: int) -> Optional[Run]:
+    conn = get_connection()
+    try:
+        return _get_by_id(conn, run_id)
+    finally:
+        conn.close()
+
+
+def get_latest() -> Optional[Run]:
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            f"SELECT * FROM {TABLE} ORDER BY {F_ID} DESC LIMIT 1"
+        ).fetchone()
+        return _map(row) if row else None
+    finally:
+        conn.close()

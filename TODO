@@ -1,5 +1,3 @@
-MOVE ALL CONNECTIONS INTO DAOS! NOTHING SHOULD HAVE ANY DB LOGIC OTHER THAN THE DAOS
-
 Do we need a routing.db committed to github?
 
 Code Review Assignments:
@@ -12,6 +10,8 @@ Dawson:
 daos/
 route_llm/
 util/
+Model Key is confusing and could be removed to save logic
+inference util is a mess
 
 Team:
 jobs/

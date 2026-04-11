@@ -553,12 +553,9 @@ def run_tests(results_path: Path, model: str) -> None:
         results_path: Path to the inference results .jsonl file.
         model:        Model name string used for the output filename and logging.
     """
-    from util.database_connection_util import get_connection
     from daos import tasks_dao
 
-    conn = get_connection()
-    all_tasks = tasks_dao.get_all(conn)
-    conn.close()
+    all_tasks = tasks_dao.get_all()
     problems = {t.id: t for t in all_tasks}
 
     by_lang: dict[str, list] = defaultdict(list)

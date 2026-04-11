@@ -109,44 +109,38 @@ def inference_run(
 ) -> None:
     """Run baseline inference (no routing) for weak, strong, or both models."""
     import os
-    from openai import OpenAI
     from util.model_util import require_up
     from util.inference_util import run_inference, get_openai_client
-    from daos import tasks_dao, model_dao
-    from util.database_connection_util import get_connection
+    from daos import tasks_dao
 
     require_up()
-    conn = get_connection()
 
     weak_name   = os.environ["WEAK_MODEL"].removeprefix("openai/")
     strong_name = os.environ["STRONG_MODEL"].removeprefix("openai/")
     client      = get_openai_client()
 
-    tasks = tasks_dao.get_all_for_split(conn, split_id, is_test=False)
+    tasks = tasks_dao.get_all_for_split(split_id, is_test=False)
 
     targets = []
     if model in ("weak", "all"):
-        targets.append((weak_name,   Path(output_dir) / "results_weak.jsonl"))
+        targets.append((weak_name,   Path(output_dir) / "results_weak.jsonl"))    # TODO: delegate to smart_file_util
     if model in ("strong", "all"):
-        targets.append((strong_name, Path(output_dir) / "results_strong.jsonl"))
+        targets.append((strong_name, Path(output_dir) / "results_strong.jsonl"))  # TODO: delegate to smart_file_util
     if not targets:
         raise typer.BadParameter(f"Unknown model '{model}'. Choose weak, strong, or all.")
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     for model_str, output_path in targets:
-        db_model = model_dao.get_or_create(conn, model_str)
         typer.echo(f"\n=== Running {model_str} ===")
         run_inference(
             problems=tasks,
             create_fn=client.completions.create,
             model_str=model_str,
             output_path=str(output_path),
-            conn=conn,
-            model_id=db_model.id,
+            model_name=model_str,
             total=len(tasks),
             max_workers=workers,
         )
-    conn.close()
 
 
 @inference_app.command("route")
@@ -159,15 +153,13 @@ def inference_route(
     from util.model_util import require_up
     from util.inference_util import run_inference, get_router_client, ROUTER, THRESHOLD
     from daos import tasks_dao
-    from util.database_connection_util import get_connection
 
     require_up()
-    conn  = get_connection()
-    tasks = tasks_dao.get_all_for_split(conn, split_id, is_test=False)
+    tasks = tasks_dao.get_all_for_split(split_id, is_test=False)
 
-    client     = get_router_client()
-    model_str  = f"router-{ROUTER}-{THRESHOLD}"
-    output_path = Path(output_dir) / "router_results.jsonl"
+    client      = get_router_client()
+    model_str   = f"router-{ROUTER}-{THRESHOLD}"
+    output_path = Path(output_dir) / "router_results.jsonl"  # TODO: delegate to smart_file_util
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     run_inference(
@@ -175,10 +167,10 @@ def inference_route(
         create_fn=client.completions.create,
         model_str=model_str,
         output_path=str(output_path),
+        model_name=model_str,
         total=len(tasks),
         max_workers=workers,
     )
-    conn.close()
 
 
 @inference_app.command("toughness")
@@ -189,11 +181,8 @@ def inference_toughness(
 ) -> None:
     """Score all problems with the BERT router. No model inference required."""
     from route_llm.toughness import record_toughness
-    from util.database_connection_util import get_connection
 
-    conn = get_connection()
-    record_toughness(split_id=split_id, is_test=is_test, output_dir=output_dir, conn=conn)
-    conn.close()
+    record_toughness(split_id=split_id, is_test=is_test, output_dir=output_dir)
 
 
 # =============================================================================
@@ -202,31 +191,25 @@ def inference_toughness(
 
 @sae_app.command("train")
 def sae_train(
-    model:    Annotated[str,          typer.Option("--model",    help="weak | strong")]          = "weak",
-    split_id: Annotated[Optional[int], typer.Option("--split-id", help="DB split id for naming")] = None,
-    model_id: Annotated[Optional[int], typer.Option("--model-id", help="DB model id for naming")] = None,
+    model:    Annotated[str, typer.Option("--model",    help="weak | strong")] = "weak",
+    split_id: Annotated[int, typer.Option("--split-id", help="DB split id")]   = 1,
 ) -> None:
     """Train a Sparse Autoencoder on the given model's residual stream."""
     from sae.train_sae import train_sae
-    train_sae(model_key=model, split_id=split_id, model_id=model_id)
+    train_sae(model_key=model, split_id=split_id)
 
 
 @sae_app.command("extract")
 def sae_extract(
-    model_key: Annotated[str, typer.Option("--model-key", help="weak | strong")]            = "weak",
-    split_id:  Annotated[int, typer.Option("--split-id",  help="DB split id")]               = 1,
-    model_id:  Annotated[int, typer.Option("--model-id",  help="DB model id")]               = 1,
-    is_test:   Annotated[bool, typer.Option("--test",     help="Extract test partition")]    = False,
+    model_key: Annotated[str,  typer.Option("--model-key", help="weak | strong")]              = "weak",
+    split_id:  Annotated[int,  typer.Option("--split-id",  help="DB split id")]                = 1,
+    is_test:   Annotated[bool, typer.Option("--test",      help="Extract test partition")]     = False,
     sae_path:  Annotated[Optional[str], typer.Option("--sae-path", help="SAE checkpoint dir")] = None,
 ) -> None:
     """Extract dense activations and encode through SAE to produce sparse feature vectors."""
     from sae.extract_spv import run
-    from util.database_connection_util import get_connection
 
-    conn = get_connection()
-    run(model_key=model_key, split_id=split_id, model_id=model_id,
-        is_test=is_test, conn=conn, sae_path=sae_path)
-    conn.close()
+    run(model_key=model_key, split_id=split_id, is_test=is_test, sae_path=sae_path)
 
 
 # =============================================================================
@@ -235,30 +218,26 @@ def sae_extract(
 
 @mlp_app.command("train")
 def mlp_train(
-    split_id: Annotated[int, typer.Option("--split-id", help="DB split id")] = 1,
-    model_id: Annotated[int, typer.Option("--model-id", help="DB model id")] = 1,
+    model_key: Annotated[str, typer.Option("--model-key", help="weak | strong")] = "weak",
+    split_id:  Annotated[int, typer.Option("--split-id",  help="DB split id")]   = 1,
 ) -> None:
     """Train the MLP router on SAE sparse features and test results from the DB."""
     from mlp.mlp_train import train_mlp
-    from util.database_connection_util import get_connection
+    from util.model_util import MODELS
 
-    conn = get_connection()
-    train_mlp(split_id=split_id, model_id=model_id, conn=conn)
-    conn.close()
+    train_mlp(split_id=split_id, model_name=MODELS[model_key])
 
 
 @mlp_app.command("eval")
 def mlp_eval(
-    split_id: Annotated[int, typer.Option("--split-id", help="DB split id")] = 1,
-    model_id: Annotated[int, typer.Option("--model-id", help="DB model id")] = 1,
+    model_key: Annotated[str, typer.Option("--model-key", help="weak | strong")] = "weak",
+    split_id:  Annotated[int, typer.Option("--split-id",  help="DB split id")]   = 1,
 ) -> None:
     """Evaluate the trained MLP router on the test split."""
     from mlp.eval_mlp import evaluate_mlp
-    from util.database_connection_util import get_connection
+    from util.model_util import MODELS
 
-    conn = get_connection()
-    evaluate_mlp(split_id=split_id, model_id=model_id, conn=conn)
-    conn.close()
+    evaluate_mlp(split_id=split_id, model_name=MODELS[model_key])
 
 
 # =============================================================================
@@ -288,28 +267,27 @@ def route_llm_threshold(
 
 @router_app.command("batch")
 def router_batch(
-    split_id: Annotated[int, typer.Option("--split-id", help="DB split id")]          = 1,
-    model_id: Annotated[int, typer.Option("--model-id", help="DB model id")]          = 1,
-    is_test:  Annotated[bool, typer.Option("--test",    help="Use test partition")]   = True,
-    output:   Annotated[str, typer.Option("--output",   help="Output .jsonl path")]   = "routing_decisions.jsonl",
+    model_key: Annotated[str,  typer.Option("--model-key", help="weak | strong")]        = "weak",
+    split_id:  Annotated[int,  typer.Option("--split-id",  help="DB split id")]          = 1,
+    is_test:   Annotated[bool, typer.Option("--test",      help="Use test partition")]   = True,
+    output:    Annotated[str,  typer.Option("--output",    help="Output .jsonl path")]   = "routing_decisions.jsonl",
 ) -> None:
-    """Generate SAE+MLP routing decisions for a split and write to DB + JSONL."""
+    """Generate SAE+MLP routing decisions for a split and write to JSONL."""
     import torch
-    import json
     from mlp.model import MLP, HIDDEN_DIM
     from util import tensor_util
     from util.smart_file_util import mlp_path, write_jsonl
+    from util.model_util import MODELS
     from daos import model_task_result_dao
-    from util.database_connection_util import get_connection
 
-    conn    = get_connection()
-    device  = "cuda" if torch.cuda.is_available() else "cpu"
+    model_name    = MODELS[model_key]
+    device        = "cuda" if torch.cuda.is_available() else "cpu"
 
-    features_dict = tensor_util.load_features(split_id, model_id)
+    features_dict = tensor_util.load_features(split_id, model_name)
     features      = features_dict["features"].to(device)
     task_ids      = features_dict["task_ids"]
 
-    weights = mlp_path(split_id, model_id)
+    weights = mlp_path(split_id, model_name)
     model   = MLP(d_in=features.shape[1], hidden=HIDDEN_DIM).to(device)
     model.load_state_dict(torch.load(str(weights), map_location=device))
     model.eval()
@@ -318,7 +296,7 @@ def router_batch(
         logits = model(features).cpu()
 
     # Load existing pass/fail labels for correctness annotation
-    results = model_task_result_dao.get_all_for_model_split(conn, model_id, split_id, is_test=is_test)
+    results   = model_task_result_dao.get_all_for_model_split(model_name, split_id, is_test=is_test)
     label_map = {r.task_id: r.passed for r in results}
 
     decisions = []
@@ -335,7 +313,6 @@ def router_batch(
 
     write_jsonl(Path(output), decisions)
     typer.echo(f"Routing decisions saved to {output}  ({len(decisions)} problems)")
-    conn.close()
 
 
 # =============================================================================
@@ -359,14 +336,11 @@ def test_run(
 @stats_app.command("calculate")
 def stats_calculate(
     split_id: Annotated[int, typer.Option("--split-id", help="DB split id")] = 1,
-    run_id:   Annotated[Optional[int], typer.Option("--run-id", help="DB run id")] = None,
 ) -> None:
     """Print summary statistics: pass rates, routing breakdown, accuracy."""
     from daos import model_task_result_dao
-    from util.database_connection_util import get_connection
 
-    conn  = get_connection()
-    rates = model_task_result_dao.get_pass_rates_for_split(conn, split_id, is_test=True)
+    rates = model_task_result_dao.get_pass_rates_for_split(split_id, is_test=True)
 
     typer.echo(f"\n── Results for split {split_id} (test partition) ─────")
     typer.echo(f"{'MODEL':<40} {'PASS':>6} {'TOTAL':>6} {'ACC':>7}")
@@ -376,8 +350,6 @@ def stats_calculate(
         passed = row.passed
         acc    = passed / total if total else 0.0
         typer.echo(f"{row.model_name:<40} {passed:>6} {total:>6} {acc:>6.1%}")
-
-    conn.close()
 
 
 # =============================================================================
@@ -409,11 +381,8 @@ def file_filter(
     """Filter a JSONL file to records whose task_id belongs to the specified split partition."""
     from util.smart_file_util import load_jsonl, write_jsonl, filter_by_task_ids
     from daos import task_split_dao
-    from util.database_connection_util import get_connection
 
-    conn     = get_connection()
-    task_ids = set(task_split_dao.get_task_ids_for_split(conn, split_id, is_test=is_test))
-    conn.close()
+    task_ids = set(task_split_dao.get_task_ids_for_split(split_id, is_test=is_test))
 
     records  = load_jsonl(source_file)
     filtered = filter_by_task_ids(records, task_ids)

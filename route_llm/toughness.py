@@ -13,7 +13,6 @@ def record_toughness(
     split_id: int,
     is_test: bool = False,
     output_dir: str = "route_llm_results",
-    conn=None,
 ) -> None:
     """Run the router over the dataset and save per-problem difficulty scores.
 
@@ -21,17 +20,16 @@ def record_toughness(
         split_id:   DB split id to score.
         is_test:    Whether to score the test partition (default: train).
         output_dir: Directory for the output toughness.jsonl file.
-        conn:       DB connection for loading tasks.
     """
     from daos import tasks_dao
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    output_path = Path(output_dir) / "toughness.jsonl"
+    output_path = Path(output_dir) / "toughness.jsonl"  # TODO: Move to DB store
 
     router_client = get_router_client()
     router = router_client.routers[ROUTER]
 
-    tasks = tasks_dao.get_all_for_split(conn, split_id, is_test=is_test)
+    tasks = tasks_dao.get_all_for_split(split_id, is_test=is_test)
 
     with open(output_path, "w") as out:
         for i, task in enumerate(tasks):

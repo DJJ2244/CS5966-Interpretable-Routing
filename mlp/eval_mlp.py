@@ -12,21 +12,20 @@ from util import tensor_util
 from util.smart_file_util import mlp_path
 
 
-def evaluate_mlp(split_id: int, model_id: int, conn) -> None:
+def evaluate_mlp(split_id: int, model_name: str) -> None:
     """Evaluate the MLP router for the given split/model pair.
 
     Args:
-        split_id: DB split id (selects the test partition).
-        model_id: DB model id.
-        conn:     Open DB connection.
+        split_id:   DB split id (selects the test partition).
+        model_name: HuggingFace model name.
     """
     from daos import model_task_result_dao
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    features_dict = tensor_util.load_features(split_id, model_id)
+    features_dict = tensor_util.load_features(split_id, model_name)
     labels        = model_task_result_dao.get_all_for_model_split(
-        conn, model_id, split_id, is_test=True
+        model_name, split_id, is_test=True
     )
     X, y, _ = tensor_util.align_features_with_labels(features_dict, labels)
     X = X.to(device)
@@ -35,7 +34,7 @@ def evaluate_mlp(split_id: int, model_id: int, conn) -> None:
     print(f"  Positive (weak passed): {int(y.sum())}")
     print(f"  Negative (weak failed): {int((y == 0).sum())}")
 
-    weights = mlp_path(split_id, model_id)
+    weights = mlp_path(split_id, model_name)
     model = MLP(d_in=X.shape[1], hidden=HIDDEN_DIM).to(device)
     model.load_state_dict(torch.load(str(weights), map_location=device))
     model.eval()

@@ -43,11 +43,6 @@ def _create_tables(conn: object) -> None:
             programming_language TEXT NOT NULL
         );
 
-        CREATE TABLE IF NOT EXISTS models (
-            id      INTEGER PRIMARY KEY AUTOINCREMENT,
-            name    TEXT UNIQUE NOT NULL
-        );
-
         CREATE TABLE IF NOT EXISTS split (
             id      INTEGER PRIMARY KEY AUTOINCREMENT,
             name    TEXT UNIQUE NOT NULL
@@ -62,18 +57,18 @@ def _create_tables(conn: object) -> None:
 
         CREATE TABLE IF NOT EXISTS model_task_result (
             task_id         TEXT    NOT NULL REFERENCES tasks(id),
-            model_id        INTEGER NOT NULL REFERENCES models(id),
+            model_name      TEXT    NOT NULL,
             result          TEXT,
             run_millis      INTEGER,
             extracted_code  TEXT,
             passed          INTEGER,
-            PRIMARY KEY (task_id, model_id)
+            PRIMARY KEY (task_id, model_name)
         );
 
         CREATE TABLE IF NOT EXISTS runs (
             id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-            weak_model_id       INTEGER NOT NULL REFERENCES models(id),
-            strong_model_id     INTEGER NOT NULL REFERENCES models(id),
+            weak_model_name     TEXT    NOT NULL,
+            strong_model_name   TEXT    NOT NULL,
             split_id            INTEGER NOT NULL REFERENCES split(id),
             route_llm_threshold REAL,
             created_at          TEXT NOT NULL DEFAULT (datetime('now'))

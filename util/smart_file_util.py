@@ -19,31 +19,43 @@ MLP_OUTPUT_DIR  = Path("mlp_output")
 FLUSH_EVERY = 10
 
 
+# ── Model slug ────────────────────────────────────────────────────────────────
+
+def model_slug(model_name: str) -> str:
+    """Filesystem-safe representation of a model name (replaces '/' with '_')."""
+    return model_name.replace("/", "_")
+
+
 # ── Stateful file path helpers ────────────────────────────────────────────────
 
-def activations_path(split_id: int, model_id: int) -> Path:
+def activations_path(split_id: int, model_name: str) -> Path:
     """Dense residual-stream activations for a split/model pair."""
-    return ACTIVATIONS_DIR / f"activations_{split_id}_{model_id}.pt"
+    return ACTIVATIONS_DIR / f"activations_{split_id}_{model_slug(model_name)}.pt"
 
 
-def sparse_features_path(split_id: int, model_id: int) -> Path:
+def sparse_features_path(split_id: int, model_name: str) -> Path:
     """SAE-encoded sparse feature vectors for a split/model pair."""
-    return ACTIVATIONS_DIR / f"activations_{split_id}_{model_id}_sparse.pt"
+    return ACTIVATIONS_DIR / f"activations_{split_id}_{model_slug(model_name)}_sparse.pt"
 
 
-def sae_weights_path(split_id: int, model_id: int) -> Path:
+def sae_weights_path(split_id: int, model_name: str) -> Path:
     """Trained SAE weights checkpoint directory (loaded via SAE.load_from_disk)."""
-    return SAE_OUTPUT_DIR / f"sae_{split_id}_{model_id}_weights"
+    return SAE_OUTPUT_DIR / f"sae_{split_id}_{model_slug(model_name)}_weights"
 
 
-def sae_cfg_path(split_id: int, model_id: int) -> Path:
+def sae_cfg_path(split_id: int, model_name: str) -> Path:
     """SAE architecture and hyperparameter config."""
-    return SAE_OUTPUT_DIR / f"cfg_{split_id}_{model_id}.json"
+    return SAE_OUTPUT_DIR / f"cfg_{split_id}_{model_slug(model_name)}.json"
 
 
-def mlp_path(split_id: int, model_id: int) -> Path:
+def mlp_path(split_id: int, model_name: str) -> Path:
     """Trained MLP router weights."""
-    return MLP_OUTPUT_DIR / f"mlp_{split_id}_{model_id}.pt"
+    return MLP_OUTPUT_DIR / f"mlp_{split_id}_{model_slug(model_name)}.pt"
+
+
+def sae_checkpoint_path(model_key: str) -> Path:
+    """SAELens live training checkpoint directory (intermediate, not final weights)."""
+    return SAE_OUTPUT_DIR / model_key
 
 
 # ── Generic JSONL / CSV I/O ───────────────────────────────────────────────────
