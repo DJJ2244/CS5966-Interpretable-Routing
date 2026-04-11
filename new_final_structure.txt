@@ -10,7 +10,6 @@ util/
 daos/
     tasks_dao.py
     split_dao.py
-    model_dao.py
     task_split_dao.py
     model_task_result_dao.py
     runs_dao.py

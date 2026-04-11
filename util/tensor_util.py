@@ -14,28 +14,28 @@ if TYPE_CHECKING:
     from daos.model_task_result_dao import ModelTaskResult
 
 
-def load_activations(split_id: int, model_id: int) -> dict:
+def load_activations(split_id: int, model_name: str) -> dict:
     """Load dense activations. Returns {"task_ids": list[str], "activations": Tensor}."""
-    path = smart_file_util.activations_path(split_id, model_id)
+    path = smart_file_util.activations_path(split_id, model_name)
     return torch.load(str(path), weights_only=False)
 
 
-def save_activations(split_id: int, model_id: int, task_ids: list[str], tensor: Tensor) -> None:
+def save_activations(split_id: int, model_name: str, task_ids: list[str], tensor: Tensor) -> None:
     """Save dense activations with their task_id index."""
-    path = smart_file_util.activations_path(split_id, model_id)
+    path = smart_file_util.activations_path(split_id, model_name)
     path.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"task_ids": task_ids, "activations": tensor}, str(path))
 
 
-def load_features(split_id: int, model_id: int) -> dict:
+def load_features(split_id: int, model_name: str) -> dict:
     """Load sparse SAE feature file. Returns {"task_ids": list[str], "features": Tensor}."""
-    path = smart_file_util.sparse_features_path(split_id, model_id)
+    path = smart_file_util.sparse_features_path(split_id, model_name)
     return torch.load(str(path), weights_only=False)
 
 
-def save_features(split_id: int, model_id: int, task_ids: list[str], tensor: Tensor) -> None:
+def save_features(split_id: int, model_name: str, task_ids: list[str], tensor: Tensor) -> None:
     """Save sparse SAE features with their task_id index."""
-    path = smart_file_util.sparse_features_path(split_id, model_id)
+    path = smart_file_util.sparse_features_path(split_id, model_name)
     path.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"task_ids": task_ids, "features": tensor}, str(path))
 

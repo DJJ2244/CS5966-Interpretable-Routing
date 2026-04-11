@@ -25,7 +25,7 @@ def run_inference(
     create_fn,
     model_str: str,
     output_path,
-    model_id: Optional[int] = None,
+    model_name: Optional[str] = None,
     total: Optional[int] = None,
     max_workers: int = 8,
 ) -> None:
@@ -36,7 +36,7 @@ def run_inference(
         create_fn:   Callable matching client.completions.create signature.
         model_str:   Model string passed to create_fn.
         output_path: Path to the output .jsonl file.
-        model_id:    DB model id. If provided, each result is also upserted into model_task_result.
+        model_name:  HuggingFace model name. If provided, each result is upserted into model_task_result.
         total:       Total problem count for progress bar.
         max_workers: Number of concurrent inference threads.
     """
@@ -71,20 +71,20 @@ def run_inference(
                     out.write(json.dumps(record) + "\n")
                     if i % FLUSH_EVERY == 0:
                         out.flush()
-                    if model_id is not None:
-                        _write_to_db(record, model_id)
+                    if model_name is not None:
+                        _write_to_db(record, model_name)
                 pbar.update(1)
         pbar.close()
 
     tqdm.write(f"Done. Results saved to {output_path}")
 
 
-def _write_to_db(record: dict, model_id: int) -> None:
+def _write_to_db(record: dict, model_name: str) -> None:
     from daos.model_task_result_dao import ModelTaskResult, upsert
     upsert(
         ModelTaskResult(
             task_id=record["task_id"],
-            model_id=model_id,
+            model_name=model_name,
             result=record["completion"],
             run_millis=record.get("run_millis"),
             extracted_code=None,
