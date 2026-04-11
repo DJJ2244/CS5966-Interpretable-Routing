@@ -18,6 +18,12 @@ DAOs are the only layer that constructs queries or reads raw database results. N
 - All queries must be parameterized. Never interpolate values directly into a query string.
 - Reference field names through named constants, not inline string literals.
 
+**Connection management**
+- DAOs manage their own connections. Public DAO methods call `get_connection()` internally — callers never obtain or pass a `conn`.
+- Use `try/finally` to ensure `conn.close()` is always called.
+- Methods that internally call other DAO functions (e.g. `get_or_create`, `create`, `bulk_upsert`) use private `_impl(conn, ...)` helpers so a single connection is shared for the whole operation.
+- `get_connection()` lives in `util/database_connection_util.py` and is the only place a connection is created (outside of the exempt `database_util.py`).
+
 **Logic**
 - DAOs only contain database related logic
 - DAOs are the only place where queries are ran on the database
