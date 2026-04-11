@@ -1,17 +1,14 @@
-"""
-mlp/model.py - Shared MLP architecture used for routing.
-"""
-
 import torch.nn as nn
 
 HIDDEN_DIM = 256
 
 
 class MLP(nn.Module):
-    """Two-layer MLP for binary routing classification.
+    """A Simple two layer MLP that outputs the logit
+    which then is used to route to either weak or strong models.
 
-    Input:  SAE sparse feature vector (d_in = d_sae)
-    Output: scalar logit (positive → route to weak, negative → route to strong)
+    Input:  The models sparse feature vectors per query (d_in = d_sae)
+    Output: logit (positive → weak, negative → strong)
     """
 
     def __init__(self, d_in: int, hidden: int = HIDDEN_DIM):
