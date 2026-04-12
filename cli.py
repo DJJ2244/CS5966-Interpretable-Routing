@@ -115,7 +115,6 @@ def inference_run(
 
     require_up()
     client = get_openai_client()
-    tasks  = tasks_dao.get_all_for_split(split_id, is_test=False)
 
     targets = []
     if model in ("weak", "all"):
@@ -125,6 +124,7 @@ def inference_run(
     if not targets:
         raise typer.BadParameter(f"Unknown model '{model}'. Choose weak, strong, or all.")
 
+    tasks = tasks_dao.get_all_for_split(split_id, is_test=False)
     for model_name in targets:
         typer.echo(f"\n=== Running {model_name} ===")
         run_inference(
@@ -132,7 +132,6 @@ def inference_run(
             create_fn=client.completions.create,
             model_str=f"openai/{model_name}",
             model_name=model_name,
-            total=len(tasks),
             max_workers=workers,
         )
 
@@ -225,6 +224,10 @@ def router_batch(
     output:     Annotated[str,  typer.Option("--output",      help="Output .jsonl path")]      = "routing_decisions.jsonl",
 ) -> None:
     """Generate SAE+MLP routing decisions for a split and write to JSONL."""
+    if Path(output).exists():
+        typer.echo(f"Output already exists at {output}, skipping.")
+        return
+
     import torch
     from mlp.model import MLP, HIDDEN_DIM
     from util import tensor_util
@@ -271,12 +274,13 @@ def router_batch(
 
 @test_app.command("run")
 def test_run(
-    results:    Annotated[Path, typer.Option("--results",    help="Path to inference results .jsonl")],
     model_name: Annotated[str,  typer.Option("--model-name", help="HuggingFace model ID")],
+    split_id:   Annotated[int,  typer.Option("--split-id",   help="DB split id")]           = 1,
+    is_test:    Annotated[bool, typer.Option("--test",       help="Use test partition")]    = False,
 ) -> None:
     """Evaluate inference results against Docker test cases for all languages."""
     from util.unit_test_util import run_tests
-    run_tests(results, model_name)
+    run_tests(model_name=model_name, split_id=split_id, is_test=is_test)
 
 
 # =============================================================================

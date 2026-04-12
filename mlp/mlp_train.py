@@ -51,6 +51,11 @@ def train_mlp(split_id: int, model_name: str) -> None:
         split_id:   DB split id (selects the training partition).
         model_name: HuggingFace model name (selects which model's features + results to use).
     """
+    save_path = mlp_path(split_id, model_name)
+    if save_path.exists():
+        print(f"MLP weights already exist at {save_path}, skipping.")
+        return
+
     torch.manual_seed(SEED)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -85,7 +90,6 @@ def train_mlp(split_id: int, model_name: str) -> None:
                 acc    = (preds == dataset.y).float().mean().item()
             print(f"  Epoch {epoch:3d} | loss: {total_loss/len(loader):.4f} | train acc: {acc:.3f}")
 
-    save_path = mlp_path(split_id, model_name)
     save_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), str(save_path))
     print(f"\nSaved → {save_path}")

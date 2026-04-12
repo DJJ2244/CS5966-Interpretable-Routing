@@ -64,6 +64,19 @@ def _upsert(conn: sqlite3.Connection, r: ModelTaskResult) -> None:
     )
 
 
+def get_completed_task_ids(model_name: str) -> set[str]:
+    """Return the set of task_ids that already have a non-NULL result for this model."""
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            f"SELECT {_col(F_TASK_ID)} FROM {TABLE} WHERE {_col(F_MODEL_NAME)} = ? AND {_col(F_RESULT)} IS NOT NULL",
+            (model_name,),
+        ).fetchall()
+        return {row[_col(F_TASK_ID)] for row in rows}
+    finally:
+        conn.close()
+
+
 def upsert(r: ModelTaskResult) -> None:
     conn = get_connection()
     try:
@@ -112,6 +125,57 @@ def get_pass_rates_for_split(split_id: int, is_test: bool) -> list[ModelPassRate
             )
             for row in rows
         ]
+    finally:
+        conn.close()
+
+
+def get_untested_for_model(
+    model_name: str,
+    split_id: int,
+    is_test: bool,
+) -> list[ModelTaskResult]:
+    """Return rows for this model/split where passed IS NULL (not yet tested)."""
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            f"""
+            SELECT {TABLE}.* FROM {TABLE}
+            JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_TASK_ID}
+            WHERE {F_MODEL_NAME} = ?
+              AND {task_split_dao.F_SPLIT_ID} = ?
+              AND {task_split_dao.F_IS_TEST} = ?
+              AND {F_PASSED} IS NULL
+            """,
+            (model_name, split_id, 1 if is_test else 0),
+        ).fetchall()
+        return [_map(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def update_test_result(
+    task_id: str,
+    model_name: str,
+    extracted_code: Optional[str],
+    passed: Optional[bool],
+) -> None:
+    """Update only the extracted_code and passed columns for an existing row."""
+    conn = get_connection()
+    try:
+        conn.execute(
+            f"""
+            UPDATE {TABLE}
+            SET {_col(F_EXTRACTED_CODE)} = ?, {_col(F_PASSED)} = ?
+            WHERE {_col(F_TASK_ID)} = ? AND {_col(F_MODEL_NAME)} = ?
+            """,
+            (
+                extracted_code,
+                1 if passed else (0 if passed is not None else None),
+                task_id,
+                model_name,
+            ),
+        )
+        conn.commit()
     finally:
         conn.close()
 

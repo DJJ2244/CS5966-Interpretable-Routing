@@ -36,6 +36,11 @@ def extract_activations(
     from util.smart_file_util import activations_path
     from util import tensor_util
 
+    out_path = activations_path(split_id, model_name)
+    if out_path.exists():
+        print(f"Activations already exist at {out_path}, skipping.")
+        return out_path
+
     tasks = tasks_dao.get_all_for_split(split_id, is_test=is_test)
 
     problems = [(t.id, t.prompt) for t in tasks]
@@ -84,7 +89,6 @@ def extract_activations(
     del model
     torch.cuda.empty_cache()
 
-    out_path = activations_path(split_id, model_name)
     tensor_util.save_activations(split_id, model_name, task_ids, activation_matrix)
     print(f"Saved {activation_matrix.shape} → {out_path}")
     return out_path
@@ -109,6 +113,11 @@ def extract_sparse_features(
     from sae_lens import SAE
     from util.smart_file_util import sae_weights_path, sparse_features_path
     from util import tensor_util
+
+    out_path = sparse_features_path(split_id, model_name)
+    if out_path.exists():
+        print(f"Sparse features already exist at {out_path}, skipping.")
+        return out_path
 
     if sae_path is None:
         sae_path = str(sae_weights_path(split_id, model_name))
@@ -135,7 +144,6 @@ def extract_sparse_features(
     print(f"  Avg L0: {l0:.1f}   Dead features: {dead}/{feature_acts.shape[1]}")
 
     tensor_util.save_features(split_id, model_name, task_ids, feature_acts.cpu())
-    out_path = sparse_features_path(split_id, model_name)
     print(f"Saved → {out_path}")
     return out_path
 

@@ -29,6 +29,11 @@ def train_sae(model_name: str, hook_name: str, d_model: int, split_id: int) -> N
         d_model:    Model hidden dimension
         split_id:   DB split id (used for output naming).
     """
+    weights_dst = sae_weights_path(split_id, model_name)
+    if weights_dst.exists():
+        print(f"SAE weights already exist at {weights_dst}, skipping.")
+        return
+
     sae_cfg = StandardTrainingSAEConfig(
         d_in           = d_model,
         d_sae          = d_model * 16,
@@ -77,12 +82,9 @@ def train_sae(model_name: str, hook_name: str, d_model: int, split_id: int) -> N
         print(f"\nDone. SAE saved to {sae_checkpoint_path(model_name)}")
         return
 
-    src         = run_dirs[0]
-    weights_dst = sae_weights_path(split_id, model_name)
-    cfg_dst     = sae_cfg_path(split_id, model_name)
+    src     = run_dirs[0]
+    cfg_dst = sae_cfg_path(split_id, model_name)
 
-    if os.path.exists(weights_dst):
-        shutil.rmtree(weights_dst)
     shutil.copytree(src, weights_dst)
     shutil.copy2(os.path.join(src, "cfg.json"), cfg_dst)
 

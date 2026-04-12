@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 import daos.task_split_dao as task_split_dao
+import daos.model_task_result_dao as model_task_result_dao
 from util.database_connection_util import get_connection
 
 
@@ -82,6 +83,43 @@ def get_all_for_split(split_id: int, is_test: bool) -> list[Task]:
             WHERE {task_split_dao.F_SPLIT_ID} = ? AND {task_split_dao.F_IS_TEST} = ?
             """,
             (split_id, 1 if is_test else 0),
+        ).fetchall()
+        return [_map(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def get_unscored_for_split(split_id: int, is_test: bool) -> list[Task]:
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            f"""
+            SELECT {TABLE}.* FROM {TABLE}
+            JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_ID}
+            WHERE {task_split_dao.F_SPLIT_ID} = ? AND {task_split_dao.F_IS_TEST} = ?
+              AND {F_TOUGHNESS_SCORE} IS NULL
+            """,
+            (split_id, 1 if is_test else 0),
+        ).fetchall()
+        return [_map(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def get_pending_for_model(model_name: str, split_id: int, is_test: bool) -> list[Task]:
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            f"""
+            SELECT {TABLE}.* FROM {TABLE}
+            JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_ID}
+            LEFT JOIN {model_task_result_dao.TABLE}
+                ON {model_task_result_dao.F_TASK_ID} = {F_ID}
+                AND {model_task_result_dao.F_MODEL_NAME} = ?
+            WHERE {task_split_dao.F_SPLIT_ID} = ? AND {task_split_dao.F_IS_TEST} = ?
+              AND {model_task_result_dao.F_RESULT} IS NULL
+            """,
+            (model_name, split_id, 1 if is_test else 0),
         ).fetchall()
         return [_map(r) for r in rows]
     finally:

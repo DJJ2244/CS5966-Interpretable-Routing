@@ -10,7 +10,6 @@ Main entry point:
 import ast
 import atexit
 import io
-import json
 import re
 import signal
 import sys
@@ -471,11 +470,11 @@ def _run_language(
     lang: str,
     records: list,
     container,
-    write_lock: threading.Lock,
-    f_results,
     log_dir: Path,
     pbar: tqdm,
 ) -> dict:
+    from daos.model_task_result_dao import update_test_result
+
     config = LANGUAGES[lang]
     summary = {"lang": lang, "total": len(records), "passed": 0, "failed": 0, "skipped": 0}
 
@@ -484,16 +483,14 @@ def _run_language(
             log.write(msg + "\n")
             log.flush()
 
-        for rec, problem in records:
-            task_id = rec["task_id"]
-            model = rec.get("chosen_model", "?")
-            extracted = extract_code(rec["completion"])
+        for row, problem in records:
+            task_id = row.task_id
+            extracted = extract_code(row.result or "")
 
             if container is None:
                 summary["skipped"] += 1
                 logline(f"[SKIP] {task_id} — no container")
-                with write_lock:
-                    f_results.write(json.dumps({"task_id": task_id, "passed": False, "extracted_code": extracted}) + "\n")
+                update_test_result(task_id, row.model_name, extracted, False)
                 pbar.update(1)
                 continue
 
@@ -512,28 +509,25 @@ def _run_language(
 
                 status = "PASS" if passed else "FAIL"
                 logline(f"\n{'='*60}")
-                logline(f"[{status}] {task_id} ({model})")
+                logline(f"[{status}] {task_id} ({row.model_name})")
                 logline(f"--- extracted body ---\n{body}")
                 logline(f"--- output ---\n{output}" if output else "--- output --- (none)")
 
                 summary["passed" if passed else "failed"] += 1
-                with write_lock:
-                    f_results.write(json.dumps({"task_id": task_id, "passed": passed, "extracted_code": extracted}) + "\n")
+                update_test_result(task_id, row.model_name, extracted, passed)
 
             except docker.errors.NotFound:
                 tqdm.write(f"[{lang}] container died — skipping remaining cases")
                 logline(f"CONTAINER DIED on {task_id} — skipping remaining cases")
                 summary["skipped"] += 1
                 container = None
-                with write_lock:
-                    f_results.write(json.dumps({"task_id": task_id, "passed": False, "extracted_code": extracted}) + "\n")
+                update_test_result(task_id, row.model_name, extracted, False)
 
             except Exception as e:
                 tqdm.write(f"[{lang}] ERROR on {task_id}: {e}")
                 logline(f"ERROR on {task_id}: {e}")
                 summary["failed"] += 1
-                with write_lock:
-                    f_results.write(json.dumps({"task_id": task_id, "passed": False, "extracted_code": extracted}) + "\n")
+                update_test_result(task_id, row.model_name, extracted, False)
 
             pbar.update(1)
 
@@ -546,25 +540,32 @@ def _run_language(
     return summary
 
 
-def run_tests(results_path: Path, model: str) -> None:
-    """Run inference results against Docker test cases for all languages.
+def run_tests(model_name: str, split_id: int, is_test: bool = False) -> None:
+    """Evaluate untested inference results against Docker test cases for all languages.
+
+    Reads pending rows (passed IS NULL) from model_task_result and writes
+    extracted_code and passed back to the same table when done.
 
     Args:
-        results_path: Path to the inference results .jsonl file.
-        model:        Model name string used for the output filename and logging.
+        model_name: HuggingFace model ID.
+        split_id:   DB split id.
+        is_test:    Whether to evaluate the test partition (default: train).
     """
-    from daos import tasks_dao
+    from daos import tasks_dao, model_task_result_dao
 
-    all_tasks = tasks_dao.get_all()
+    pending = model_task_result_dao.get_untested_for_model(model_name, split_id, is_test)
+    if not pending:
+        print("All tasks already tested, skipping.")
+        return
+
+    all_tasks = tasks_dao.get_all_for_split(split_id, is_test=is_test)
     problems = {t.id: t for t in all_tasks}
 
     by_lang: dict[str, list] = defaultdict(list)
-    with open(results_path) as f:
-        for line in f:
-            rec = json.loads(line)
-            problem = problems.get(rec["task_id"])
-            if problem:
-                by_lang[problem.programming_language].append((rec, problem))
+    for row in pending:
+        problem = problems.get(row.task_id)
+        if problem:
+            by_lang[problem.programming_language].append((row, problem))
 
     total = sum(len(v) for v in by_lang.values())
     langs_sorted = sorted(by_lang)
@@ -609,11 +610,8 @@ def run_tests(results_path: Path, model: str) -> None:
     print()
 
     print("── Evaluating ──────────────────────────────────────────")
-    from util.smart_file_util import model_slug
-    testing_results_path = results_path.parent / ("testing_results_" + model_slug(model) + ".jsonl")
-    log_dir = results_path.parent / "logs"
+    log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
-    write_lock = threading.Lock()
 
     pbars = {
         lang: tqdm(total=len(by_lang[lang]), desc=f"{lang:<14}", position=i, leave=True)
@@ -621,21 +619,20 @@ def run_tests(results_path: Path, model: str) -> None:
     }
 
     summaries = []
-    with open(testing_results_path, "w") as f_results:
-        with ThreadPoolExecutor(max_workers=len(langs_sorted)) as pool:
-            futures = {
-                pool.submit(
-                    _run_language, lang, by_lang[lang], containers.get(lang),
-                    write_lock, f_results, log_dir, pbars[lang]
-                ): lang
-                for lang in langs_sorted
-            }
-            for future in as_completed(futures):
-                lang = futures[future]
-                try:
-                    summaries.append(future.result())
-                except Exception as e:
-                    tqdm.write(f"[{lang}] ERROR: unexpected thread failure: {e}")
+    with ThreadPoolExecutor(max_workers=len(langs_sorted)) as pool:
+        futures = {
+            pool.submit(
+                _run_language, lang, by_lang[lang], containers.get(lang),
+                log_dir, pbars[lang]
+            ): lang
+            for lang in langs_sorted
+        }
+        for future in as_completed(futures):
+            lang = futures[future]
+            try:
+                summaries.append(future.result())
+            except Exception as e:
+                tqdm.write(f"[{lang}] ERROR: unexpected thread failure: {e}")
 
     for pbar in pbars.values():
         pbar.close()

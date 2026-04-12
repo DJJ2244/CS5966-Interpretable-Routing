@@ -5,8 +5,6 @@ inference_util.py - Inference loop, RouteLLM client, and OpenAI proxy client.
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Optional
-
 from tqdm import tqdm
 
 # ── Inference loop ────────────────────────────────────────────────────────────
@@ -16,19 +14,15 @@ def run_inference(
     create_fn,
     model_str: str,
     model_name: str,
-    total: Optional[int] = None,
     max_workers: int = 8,
 ) -> None:
-    """Run inference on a dataset of problems and write results to the database.
+    from daos.model_task_result_dao import get_completed_task_ids
+    completed = get_completed_task_ids(model_name)
+    pending   = [p for p in problems if p.task_id not in completed]
+    if not pending:
+        tqdm.write(f"{model_str}: all tasks already complete, skipping.")
+        return
 
-    Args:
-        problems:    Iterable of objects with .task_id and .prompt.
-        create_fn:   Callable matching client.completions.create signature.
-        model_str:   Model string passed to create_fn.
-        model_name:  HuggingFace model name used to upsert into model_task_result.
-        total:       Total problem count for progress bar.
-        max_workers: Number of concurrent inference threads.
-    """
     def infer(problem):
         start = time.monotonic()
         response = create_fn(
@@ -45,7 +39,7 @@ def run_inference(
             "run_millis": run_millis,
         }
 
-    pbar = tqdm(total=total, desc=f"{model_str:<20}", unit="problem", leave=True)
+    pbar = tqdm(total=len(pending), desc=f"{model_str:<20}", unit="problem", leave=True)
     with ThreadPoolExecutor(max_workers=max_workers) as pool:
         futures = {pool.submit(infer, problem): problem for problem in problems}
         for future in as_completed(futures):
