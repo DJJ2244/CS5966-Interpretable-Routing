@@ -126,6 +126,24 @@ def get_pending_for_model(model_name: str, split_id: int, is_test: bool) -> list
         conn.close()
 
 
+def get_toughness_scores_for_split(split_id: int, is_test: bool) -> list[float]:
+    """Return all non-NULL toughness scores for tasks in the given split partition."""
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            f"""
+            SELECT {F_TOUGHNESS_SCORE} FROM {TABLE}
+            JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_ID}
+            WHERE {task_split_dao.F_SPLIT_ID} = ? AND {task_split_dao.F_IS_TEST} = ?
+              AND {F_TOUGHNESS_SCORE} IS NOT NULL
+            """,
+            (split_id, 1 if is_test else 0),
+        ).fetchall()
+        return [row[_col(F_TOUGHNESS_SCORE)] for row in rows]
+    finally:
+        conn.close()
+
+
 def set_toughness_score(task_id: str, score: float) -> None:
     conn = get_connection()
     try:

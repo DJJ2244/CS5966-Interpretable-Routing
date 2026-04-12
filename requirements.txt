@@ -8,3 +8,5 @@ huggingface_hub
 docker
 vllm>=0.4.0 # prefer binary?
 typer>=0.9.0
+kneed
+matplotlib

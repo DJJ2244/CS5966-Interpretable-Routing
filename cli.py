@@ -184,19 +184,40 @@ def mlp_eval(
 
 @route_llm_app.command("calculate-threshold")
 def route_llm_threshold(
-    toughness_path:    Annotated[str,   typer.Option("--toughness-path",   help="Path to toughness.jsonl")] = "route_llm_results/toughness.jsonl",
-    target_strong_rate: Annotated[float, typer.Option("--target-strong-rate", help="Fraction to route to strong")] = 0.5,
-    save_path:         Annotated[Optional[str], typer.Option("--save",     help="Save threshold to this path")] = None,
+    split_id:          Annotated[int,            typer.Option("--split-id",     help="DB split id")] = 1,
+    weak_model_name:   Annotated[str,            typer.Option("--weak-model",   help="Weak model name")] = "",
+    strong_model_name: Annotated[str,            typer.Option("--strong-model", help="Strong model name")] = "",
+    is_test:           Annotated[bool,           typer.Option("--is-test",      help="Use test partition (default: train)")] = False,
 ) -> None:
-    """Compute the RouteLLM routing threshold from toughness scores."""
-    from route_llm.calculate_threshold import calculate_threshold, save_threshold
+    """Compute the RouteLLM routing threshold via Pareto frontier + geometric elbow."""
+    from route_llm.calculate_threshold import calculate_threshold
+    import daos.runs_dao as runs_dao
+
+    if not weak_model_name or not strong_model_name:
+        typer.echo("Error: --weak-model and --strong-model are required.", err=True)
+        raise typer.Exit(code=1)
+    
+    run = runs_dao.get_by_models_and_split(weak_model_name, strong_model_name, split_id)
+
+    if not (run is None or run.route_llm_threshold is None):
+        typer.echo(f"Threshold has already been calcualted to be: {run.route_llm_threshold}")
+        typer.echo("If you need this to be recalculated, please clear this record and/or create a new run.")
+        return
 
     threshold = calculate_threshold(
-        toughness_path=Path(toughness_path),
-        target_strong_rate=target_strong_rate,
+        split_id=split_id,
+        weak_model_name=weak_model_name,
+        strong_model_name=strong_model_name,
+        is_test=is_test,
     )
-    if save_path:
-        save_threshold(Path(save_path), threshold)
+
+    new_run = runs_dao.get_by_models_and_split(weak_model_name, strong_model_name, split_id)
+
+    if new_run:
+        runs_dao.update_threshold(run.id, threshold)
+        typer.echo(f"Threshold saved to run {run.id}.")
+    else:
+        typer.echo("Warning: no matching run found in DB — threshold not persisted.", err=True)
 
 
 # =============================================================================
