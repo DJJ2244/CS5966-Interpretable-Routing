@@ -15,6 +15,7 @@ import daos.split_dao as split_dao
 import daos.task_split_dao as task_split_dao
 import daos.tasks_dao as tasks_dao
 from util.database_connection_util import get_connection
+from route_llm.toughness import record_toughness
 
 DATA_PATH = Path("data/humaneval_xl_english.jsonl")
 SEED = 42
@@ -33,21 +34,23 @@ def init_db() -> None:
     _seed_task_split(conn, split_id)
     conn.commit()
     conn.close()
+    record_toughness(split_id=split_id, is_test=False)
+    record_toughness(split_id=split_id, is_test=True)
     print("Database initialized.")
-
 
 def _create_tables(conn: object) -> None:
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS tasks (
-            id                  TEXT PRIMARY KEY,
-            prompt              TEXT NOT NULL,
-            entry_point         TEXT NOT NULL,
-            test                TEXT NOT NULL,
-            description         TEXT,
-            language            TEXT,
-            canonical_solution  TEXT,
-            natural_language    TEXT,
-            programming_language TEXT NOT NULL
+            id                   TEXT PRIMARY KEY,
+            prompt               TEXT NOT NULL,
+            entry_point          TEXT NOT NULL,
+            test                 TEXT NOT NULL,
+            description          TEXT,
+            language             TEXT,
+            canonical_solution   TEXT,
+            natural_language     TEXT,
+            programming_language TEXT NOT NULL,
+            toughness_score      REAL
         );
 
         CREATE TABLE IF NOT EXISTS split (

@@ -16,6 +16,7 @@ F_LANGUAGE = TABLE + ".language"
 F_CANONICAL_SOLUTION = TABLE + ".canonical_solution"
 F_NATURAL_LANGUAGE = TABLE + ".natural_language"
 F_PROGRAMMING_LANGUAGE = TABLE + ".programming_language"
+F_TOUGHNESS_SCORE = TABLE + ".toughness_score"
 
 
 def _col(f: str) -> str:
@@ -33,6 +34,7 @@ class Task:
     canonical_solution: str
     natural_language: str
     programming_language: str
+    toughness_score: Optional[float] = None
 
 
 def _map(row: sqlite3.Row) -> Task:
@@ -46,6 +48,7 @@ def _map(row: sqlite3.Row) -> Task:
         canonical_solution=row[_col(F_CANONICAL_SOLUTION)] or "",
         natural_language=row[_col(F_NATURAL_LANGUAGE)] or "",
         programming_language=row[_col(F_PROGRAMMING_LANGUAGE)],
+        toughness_score=row[_col(F_TOUGHNESS_SCORE)],
     )
 
 
@@ -81,5 +84,17 @@ def get_all_for_split(split_id: int, is_test: bool) -> list[Task]:
             (split_id, 1 if is_test else 0),
         ).fetchall()
         return [_map(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def set_toughness_score(task_id: str, score: float) -> None:
+    conn = get_connection()
+    try:
+        conn.execute(
+            f"UPDATE {TABLE} SET {_col(F_TOUGHNESS_SCORE)} = ? WHERE {_col(F_ID)} = ?",
+            (score, task_id),
+        )
+        conn.commit()
     finally:
         conn.close()

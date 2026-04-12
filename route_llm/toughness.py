@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROUTER    = "bert"
 
-def get_router_client(weak_model: str, strong_model: str):
+def get_router_client(weak_model: str = "", strong_model: str = ""):
     """Return a RouteLLM Controller for the given models."""
     from routellm.controller import Controller
     return Controller(

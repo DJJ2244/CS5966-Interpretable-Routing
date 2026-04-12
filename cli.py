@@ -137,18 +137,6 @@ def inference_run(
         )
 
 
-@inference_app.command("toughness")
-def inference_toughness(
-    split_id:   Annotated[int, typer.Option("--split-id",   help="DB split id")]                  = 1,
-    is_test:    Annotated[bool, typer.Option("--test",      help="Score test partition")]          = False,
-    output_dir: Annotated[str, typer.Option("--output-dir", help="Directory for toughness.jsonl")] = "route_llm_results",
-) -> None:
-    """Score all problems with the BERT router. No model inference required."""
-    from route_llm.toughness import record_toughness
-
-    record_toughness(split_id=split_id, is_test=is_test, output_dir=output_dir)
-
-
 # =============================================================================
 # sae
 # =============================================================================
