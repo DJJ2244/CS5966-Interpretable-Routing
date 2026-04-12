@@ -18,11 +18,10 @@ cd $SLURM_SUBMIT_DIR
 source .venv/bin/activate
 mkdir -p logs/slurm
 
-# Usage: sbatch run_calculate_result_stats.sh [split_id] [run_id]
+# Usage: sbatch run_calculate_result_stats.sh [split_id]
 SPLIT_ID=${1:-1}
-RUN_ID=${2:-1}
 
-echo "Calculating result stats: split_id=$SPLIT_ID run_id=$RUN_ID"
-python cli.py stats calculate --split-id "$SPLIT_ID" --run-id "$RUN_ID"
+echo "Calculating result stats: split_id=$SPLIT_ID"
+python cli.py stats calculate --split-id "$SPLIT_ID"
 
 echo "Done."

@@ -102,42 +102,39 @@ def server_status() -> None:
 
 @inference_app.command("run")
 def inference_run(
-    model:      Annotated[str, typer.Option("--model",      help="weak | strong | all")]           = "all",
-    split_id:   Annotated[int, typer.Option("--split-id",   help="DB split id")]                    = 1,
-    output_dir: Annotated[str, typer.Option("--output-dir", help="Directory for result .jsonl")]    = "route_llm_results",
-    workers:    Annotated[int, typer.Option("--workers",    help="Concurrent inference requests")]  = 8,
+    weak_model:  Annotated[str, typer.Option("--weak-model",  help="HuggingFace model ID for weak model")]   = "",
+    strong_model: Annotated[str, typer.Option("--strong-model", help="HuggingFace model ID for strong model")] = "",
+    model:       Annotated[str, typer.Option("--model",       help="weak | strong | all")]                   = "all",
+    split_id:    Annotated[int, typer.Option("--split-id",    help="DB split id")]                            = 1,
+    output_dir:  Annotated[str, typer.Option("--output-dir",  help="Directory for result .jsonl")]            = "route_llm_results",
+    workers:     Annotated[int, typer.Option("--workers",     help="Concurrent inference requests")]          = 8,
 ) -> None:
     """Run baseline inference (no routing) for weak, strong, or both models."""
-    import os
     from util.model_util import require_up
     from util.inference_util import run_inference, get_openai_client
     from daos import tasks_dao
 
     require_up()
-
-    weak_name   = os.environ["WEAK_MODEL"].removeprefix("openai/")
-    strong_name = os.environ["STRONG_MODEL"].removeprefix("openai/")
-    client      = get_openai_client()
-
-    tasks = tasks_dao.get_all_for_split(split_id, is_test=False)
+    client = get_openai_client()
+    tasks  = tasks_dao.get_all_for_split(split_id, is_test=False)
 
     targets = []
     if model in ("weak", "all"):
-        targets.append((weak_name,   Path(output_dir) / "results_weak.jsonl"))    # TODO: delegate to smart_file_util
+        targets.append((weak_model,   Path(output_dir) / "results_weak.jsonl"))    # TODO: delegate to smart_file_util
     if model in ("strong", "all"):
-        targets.append((strong_name, Path(output_dir) / "results_strong.jsonl"))  # TODO: delegate to smart_file_util
+        targets.append((strong_model, Path(output_dir) / "results_strong.jsonl"))  # TODO: delegate to smart_file_util
     if not targets:
         raise typer.BadParameter(f"Unknown model '{model}'. Choose weak, strong, or all.")
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    for model_str, output_path in targets:
-        typer.echo(f"\n=== Running {model_str} ===")
+    for model_name, output_path in targets:
+        typer.echo(f"\n=== Running {model_name} ===")
         run_inference(
             problems=tasks,
             create_fn=client.completions.create,
-            model_str=model_str,
+            model_str=f"openai/{model_name}",
             output_path=str(output_path),
-            model_name=model_str,
+            model_name=model_name,
             total=len(tasks),
             max_workers=workers,
         )
@@ -145,9 +142,11 @@ def inference_run(
 
 @inference_app.command("route")
 def inference_route(
-    split_id:   Annotated[int, typer.Option("--split-id",   help="DB split id")]                   = 1,
-    output_dir: Annotated[str, typer.Option("--output-dir", help="Directory for result .jsonl")]   = "route_llm_results",
-    workers:    Annotated[int, typer.Option("--workers",    help="Concurrent inference requests")] = 8,
+    weak_model:  Annotated[str, typer.Option("--weak-model",  help="HuggingFace model ID for weak model")]   = "",
+    strong_model: Annotated[str, typer.Option("--strong-model", help="HuggingFace model ID for strong model")] = "",
+    split_id:    Annotated[int, typer.Option("--split-id",    help="DB split id")]                            = 1,
+    output_dir:  Annotated[str, typer.Option("--output-dir",  help="Directory for result .jsonl")]            = "route_llm_results",
+    workers:     Annotated[int, typer.Option("--workers",     help="Concurrent inference requests")]          = 8,
 ) -> None:
     """Route each problem to weak or strong model via the BERT router."""
     from util.model_util import require_up
@@ -157,7 +156,7 @@ def inference_route(
     require_up()
     tasks = tasks_dao.get_all_for_split(split_id, is_test=False)
 
-    client      = get_router_client()
+    client      = get_router_client(weak_model=weak_model, strong_model=strong_model)
     model_str   = f"router-{ROUTER}-{THRESHOLD}"
     output_path = Path(output_dir) / "router_results.jsonl"  # TODO: delegate to smart_file_util
     Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -319,12 +318,12 @@ def router_batch(
 
 @test_app.command("run")
 def test_run(
-    results: Annotated[Path, typer.Option("--results", help="Path to inference results .jsonl")],
-    model:   Annotated[str,  typer.Option("--model",   help="Model name for output filename")],
+    results:    Annotated[Path, typer.Option("--results",    help="Path to inference results .jsonl")],
+    model_name: Annotated[str,  typer.Option("--model-name", help="HuggingFace model ID")],
 ) -> None:
     """Evaluate inference results against Docker test cases for all languages."""
     from util.unit_test_util import run_tests
-    run_tests(results, model)
+    run_tests(results, model_name)
 
 
 # =============================================================================

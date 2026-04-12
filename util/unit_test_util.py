@@ -609,7 +609,8 @@ def run_tests(results_path: Path, model: str) -> None:
     print()
 
     print("── Evaluating ──────────────────────────────────────────")
-    testing_results_path = results_path.parent / ("testing_results_" + model + ".jsonl")
+    from util.smart_file_util import model_slug
+    testing_results_path = results_path.parent / ("testing_results_" + model_slug(model) + ".jsonl")
     log_dir = results_path.parent / "logs"
     log_dir.mkdir(exist_ok=True)
     write_lock = threading.Lock()

@@ -95,23 +95,14 @@ def _write_to_db(record: dict, model_name: str) -> None:
 
 # ── RouteLLM router client ────────────────────────────────────────────────────
 
-_router_client = None
-_router_lock = threading.Lock()
-
-
-def get_router_client():
-    """Return the shared RouteLLM Controller, creating it lazily on first call."""
-    global _router_client
-    if _router_client is None:
-        with _router_lock:
-            if _router_client is None:
-                from routellm.controller import Controller
-                _router_client = Controller(
-                    routers=[ROUTER],
-                    strong_model=os.environ["STRONG_MODEL"],
-                    weak_model=os.environ["WEAK_MODEL"],
-                )
-    return _router_client
+def get_router_client(weak_model: str, strong_model: str):
+    """Return a RouteLLM Controller for the given models."""
+    from routellm.controller import Controller
+    return Controller(
+        routers=[ROUTER],
+        strong_model=f"openai/{strong_model}",
+        weak_model=f"openai/{weak_model}",
+    )
 
 
 # ── OpenAI / litellm proxy client ────────────────────────────────────────────

@@ -25,12 +25,17 @@ cleanup() {
 }
 trap cleanup EXIT
 
+WEAK_MODEL="meta-llama/Llama-3.2-1B"
+STRONG_MODEL="meta-llama/Meta-Llama-3-8B"
 SPLIT_ID=${1:-1}
 
 echo "Starting servers..."
 python cli.py server up --weak-gpu 0 --strong-gpu 1 --detach
 
 echo "Calculating RouteLLM routing choices: split_id=$SPLIT_ID"
-python cli.py inference route --split-id "$SPLIT_ID"
+python cli.py inference route \
+    --weak-model   "$WEAK_MODEL" \
+    --strong-model "$STRONG_MODEL" \
+    --split-id     "$SPLIT_ID"
 
 echo "Done."

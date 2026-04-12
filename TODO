@@ -10,7 +10,7 @@ Dawson:
 daos/
 route_llm/
 util/
-Model Key is confusing and could be removed to save logic
+what to do about the split id passed in cli?
 inference util is a mess
 
 Team:
