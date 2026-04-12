@@ -64,7 +64,6 @@ def train_sae(model_name: str, hook_name: str, d_model: int, split_id: int) -> N
         n_checkpoints             = 5,
         checkpoint_path           = str(sae_checkpoint_path(model_name)),
         save_final_checkpoint     = True,
-        log_to_wandb              = False,
     )
 
     print(f"\nTraining SAE on {model_name}")
