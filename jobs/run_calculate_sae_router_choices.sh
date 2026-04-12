@@ -18,11 +18,14 @@ source .venv/bin/activate
 
 export HF_HOME=/scratch/general/vast/$USER/.cache/huggingface
 
-# Usage: sbatch run_calculate_sae_router_choices.sh [split_id] [model_id]
+# Usage: sbatch run_calculate_sae_router_choices.sh [split_id]
+# MODEL_NAME="meta-llama/Meta-Llama-3-8B"  # strong
+MODEL_NAME="meta-llama/Llama-3.2-1B"        # weak
 SPLIT_ID=${1:-1}
-MODEL_ID=${2:-1}
 
-echo "Calculating SAE router choices: split_id=$SPLIT_ID model_id=$MODEL_ID"
-python cli.py router batch --split-id "$SPLIT_ID" --model-id "$MODEL_ID"
+echo "Calculating SAE router choices: model=$MODEL_NAME split=$SPLIT_ID"
+python cli.py router batch \
+    --model-name "$MODEL_NAME" \
+    --split-id   "$SPLIT_ID"
 
 echo "Done."

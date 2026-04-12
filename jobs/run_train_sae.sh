@@ -20,16 +20,16 @@ export TRANSFORMERS_OFFLINE=1
 unset HF_DATASETS_OFFLINE
 export HF_HOME=/scratch/general/vast/$USER/.cache/huggingface
 
-# Usage: sbatch run_train_sae.sh [model_key] [split_id] [model_id]
-MODEL_KEY=${1:-weak}
-SPLIT_ID=${2:-}
-MODEL_ID=${3:-}
+# Usage: sbatch run_train_sae.sh [split_id]
+# MODEL_NAME="meta-llama/Meta-Llama-3-8B"; HOOK_NAME="blocks.16.hook_resid_post"; D_MODEL=4096  # strong
+MODEL_NAME="meta-llama/Llama-3.2-1B"; HOOK_NAME="blocks.8.hook_resid_post"; D_MODEL=2048        # weak
+SPLIT_ID=${1:-1}
 
-echo "Training SAE on model=$MODEL_KEY ..."
-if [ -n "$SPLIT_ID" ] && [ -n "$MODEL_ID" ]; then
-    python cli.py sae train --model "$MODEL_KEY" --split-id "$SPLIT_ID" --model-id "$MODEL_ID"
-else
-    python cli.py sae train --model "$MODEL_KEY"
-fi
+echo "Training SAE: model=$MODEL_NAME hook=$HOOK_NAME d_model=$D_MODEL split=$SPLIT_ID"
+python cli.py sae train \
+    --model-name "$MODEL_NAME" \
+    --hook-name  "$HOOK_NAME" \
+    --d-model    "$D_MODEL" \
+    --split-id   "$SPLIT_ID"
 
 echo "Done."

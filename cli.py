@@ -191,25 +191,27 @@ def inference_toughness(
 
 @sae_app.command("train")
 def sae_train(
-    model:    Annotated[str, typer.Option("--model",    help="weak | strong")] = "weak",
-    split_id: Annotated[int, typer.Option("--split-id", help="DB split id")]   = 1,
+    model_name: Annotated[str, typer.Option("--model-name", help="HuggingFace model ID")]      = "",
+    hook_name:  Annotated[str, typer.Option("--hook-name",  help="TransformerLens hook point")] = "",
+    d_model:    Annotated[int, typer.Option("--d-model",    help="Model hidden dimension")]     = 0,
+    split_id:   Annotated[int, typer.Option("--split-id",   help="DB split id")]                = 1,
 ) -> None:
     """Train a Sparse Autoencoder on the given model's residual stream."""
     from sae.train_sae import train_sae
-    train_sae(model_key=model, split_id=split_id)
+    train_sae(model_name=model_name, hook_name=hook_name, d_model=d_model, split_id=split_id)
 
 
 @sae_app.command("extract")
 def sae_extract(
-    model_key: Annotated[str,  typer.Option("--model-key", help="weak | strong")]              = "weak",
-    split_id:  Annotated[int,  typer.Option("--split-id",  help="DB split id")]                = 1,
-    is_test:   Annotated[bool, typer.Option("--test",      help="Extract test partition")]     = False,
-    sae_path:  Annotated[Optional[str], typer.Option("--sae-path", help="SAE checkpoint dir")] = None,
+    model_name: Annotated[str,  typer.Option("--model-name", help="HuggingFace model ID")]      = "",
+    split_id:   Annotated[int,  typer.Option("--split-id",   help="DB split id")]                = 1,
+    is_test:    Annotated[bool, typer.Option("--test",        help="Extract test partition")]    = False,
+    sae_path:   Annotated[Optional[str], typer.Option("--sae-path", help="SAE checkpoint dir")] = None,
 ) -> None:
     """Extract dense activations and encode through SAE to produce sparse feature vectors."""
     from sae.extract_spv import run
 
-    run(model_key=model_key, split_id=split_id, is_test=is_test, sae_path=sae_path)
+    run(model_name=model_name, split_id=split_id, is_test=is_test, sae_path=sae_path)
 
 
 # =============================================================================
@@ -218,26 +220,24 @@ def sae_extract(
 
 @mlp_app.command("train")
 def mlp_train(
-    model_key: Annotated[str, typer.Option("--model-key", help="weak | strong")] = "weak",
-    split_id:  Annotated[int, typer.Option("--split-id",  help="DB split id")]   = 1,
+    model_name: Annotated[str, typer.Option("--model-name", help="HuggingFace model ID")] = "",
+    split_id:   Annotated[int, typer.Option("--split-id",   help="DB split id")]           = 1,
 ) -> None:
     """Train the MLP router on SAE sparse features and test results from the DB."""
     from mlp.mlp_train import train_mlp
-    from util.model_util import MODELS
 
-    train_mlp(split_id=split_id, model_name=MODELS[model_key])
+    train_mlp(split_id=split_id, model_name=model_name)
 
 
 @mlp_app.command("eval")
 def mlp_eval(
-    model_key: Annotated[str, typer.Option("--model-key", help="weak | strong")] = "weak",
-    split_id:  Annotated[int, typer.Option("--split-id",  help="DB split id")]   = 1,
+    model_name: Annotated[str, typer.Option("--model-name", help="HuggingFace model ID")] = "",
+    split_id:   Annotated[int, typer.Option("--split-id",   help="DB split id")]           = 1,
 ) -> None:
     """Evaluate the trained MLP router on the test split."""
     from mlp.eval_mlp import evaluate_mlp
-    from util.model_util import MODELS
 
-    evaluate_mlp(split_id=split_id, model_name=MODELS[model_key])
+    evaluate_mlp(split_id=split_id, model_name=model_name)
 
 
 # =============================================================================
@@ -267,21 +267,19 @@ def route_llm_threshold(
 
 @router_app.command("batch")
 def router_batch(
-    model_key: Annotated[str,  typer.Option("--model-key", help="weak | strong")]        = "weak",
-    split_id:  Annotated[int,  typer.Option("--split-id",  help="DB split id")]          = 1,
-    is_test:   Annotated[bool, typer.Option("--test",      help="Use test partition")]   = True,
-    output:    Annotated[str,  typer.Option("--output",    help="Output .jsonl path")]   = "routing_decisions.jsonl",
+    model_name: Annotated[str,  typer.Option("--model-name", help="HuggingFace model ID")]    = "",
+    split_id:   Annotated[int,  typer.Option("--split-id",   help="DB split id")]              = 1,
+    is_test:    Annotated[bool, typer.Option("--test",        help="Use test partition")]      = True,
+    output:     Annotated[str,  typer.Option("--output",      help="Output .jsonl path")]      = "routing_decisions.jsonl",
 ) -> None:
     """Generate SAE+MLP routing decisions for a split and write to JSONL."""
     import torch
     from mlp.model import MLP, HIDDEN_DIM
     from util import tensor_util
     from util.smart_file_util import mlp_path, write_jsonl
-    from util.model_util import MODELS
     from daos import model_task_result_dao
 
-    model_name    = MODELS[model_key]
-    device        = "cuda" if torch.cuda.is_available() else "cpu"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     features_dict = tensor_util.load_features(split_id, model_name)
     features      = features_dict["features"].to(device)

@@ -32,13 +32,6 @@ WEAK_PORT    = 8001
 STRONG_PORT  = 8002
 PROXY_PORT   = 4000
 
-# TODO: this is a relic from an ancient time. Should be replaced in favor of inputting the models manually
-# look above for another part of this relic
-MODELS = {
-    "weak":   WEAK_MODEL,
-    "strong": STRONG_MODEL,
-}
-
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 

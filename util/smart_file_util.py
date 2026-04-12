@@ -53,9 +53,9 @@ def mlp_path(split_id: int, model_name: str) -> Path:
     return MLP_OUTPUT_DIR / f"mlp_{split_id}_{model_slug(model_name)}.pt"
 
 
-def sae_checkpoint_path(model_key: str) -> Path:
+def sae_checkpoint_path(model_name: str) -> Path:
     """SAELens live training checkpoint directory (intermediate, not final weights)."""
-    return SAE_OUTPUT_DIR / model_key
+    return SAE_OUTPUT_DIR / model_slug(model_name)
 
 
 # ── Generic JSONL / CSV I/O ───────────────────────────────────────────────────

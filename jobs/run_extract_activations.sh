@@ -19,15 +19,14 @@ source .venv/bin/activate
 export TRANSFORMERS_OFFLINE=1
 export HF_HOME=/scratch/general/vast/$USER/.cache/huggingface
 
-# Usage: sbatch run_extract_activations.sh [model_key] [split_id] [model_id]
-MODEL_KEY=${1:-weak}
-SPLIT_ID=${2:-1}
-MODEL_ID=${3:-1}
+# Usage: sbatch run_extract_activations.sh [split_id]
+# MODEL_NAME="meta-llama/Meta-Llama-3-8B"  # strong
+MODEL_NAME="meta-llama/Llama-3.2-1B"        # weak
+SPLIT_ID=${1:-1}
 
-echo "Extracting activations: model=$MODEL_KEY split=$SPLIT_ID model_id=$MODEL_ID"
+echo "Extracting activations: model=$MODEL_NAME split=$SPLIT_ID"
 python cli.py sae extract \
-    --model-key "$MODEL_KEY" \
-    --split-id "$SPLIT_ID" \
-    --model-id "$MODEL_ID"
+    --model-name "$MODEL_NAME" \
+    --split-id   "$SPLIT_ID"
 
 echo "Done."

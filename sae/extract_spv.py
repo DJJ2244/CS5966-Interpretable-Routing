@@ -14,7 +14,6 @@ Output paths follow the smart_file_util convention:
 import torch
 from pathlib import Path
 
-from util.model_util import MODELS
 
 
 def extract_activations(
@@ -142,12 +141,11 @@ def extract_sparse_features(
 
 
 def run(
-    model_key: str,
+    model_name: str,
     split_id: int,
     is_test: bool,
     sae_path: str = None,
 ) -> None:
     """Full pipeline: extract activations then encode through SAE."""
-    model_name = MODELS[model_key]
     extract_activations(model_name=model_name, split_id=split_id, is_test=is_test)
     extract_sparse_features(model_name=model_name, split_id=split_id, sae_path=sae_path)
