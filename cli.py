@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 load_dotenv()  # must run before any module reads os.environ
 
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated, List, Optional
 import typer
 
 app = typer.Typer(help="CS5966 Interpretable Routing CLI.", no_args_is_help=True)
@@ -70,16 +70,16 @@ def db_init() -> None:
 
 @server_app.command("up")
 def server_up(
-    weak_gpu:   Annotated[str,  typer.Option("--weak-gpu",   help="CUDA device for weak model")]  = "0",
-    strong_gpu: Annotated[str,  typer.Option("--strong-gpu", help="CUDA device for strong model")] = "1",
-    single_gpu: Annotated[bool, typer.Option("--single-gpu", help="Run both models on GPU 0")]      = False,
-    detach:     Annotated[bool, typer.Option("--detach",     help="Run servers in background")]      = False,
+    models: Annotated[List[str], typer.Option("--model", help="model_id:gpu_id (repeatable)")] = [],
+    detach: Annotated[bool,      typer.Option("--detach", help="Run servers in background")]    = False,
 ) -> None:
     """Start vLLM inference servers and litellm proxy."""
     from util.model_util import up
-    if single_gpu:
-        strong_gpu = weak_gpu
-    up(weak_gpu=weak_gpu, strong_gpu=strong_gpu, detach=detach)
+    pairs = []
+    for entry in models:
+        model_id, _, gpu_id = entry.partition(":")
+        pairs.append((model_id.strip(), gpu_id.strip() or "0"))
+    up(models=pairs, detach=detach)
 
 
 @server_app.command("down")
@@ -102,38 +102,25 @@ def server_status() -> None:
 
 @inference_app.command("run")
 def inference_run(
-    weak_model:  Annotated[str, typer.Option("--weak-model",  help="HuggingFace model ID for weak model")]   = "",
-    strong_model: Annotated[str, typer.Option("--strong-model", help="HuggingFace model ID for strong model")] = "",
-    model:       Annotated[str, typer.Option("--model",       help="weak | strong | all")]                   = "all",
-    split_id:    Annotated[int, typer.Option("--split-id",    help="DB split id")]                            = 1,
-    workers:     Annotated[int, typer.Option("--workers",     help="Concurrent inference requests")]          = 8,
+    model_name: Annotated[str, typer.Option("--model-name", help="HuggingFace model ID")] = "",
+    split_id:   Annotated[int, typer.Option("--split-id",   help="DB split id")]           = 1,
+    workers:    Annotated[int, typer.Option("--workers",    help="Concurrent inference requests")] = 1,
 ) -> None:
-    """Run baseline inference (no routing) for weak, strong, or both models."""
+    """Run baseline inference (no routing) for a single model."""
     from util.model_util import require_up
     from util.inference_util import run_inference, get_openai_client
     from daos import tasks_dao
 
     require_up()
     client = get_openai_client()
-
-    targets = []
-    if model in ("weak", "all"):
-        targets.append(weak_model)
-    if model in ("strong", "all"):
-        targets.append(strong_model)
-    if not targets:
-        raise typer.BadParameter(f"Unknown model '{model}'. Choose weak, strong, or all.")
-
-    tasks = tasks_dao.get_all_for_split(split_id, is_test=False)
-    for model_name in targets:
-        typer.echo(f"\n=== Running {model_name} ===")
-        run_inference(
-            problems=tasks,
-            create_fn=client.completions.create,
-            model_str=f"openai/{model_name}",
-            model_name=model_name,
-            max_workers=workers,
-        )
+    tasks  = tasks_dao.get_all_for_split(split_id, is_test=False)
+    run_inference(
+        problems=tasks,
+        create_fn=client.completions.create,
+        model_str=f"openai/{model_name}",
+        model_name=model_name,
+        max_workers=workers,
+    )
 
 
 # =============================================================================

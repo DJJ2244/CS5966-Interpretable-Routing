@@ -14,7 +14,7 @@ def run_inference(
     create_fn,
     model_str: str,
     model_name: str,
-    max_workers: int = 8,
+    max_workers: int = 1,
 ) -> None:
     from daos.model_task_result_dao import get_completed_task_ids
     completed = get_completed_task_ids(model_name)
@@ -41,7 +41,7 @@ def run_inference(
 
     pbar = tqdm(total=len(pending), desc=f"{model_str:<20}", unit="problem", leave=True)
     with ThreadPoolExecutor(max_workers=max_workers) as pool:
-        futures = {pool.submit(infer, problem): problem for problem in problems}
+        futures = {pool.submit(infer, problem): problem for problem in pending}
         for future in as_completed(futures):
             record = future.result()
             _write_to_db(record, model_name)

@@ -3,10 +3,10 @@ model_util.py - Lifecycle management for vLLM inference servers and litellm prox
 
 Functions
 ---------
-up(weak_gpu, strong_gpu, detach)  Start all three servers.
-down()                             Kill servers tracked in .session.json.
-status()                           Print a health table for each tracked server.
-require_up()                       Exit(1) with a helpful message if servers are not ready.
+up(models, detach)   Start vLLM servers for each (model_id, gpu_id) pair + litellm proxy.
+down()               Kill servers tracked in .session.json.
+status()             Print a health table for each tracked server.
+require_up()         Exit(1) with a helpful message if servers are not ready.
 """
 
 import json
@@ -22,15 +22,12 @@ import typer
 from huggingface_hub import snapshot_download
 from huggingface_hub.utils import LocalEntryNotFoundError
 
-SESSION_FILE = Path(".session.json")
-LOG_DIR      = Path("logs/servers")
-MAX_WAIT_SEC = 300
-
-WEAK_MODEL   = "meta-llama/Llama-3.2-1B"
-STRONG_MODEL = "meta-llama/Meta-Llama-3-8B"
-WEAK_PORT    = 8001
-STRONG_PORT  = 8002
-PROXY_PORT   = 4000
+SESSION_FILE   = Path(".session.json")
+LOG_DIR        = Path("logs/servers")
+MAX_WAIT_SEC   = 300
+BASE_VLLM_PORT = 8001
+PROXY_PORT     = 4000
+LITELLM_CONFIG = Path("litellm_config.yaml")
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -96,16 +93,39 @@ def _vllm_cmd(model: str, port: int) -> list:
         "--port",          str(port),
         "--max-model-len", "4096",
         "--enforce-eager",
+        "--max-num-seqs",  "1",
     ]
 
 
 def _litellm_cmd() -> list:
-    return ["litellm", "--config", "litellm_config.yaml", "--port", str(PROXY_PORT)]
+    return ["litellm", "--config", str(LITELLM_CONFIG), "--port", str(PROXY_PORT)]
+
+
+def _write_litellm_config(entries: list[tuple[str, int]]) -> None:
+    """Write litellm_config.yaml from (model_id, port) pairs."""
+    lines = ["model_list:"]
+    for model_id, port in entries:
+        lines += [
+            f"  - model_name: {model_id}",
+            f"    litellm_params:",
+            f"      model: openai/{model_id}",
+            f"      api_base: http://localhost:{port}/v1",
+            f"      api_key: dummy",
+            f"",
+        ]
+    LITELLM_CONFIG.write_text("\n".join(lines))
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
-def up(weak_gpu: str = "0", strong_gpu: str = "1", detach: bool = False) -> None:
+def up(models: list[tuple[str, str]], detach: bool = False) -> None:
+    """Start one vLLM server per (model_id, gpu_id) pair, then start the litellm proxy.
+
+    Args:
+        models: List of (model_id, gpu_id) tuples. Ports are assigned sequentially
+                from BASE_VLLM_PORT (8001, 8002, ...).
+        detach: If True, run all servers in the background and return immediately.
+    """
     if SESSION_FILE.exists():
         session = json.loads(SESSION_FILE.read_text())
         if all(health_ok(v["port"]) for v in session.values()):
@@ -114,38 +134,39 @@ def up(weak_gpu: str = "0", strong_gpu: str = "1", detach: bool = False) -> None
         SESSION_FILE.unlink()  # stale session
 
     typer.echo("Checking model weights...")
-    _ensure_model(WEAK_MODEL)
-    _ensure_model(STRONG_MODEL)
+    for model_id, _ in models:
+        _ensure_model(model_id)
 
-    typer.echo(f"Starting weak model  ({WEAK_MODEL}) on port {WEAK_PORT}  [GPU {weak_gpu}]")
-    weak_proc = _spawn(
-        _vllm_cmd(WEAK_MODEL, WEAK_PORT),
-        env={**os.environ, "CUDA_VISIBLE_DEVICES": weak_gpu},
-        log_name="weak_vllm",
-        detach=detach,
-    )
+    session = {}
+    procs   = []
+    entries = []  # (model_id, port) for litellm config
 
-    typer.echo(f"Starting strong model ({STRONG_MODEL}) on port {STRONG_PORT} [GPU {strong_gpu}]")
-    strong_proc = _spawn(
-        _vllm_cmd(STRONG_MODEL, STRONG_PORT),
-        env={**os.environ, "CUDA_VISIBLE_DEVICES": strong_gpu},
-        log_name="strong_vllm",
-        detach=detach,
-    )
+    for i, (model_id, gpu_id) in enumerate(models):
+        port     = BASE_VLLM_PORT + i
+        key      = f"vllm_{i}"
+        log_name = f"vllm_{i}"
+        typer.echo(f"Starting {model_id} on port {port} [GPU {gpu_id}]")
+        proc = _spawn(
+            _vllm_cmd(model_id, port),
+            env={**os.environ, "CUDA_VISIBLE_DEVICES": gpu_id},
+            log_name=log_name,
+            detach=detach,
+        )
+        session[key] = {"pid": proc.pid, "port": port, "model": model_id}
+        procs.append(proc)
+        entries.append((model_id, port))
 
-    session = {
-        "weak_vllm":   {"pid": weak_proc.pid,   "port": WEAK_PORT,   "model": WEAK_MODEL},
-        "strong_vllm": {"pid": strong_proc.pid, "port": STRONG_PORT, "model": STRONG_MODEL},
-    }
     SESSION_FILE.write_text(json.dumps(session, indent=2))
 
-    _wait_for("weak vLLM",   WEAK_PORT)
-    _wait_for("strong vLLM", STRONG_PORT)
+    for i, (model_id, _) in enumerate(models):
+        _wait_for(model_id, BASE_VLLM_PORT + i)
 
+    _write_litellm_config(entries)
     typer.echo(f"Starting litellm proxy on port {PROXY_PORT}")
     proxy_proc = _spawn(_litellm_cmd(), log_name="proxy", detach=detach)
     session["proxy"] = {"pid": proxy_proc.pid, "port": PROXY_PORT}
     SESSION_FILE.write_text(json.dumps(session, indent=2))
+    procs.append(proxy_proc)
 
     _wait_for("litellm proxy", PROXY_PORT)
     typer.echo(f"\nAll servers ready. Logs: {LOG_DIR}/")
@@ -154,9 +175,7 @@ def up(weak_gpu: str = "0", strong_gpu: str = "1", detach: bool = False) -> None
         typer.echo("Running in background. Use 'down' to stop.")
         return
 
-    procs = [weak_proc, strong_proc, proxy_proc]
-
-    def _shutdown(sig=None, frame=None):
+    def _shutdown(_sig=None, _frame=None):
         typer.echo("\nShutting down servers...")
         for p in procs:
             p.terminate()
@@ -209,12 +228,11 @@ def status() -> None:
 
 
 def require_up() -> None:
-    checks = [
-        ("weak vLLM",     WEAK_PORT),
-        ("strong vLLM",   STRONG_PORT),
-        ("litellm proxy", PROXY_PORT),
-    ]
-    failing = [name for name, port in checks if not health_ok(port)]
+    if not SESSION_FILE.exists():
+        typer.echo("No active session. Run: python cli.py server up", err=True)
+        raise typer.Exit(1)
+    session = json.loads(SESSION_FILE.read_text())
+    failing = [name for name, info in session.items() if not health_ok(info["port"])]
     if failing:
         typer.echo(f"Servers not ready: {', '.join(failing)}", err=True)
         typer.echo("Run: python cli.py server up", err=True)
