@@ -76,10 +76,7 @@ def _build_frontier(
     return frontier
 
 
-def _find_elbow(frontier: list[ThresholdPoint]) -> ThresholdPoint:
-    if len(frontier) <= 2:
-        return frontier[0]
-
+def _find_elbow(frontier: list[ThresholdPoint]) -> tuple[ThresholdPoint, KneeLocator]:
     knee = KneeLocator(
         x=[p.strong_rate for p in frontier],
         y=[p.accuracy    for p in frontier],
@@ -87,41 +84,21 @@ def _find_elbow(frontier: list[ThresholdPoint]) -> ThresholdPoint:
         direction="increasing",
     )
 
-    if knee.knee is None:
-        return frontier[0]
+    if len(frontier) <= 2 or knee.knee is None:
+        return frontier[0], knee
 
-    return min(frontier, key=lambda p: abs(p.strong_rate - knee.knee))
+    return min(frontier, key=lambda p: abs(p.strong_rate - knee.knee)), knee
 
 
-def _save_plot(
-    frontier: list[ThresholdPoint],
-    elbow: ThresholdPoint,
-    split_id: int,
-    weak_model_name: str,
-    strong_model_name: str,
-) -> None:
+def _save_plot(knee: KneeLocator, split_id: int) -> None:
     out_dir = Path("visuals")
     out_dir.mkdir(exist_ok=True)
 
-    xs = [p.strong_rate for p in frontier]
-    ys = [p.accuracy    for p in frontier]
-
-    fig, ax = plt.subplots()
-    ax.plot(xs, ys, label="Pareto frontier")
-    ax.scatter([elbow.strong_rate], [elbow.accuracy], color="red", zorder=5, label="elbow")
-    ax.annotate(
-        f"  threshold={elbow.threshold:.4f}",
-        (elbow.strong_rate, elbow.accuracy),
-        fontsize=8,
-    )
-    ax.set_xlabel("Strong model call rate")
-    ax.set_ylabel("Accuracy")
-    ax.set_title(f"Pareto Frontier — split {split_id}\n{weak_model_name} vs {strong_model_name}")
-    ax.legend()
+    knee.plot_knee()
 
     filename = f"pareto_frontier_split{split_id}.png"
-    fig.savefig(out_dir / filename, dpi=150, bbox_inches="tight")
-    plt.close(fig)
+    plt.savefig(out_dir / filename, dpi=150, bbox_inches="tight")
+    plt.close()
     print(f"Plot saved to visuals/{filename}")
 
 
@@ -143,8 +120,8 @@ def calculate_threshold(
         Threshold float. Problems with toughness_score >= threshold are routed to strong.
     """
     frontier = _build_frontier(split_id, weak_model_name, strong_model_name, is_test)
-    elbow = _find_elbow(frontier)
-    _save_plot(frontier, elbow, split_id, weak_model_name, strong_model_name)
+    elbow, knee = _find_elbow(frontier)
+    _save_plot(knee, split_id)
 
     a, b = frontier[0], frontier[-1]
     print(
