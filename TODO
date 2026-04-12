@@ -16,3 +16,7 @@ inference util is a mess
 Team:
 jobs/
 cli.py
+
+
+
+DB insert batching???
