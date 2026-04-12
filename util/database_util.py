@@ -11,11 +11,18 @@ import random
 from collections import defaultdict
 from pathlib import Path
 
+import daos.split_dao as split_dao
+import daos.task_split_dao as task_split_dao
+import daos.tasks_dao as tasks_dao
 from util.database_connection_util import get_connection
 
 DATA_PATH = Path("data/humaneval_xl_english.jsonl")
 SEED = 42
-TEST_SIZE = 0.2
+
+
+def _col(f: str) -> str:
+    """Strip table prefix from a DAO field constant (e.g. 'tasks.id' → 'id')."""
+    return f.rsplit(".", 1)[-1]
 
 
 def init_db() -> None:
@@ -89,10 +96,13 @@ def _seed_tasks(conn: object) -> None:
                 continue
             rec = json.loads(line)
             conn.execute(
-                """
-                INSERT OR IGNORE INTO tasks
-                    (id, prompt, entry_point, test, description, language,
-                     canonical_solution, natural_language, programming_language)
+                f"""
+                INSERT OR IGNORE INTO {tasks_dao.TABLE}
+                    ({_col(tasks_dao.F_ID)}, {_col(tasks_dao.F_PROMPT)},
+                     {_col(tasks_dao.F_ENTRY_POINT)}, {_col(tasks_dao.F_TEST)},
+                     {_col(tasks_dao.F_DESCRIPTION)}, {_col(tasks_dao.F_LANGUAGE)},
+                     {_col(tasks_dao.F_CANONICAL_SOLUTION)}, {_col(tasks_dao.F_NATURAL_LANGUAGE)},
+                     {_col(tasks_dao.F_PROGRAMMING_LANGUAGE)})
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
@@ -113,34 +123,45 @@ def _seed_tasks(conn: object) -> None:
 
 
 def _ensure_default_split(conn: object) -> int:
-    conn.execute("INSERT OR IGNORE INTO split (name) VALUES ('default')")
-    row = conn.execute("SELECT id FROM split WHERE name = 'default'").fetchone()
-    return row["id"]
+    conn.execute(
+        f"INSERT OR IGNORE INTO {split_dao.TABLE} ({_col(split_dao.F_NAME)}) VALUES (?)",
+        ("default",),
+    )
+    row = conn.execute(
+        f"SELECT {split_dao.F_ID} FROM {split_dao.TABLE} WHERE {split_dao.F_NAME} = ?",
+        ("default",),
+    ).fetchone()
+    return row[_col(split_dao.F_ID)]
 
 
 def _seed_task_split(conn, split_id: int) -> None:
     existing = conn.execute(
-        "SELECT COUNT(*) as cnt FROM task_split WHERE split_id = ?", (split_id,)
+        f"SELECT COUNT(*) as cnt FROM {task_split_dao.TABLE} WHERE {task_split_dao.F_SPLIT_ID} = ?",
+        (split_id,),
     ).fetchone()["cnt"]
     if existing > 0:
         print(f"Split {split_id} already has {existing} rows — skipping split seeding.")
         return
 
-    # Load all tasks grouped by programming_language
+    # Load all tasks grouped by language for stratified split
     buckets: dict = defaultdict(list)
-    rows = conn.execute("SELECT id, programming_language FROM tasks").fetchall()
+    rows = conn.execute(
+        f"SELECT {tasks_dao.F_ID}, {tasks_dao.F_PROGRAMMING_LANGUAGE} FROM {tasks_dao.TABLE}"
+    ).fetchall()
     for row in rows:
-        buckets[row["programming_language"]].append(row["id"])
+        buckets[row[_col(tasks_dao.F_PROGRAMMING_LANGUAGE)]].append(row[_col(tasks_dao.F_ID)])
 
     rng = random.Random(SEED)
     train_ids, test_ids = [], []
 
+    # Each language contributes exactly 20% to test, preserving equal language proportions.
+    # round() is used instead of int() to avoid truncation skewing small language groups.
     for lang in sorted(buckets):
         ids = buckets[lang][:]
         rng.shuffle(ids)
-        split_idx = int(len(ids) * (1 - TEST_SIZE))
-        train_ids.extend(ids[:split_idx])
-        test_ids.extend(ids[split_idx:])
+        n_train = round(len(ids) * 0.8)
+        train_ids.extend(ids[:n_train])
+        test_ids.extend(ids[n_train:])
 
     rng.shuffle(train_ids)
     rng.shuffle(test_ids)
@@ -150,7 +171,12 @@ def _seed_task_split(conn, split_id: int) -> None:
         + [(split_id, task_id, 1) for task_id in test_ids]
     )
     conn.executemany(
-        "INSERT OR IGNORE INTO task_split (split_id, task_id, is_test) VALUES (?, ?, ?)",
+        f"""
+        INSERT OR IGNORE INTO {task_split_dao.TABLE}
+            ({_col(task_split_dao.F_SPLIT_ID)}, {_col(task_split_dao.F_TASK_ID)},
+             {_col(task_split_dao.F_IS_TEST)})
+        VALUES (?, ?, ?)
+        """,
         rows_to_insert,
     )
     print(f"Created split '{split_id}': {len(train_ids)} train, {len(test_ids)} test.")
