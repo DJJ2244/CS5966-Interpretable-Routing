@@ -14,6 +14,7 @@ Output paths follow the smart_file_util convention:
 import torch
 from pathlib import Path
 
+from util.model_util import MODELS
 
 
 def extract_activations(
@@ -58,27 +59,37 @@ def extract_activations(
     )
     model.eval()
 
-    #make sure that cfg.json contains the full num of sae layers not just the half
     num_layers   = model.cfg.n_layers
     middle_layer = num_layers // 2
     print(f"  {num_layers} layers — extracting layer {middle_layer}")
+
+    class _EarlyStop(Exception):
+        pass
 
     all_vectors = []
     task_ids    = []
 
     for i, (task_id, prompt) in enumerate(problems):
         try:
-            tokens = model.to_tokens(prompt, truncate=True)
+            tokens   = model.to_tokens(prompt, truncate=True)
+            captured = {}
+
+            def _hook(value, hook=None):  # noqa: ARG001
+                captured["act"] = value
+                raise _EarlyStop()
+
             with torch.no_grad():
-                logits, cache = model.run_with_cache(
-                    tokens,
-                    names_filter=f"blocks.{middle_layer}.hook_resid_post",
-                )
-            residual = cache[f"blocks.{middle_layer}.hook_resid_post"]
-            vector   = residual.mean(dim=1).squeeze(0).cpu().float()
+                try:
+                    model.run_with_hooks(
+                        tokens,
+                        fwd_hooks=[(f"blocks.{middle_layer}.hook_resid_post", _hook)],
+                    )
+                except _EarlyStop:
+                    pass
+
+            vector = captured["act"].mean(dim=1).squeeze(0).float().cpu()
             all_vectors.append(vector)
             task_ids.append(task_id)
-            del cache, logits
             torch.cuda.empty_cache()
         except Exception as e:
             print(f"  Failed on {task_id}: {e}")
@@ -89,6 +100,7 @@ def extract_activations(
     del model
     torch.cuda.empty_cache()
 
+    out_path = activations_path(split_id, model_name)
     tensor_util.save_activations(split_id, model_name, task_ids, activation_matrix)
     print(f"Saved {activation_matrix.shape} → {out_path}")
     return out_path
@@ -144,16 +156,18 @@ def extract_sparse_features(
     print(f"  Avg L0: {l0:.1f}   Dead features: {dead}/{feature_acts.shape[1]}")
 
     tensor_util.save_features(split_id, model_name, task_ids, feature_acts.cpu())
+    out_path = sparse_features_path(split_id, model_name)
     print(f"Saved → {out_path}")
     return out_path
 
 
 def run(
-    model_name: str,
+    model_key: str,
     split_id: int,
     is_test: bool,
     sae_path: str = None,
 ) -> None:
     """Full pipeline: extract activations then encode through SAE."""
+    model_name = MODELS[model_key]
     extract_activations(model_name=model_name, split_id=split_id, is_test=is_test)
     extract_sparse_features(model_name=model_name, split_id=split_id, sae_path=sae_path)
