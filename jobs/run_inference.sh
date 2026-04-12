@@ -26,19 +26,25 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# MODEL_NAME_STRONG="meta-llama/Meta-Llama-3-8B"  # strong
 WEAK_MODEL="meta-llama/Llama-3.2-1B"
 STRONG_MODEL="meta-llama/Meta-Llama-3-8B"
 SPLIT_ID=${1:-1}
 
 echo "Starting servers..."
-python cli.py server up --weak-gpu 0 --strong-gpu 1 --detach
+python cli.py server up \
+    --model "$WEAK_MODEL:0" \
+    --model "$STRONG_MODEL:1" \
+    --detach
 
-echo "Running inference (weak + strong): split=$SPLIT_ID"
-python cli.py inference run \
-    --weak-model   "$WEAK_MODEL" \
-    --strong-model "$STRONG_MODEL" \
-    --model all \
-    --split-id "$SPLIT_ID"
+echo "Running inference (weak): split=$SPLIT_ID"
+python cli.py inference run --model-name "$WEAK_MODEL" --split-id "$SPLIT_ID" &
+WEAK_PID=$!
+
+echo "Running inference (strong): split=$SPLIT_ID"
+python cli.py inference run --model-name "$STRONG_MODEL" --split-id "$SPLIT_ID" &
+STRONG_PID=$!
+
+wait $WEAK_PID
+wait $STRONG_PID
 
 echo "Done."
