@@ -6,7 +6,19 @@ No model inference is performed — only difficulty scoring.
 import json
 from pathlib import Path
 
-from util.inference_util import get_router_client, ROUTER
+
+ROUTER    = "bert"
+THRESHOLD = 0.11593
+
+
+def get_router_client(weak_model: str, strong_model: str):
+    """Return a RouteLLM Controller for the given models."""
+    from routellm.controller import Controller
+    return Controller(
+        routers=[ROUTER],
+        strong_model=f"openai/{strong_model}",
+        weak_model=f"openai/{weak_model}",
+    )
 
 
 def record_toughness(
