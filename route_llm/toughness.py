@@ -8,8 +8,6 @@ from pathlib import Path
 
 
 ROUTER    = "bert"
-THRESHOLD = 0.11593
-
 
 def get_router_client(weak_model: str, strong_model: str):
     """Return a RouteLLM Controller for the given models."""
