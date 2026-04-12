@@ -85,3 +85,37 @@ def get_latest() -> Optional[Run]:
         return _map(row) if row else None
     finally:
         conn.close()
+
+
+def get_by_models_and_split(
+    weak_model_name: str,
+    strong_model_name: str,
+    split_id: int,
+) -> Optional[Run]:
+    """Return the most recent run matching the given model pair and split, or None."""
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            f"""
+            SELECT * FROM {TABLE}
+            WHERE {F_WEAK_MODEL_NAME} = ? AND {F_STRONG_MODEL_NAME} = ? AND {F_SPLIT_ID} = ?
+            ORDER BY {F_ID} DESC LIMIT 1
+            """,
+            (weak_model_name, strong_model_name, split_id),
+        ).fetchone()
+        return _map(row) if row else None
+    finally:
+        conn.close()
+
+
+def update_threshold(run_id: int, threshold: float) -> None:
+    """Persist a computed threshold to an existing run row."""
+    conn = get_connection()
+    try:
+        conn.execute(
+            f"UPDATE {TABLE} SET {_col(F_THRESHOLD)} = ? WHERE {_col(F_ID)} = ?",
+            (threshold, run_id),
+        )
+        conn.commit()
+    finally:
+        conn.close()

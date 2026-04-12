@@ -18,12 +18,14 @@ cd $SLURM_SUBMIT_DIR
 source .venv/bin/activate
 mkdir -p logs/slurm
 
-TOUGHNESS_PATH=${1:-route_llm_results/toughness.jsonl}
-TARGET_STRONG_RATE=${2:-0.5}
+SPLIT_ID=${1:-1}
+WEAK_MODEL=${2:-""}
+STRONG_MODEL=${3:-""}
 
-echo "Calculating RouteLLM threshold from $TOUGHNESS_PATH ..."
+echo "Calculating RouteLLM threshold for split $SPLIT_ID ..."
 python cli.py route-llm calculate-threshold \
-    --toughness-path "$TOUGHNESS_PATH" \
-    --target-strong-rate "$TARGET_STRONG_RATE"
+    --split-id "$SPLIT_ID" \
+    --weak-model "$WEAK_MODEL" \
+    --strong-model "$STRONG_MODEL"
 
 echo "Done."
