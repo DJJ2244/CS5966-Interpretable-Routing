@@ -16,4 +16,5 @@ data/routing.db
 
 # Generated outputs
 output/
+litellm_config.yaml
 
