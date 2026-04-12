@@ -19,6 +19,9 @@ source .venv/bin/activate
 export TRANSFORMERS_OFFLINE=1
 unset HF_DATASETS_OFFLINE
 export HF_HOME=/scratch/general/vast/$USER/.cache/huggingface
+export WANDB_MODE=disabled
+export WANDB_DIR=/scratch/general/vast/$USER/wandb
+mkdir -p $WANDB_DIR
 
 # Usage: sbatch run_train_sae.sh [split_id]
 # MODEL_NAME="meta-llama/Meta-Llama-3-8B"; HOOK_NAME="blocks.16.hook_resid_post"; D_MODEL=4096  # strong
