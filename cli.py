@@ -158,13 +158,14 @@ def sae_extract(
 
 @mlp_app.command("train")
 def mlp_train(
-    model_name: Annotated[str, typer.Option("--model-name", help="HuggingFace model ID")] = "",
-    split_id:   Annotated[int, typer.Option("--split-id",   help="DB split id")]           = 1,
+    model_name:  Annotated[str,  typer.Option("--model-name",  help="HuggingFace model ID")]                     = "",
+    split_id:    Annotated[int,  typer.Option("--split-id",    help="DB split id")]                              = 1,
+    grid_search: Annotated[bool, typer.Option("--grid-search", help="Run k-fold CV to find best hyperparams")] = False,
 ) -> None:
     """Train the MLP router on SAE sparse features and test results from the DB."""
     from mlp.mlp_train import train_mlp
 
-    train_mlp(split_id=split_id, model_name=model_name)
+    train_mlp(split_id=split_id, model_name=model_name, grid_search=grid_search)
 
 
 @mlp_app.command("eval")
