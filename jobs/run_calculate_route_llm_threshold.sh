@@ -7,8 +7,8 @@
 #SBATCH --output=logs/slurm/%j.out
 #SBATCH --error=logs/slurm/%j.err
 #SBATCH --account=cs6966
-#SBATCH --qos=granite-gpu-guest
-#SBATCH --partition=granite-gpu-guest
+#SBATCH --qos=granite-guest
+#SBATCH --partition=granite-guest
 
 set -e
 
