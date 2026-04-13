@@ -107,6 +107,15 @@ def inference_run(
     workers:    Annotated[int, typer.Option("--workers",    help="Concurrent inference requests")] = 1,
 ) -> None:
     """Run baseline inference (no routing) for a single model."""
+    from daos import split_dao, task_split_dao
+
+    if split_dao.get_by_id(split_id) is None:
+        typer.echo(f"Error: split_id={split_id} does not exist in the database.", err=True)
+        raise typer.Exit(code=1)
+    if task_split_dao.count_for_split(split_id, is_test=False) == 0:
+        typer.echo(f"Error: no tasks found for split_id={split_id} (train partition).", err=True)
+        raise typer.Exit(code=1)
+
     from util.model_util import require_up
     from util.inference_util import run_inference, get_openai_client
     from daos import tasks_dao
@@ -135,6 +144,17 @@ def sae_train(
     split_id:   Annotated[int, typer.Option("--split-id",   help="DB split id")]                = 1,
 ) -> None:
     """Train a Sparse Autoencoder on the given model's residual stream."""
+    from util.smart_file_util import activations_path
+
+    p = activations_path(split_id, model_name)
+    if not p.exists():
+        typer.echo(
+            f"Error: activations not found at '{p}'. "
+            f"Run activation extraction for model='{model_name}', split_id={split_id} first.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
     from sae.train_sae import train_sae
     train_sae(model_name=model_name, hook_name=hook_name, d_model=d_model, split_id=split_id)
 
@@ -147,6 +167,21 @@ def sae_extract(
     sae_path:   Annotated[Optional[str], typer.Option("--sae-path", help="SAE checkpoint dir")] = None,
 ) -> None:
     """Extract dense activations and encode through SAE to produce sparse feature vectors."""
+    if sae_path is None:
+        from util.smart_file_util import sae_weights_path, sae_cfg_path
+
+        for p, label in [
+            (sae_weights_path(split_id, model_name), "SAE weights"),
+            (sae_cfg_path(split_id, model_name),     "SAE config"),
+        ]:
+            if not p.exists():
+                typer.echo(
+                    f"Error: {label} not found at '{p}'. "
+                    f"Run 'sae train' for model='{model_name}', split_id={split_id} first.",
+                    err=True,
+                )
+                raise typer.Exit(code=1)
+
     from sae.extract_spv import run
 
     run(model_name=model_name, split_id=split_id, is_test=is_test, sae_path=sae_path)
@@ -163,6 +198,24 @@ def mlp_train(
     grid_search: Annotated[bool, typer.Option("--grid-search", help="Run k-fold CV to find best hyperparams")] = False,
 ) -> None:
     """Train the MLP router on SAE sparse features and test results from the DB."""
+    from util.smart_file_util import sparse_features_path
+    from daos import model_task_result_dao
+
+    if not sparse_features_path(split_id, model_name).exists():
+        typer.echo(
+            f"Error: sparse features not found for model='{model_name}', split_id={split_id}. "
+            f"Run 'sae extract' first.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+    if model_task_result_dao.count_with_pass_labels_for_model_split(model_name, split_id, is_test=False) == 0:
+        typer.echo(
+            f"Error: no pass/fail labels for model='{model_name}', split_id={split_id} (train partition). "
+            f"Run 'test run' first.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
     from mlp.mlp_train import train_mlp
 
     train_mlp(split_id=split_id, model_name=model_name, grid_search=grid_search)
@@ -174,6 +227,24 @@ def mlp_eval(
     split_id:   Annotated[int, typer.Option("--split-id",   help="DB split id")]           = 1,
 ) -> None:
     """Evaluate the trained MLP router on the test split."""
+    from util.smart_file_util import mlp_path
+    from daos import model_task_result_dao
+
+    if not mlp_path(split_id, model_name).exists():
+        typer.echo(
+            f"Error: MLP weights not found for model='{model_name}', split_id={split_id}. "
+            f"Run 'mlp train' first.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+    if model_task_result_dao.count_with_pass_labels_for_model_split(model_name, split_id, is_test=True) == 0:
+        typer.echo(
+            f"Error: no pass/fail labels for model='{model_name}', split_id={split_id} (test partition). "
+            f"Run 'test run --test' first.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
     from mlp.eval_mlp import evaluate_mlp
 
     evaluate_mlp(split_id=split_id, model_name=model_name)
@@ -197,7 +268,19 @@ def route_llm_threshold(
     if not weak_model_name or not strong_model_name:
         typer.echo("Error: --weak-model and --strong-model are required.", err=True)
         raise typer.Exit(code=1)
-    
+
+    import daos.model_task_result_dao as model_task_result_dao
+
+    for mname in (weak_model_name, strong_model_name):
+        if model_task_result_dao.count_for_model_split(mname, split_id, is_test) == 0:
+            partition = "test" if is_test else "train"
+            typer.echo(
+                f"Error: no inference results for model='{mname}', split_id={split_id}, "
+                f"partition={partition}. Run 'inference run' for that model first.",
+                err=True,
+            )
+            raise typer.Exit(code=1)
+
     run = runs_dao.get_by_models_and_split(weak_model_name, strong_model_name, split_id)
 
     if not (run is None or run.route_llm_threshold is None):
@@ -236,6 +319,23 @@ def router_batch(
     if Path(output).exists():
         typer.echo(f"Output already exists at {output}, skipping.")
         return
+
+    from util.smart_file_util import mlp_path, sparse_features_path
+
+    if not mlp_path(split_id, model_name).exists():
+        typer.echo(
+            f"Error: MLP weights not found for model='{model_name}', split_id={split_id}. "
+            f"Run 'mlp train' first.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+    if not sparse_features_path(split_id, model_name).exists():
+        typer.echo(
+            f"Error: sparse features not found for model='{model_name}', split_id={split_id}. "
+            f"Run 'sae extract' first.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
 
     import torch
     from mlp.model import MLP, HIDDEN_DIM
@@ -288,6 +388,17 @@ def test_run(
     is_test:    Annotated[bool, typer.Option("--test",       help="Use test partition")]    = False,
 ) -> None:
     """Evaluate inference results against Docker test cases for all languages."""
+    from daos import model_task_result_dao
+
+    if model_task_result_dao.count_for_model_split(model_name, split_id, is_test) == 0:
+        partition = "test" if is_test else "train"
+        typer.echo(
+            f"Error: no inference results for model='{model_name}', split_id={split_id}, "
+            f"partition={partition}. Run 'inference run' first.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
     from util.unit_test_util import run_tests
     run_tests(model_name=model_name, split_id=split_id, is_test=is_test)
 
@@ -302,6 +413,14 @@ def stats_calculate(
 ) -> None:
     """Print summary statistics: pass rates, routing breakdown, accuracy."""
     from daos import model_task_result_dao
+
+    if model_task_result_dao.count_any_for_split(split_id, is_test=True) == 0:
+        typer.echo(
+            f"Error: no results found for split_id={split_id} (test partition). "
+            f"Run 'inference run' and 'test run' first.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
 
     rates = model_task_result_dao.get_pass_rates_for_split(split_id, is_test=True)
 

@@ -180,6 +180,64 @@ def update_test_result(
         conn.close()
 
 
+def count_for_model_split(model_name: str, split_id: int, is_test: bool) -> int:
+    """Return the number of result rows with a non-NULL result for (model_name, split_id, is_test)."""
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            f"""
+            SELECT COUNT(*) FROM {TABLE}
+            JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_TASK_ID}
+            WHERE {F_MODEL_NAME} = ?
+              AND {task_split_dao.F_SPLIT_ID} = ?
+              AND {task_split_dao.F_IS_TEST} = ?
+              AND {F_RESULT} IS NOT NULL
+            """,
+            (model_name, split_id, 1 if is_test else 0),
+        ).fetchone()
+        return row[0] if row else 0
+    finally:
+        conn.close()
+
+
+def count_with_pass_labels_for_model_split(model_name: str, split_id: int, is_test: bool) -> int:
+    """Return the number of rows with a non-NULL passed value for (model_name, split_id, is_test)."""
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            f"""
+            SELECT COUNT(*) FROM {TABLE}
+            JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_TASK_ID}
+            WHERE {F_MODEL_NAME} = ?
+              AND {task_split_dao.F_SPLIT_ID} = ?
+              AND {task_split_dao.F_IS_TEST} = ?
+              AND {F_PASSED} IS NOT NULL
+            """,
+            (model_name, split_id, 1 if is_test else 0),
+        ).fetchone()
+        return row[0] if row else 0
+    finally:
+        conn.close()
+
+
+def count_any_for_split(split_id: int, is_test: bool) -> int:
+    """Return total result rows across all models for the given split and partition."""
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            f"""
+            SELECT COUNT(*) FROM {TABLE}
+            JOIN {task_split_dao.TABLE} ON {task_split_dao.F_TASK_ID} = {F_TASK_ID}
+            WHERE {task_split_dao.F_SPLIT_ID} = ?
+              AND {task_split_dao.F_IS_TEST} = ?
+            """,
+            (split_id, 1 if is_test else 0),
+        ).fetchone()
+        return row[0] if row else 0
+    finally:
+        conn.close()
+
+
 def get_all_for_model_split(
     model_name: str,
     split_id: int,

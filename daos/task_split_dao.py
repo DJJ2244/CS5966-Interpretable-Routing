@@ -45,6 +45,19 @@ def bulk_insert(rows: list[TaskSplit]) -> None:
         conn.close()
 
 
+def count_for_split(split_id: int, is_test: bool) -> int:
+    """Return the number of task_split rows for the given split and partition."""
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            f"SELECT COUNT(*) FROM {TABLE} WHERE {F_SPLIT_ID} = ? AND {F_IS_TEST} = ?",
+            (split_id, 1 if is_test else 0),
+        ).fetchone()
+        return row[0] if row else 0
+    finally:
+        conn.close()
+
+
 def get_task_ids_for_split(split_id: int, is_test: bool) -> list[str]:
     conn = get_connection()
     try:
