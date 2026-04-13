@@ -17,6 +17,10 @@ from util.smart_file_util import sae_weights_path, sae_cfg_path, sae_checkpoint_
 
 os.environ["WANDB_MODE"] = "disabled"
 
+#TODO Dawson this should be handeld by database right now I have hardcoded a file
+#It is in the form {text:"prompt"} from the humaneval_xl_english.jsonl file.
+#I just need a way to get the prompt text for each task id in the split.
+#Look at train.jsonl for reference of what it is supposed to be like. Thanks goat.
 DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "humaneval_train")
 
 
@@ -42,7 +46,6 @@ def train_sae(model_name: str, hook_name: str, d_model: int, split_id: int) -> N
         l1_coefficient = 5e-2,
     )
 
-    #point of optmization is maybe tokenize before training
     runner_cfg = LanguageModelSAERunnerConfig(
         sae                       = sae_cfg,
         model_name                = model_name,
