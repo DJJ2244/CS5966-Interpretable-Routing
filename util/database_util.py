@@ -27,6 +27,16 @@ def _col(f: str) -> str:
 
 
 def init_db() -> None:
+    import os
+    db_path = Path(os.environ.get("DB_PATH", "data/routing.db"))
+    if db_path.exists():
+        answer = input(f"Database already exists at '{db_path}'. Delete and recreate? [y/N] ").strip().lower()
+        if answer != "y":
+            print("Aborted.")
+            return
+        db_path.unlink()
+        print(f"Deleted '{db_path}'.")
+
     conn = get_connection()
     _create_tables(conn)
     _seed_tasks(conn)
