@@ -18,7 +18,7 @@ def run_inference(
 ) -> None:
     from daos.model_task_result_dao import get_completed_task_ids
     completed = get_completed_task_ids(model_name)
-    pending   = [p for p in problems if p.task_id not in completed]
+    pending   = [p for p in problems if p.id not in completed]
     if not pending:
         tqdm.write(f"{model_str}: all tasks already complete, skipping.")
         return
@@ -33,7 +33,7 @@ def run_inference(
         )
         run_millis = int((time.monotonic() - start) * 1000)
         return {
-            "task_id":    problem.task_id,
+            "task_id":    problem.id,
             "model":      response.model,
             "completion": response.choices[0].text,
             "run_millis": run_millis,
