@@ -15,14 +15,15 @@ set -e
 module load python/3.13.5
 
 cd $SLURM_SUBMIT_DIR
+source .env
 source .venv/bin/activate
 mkdir -p logs/slurm
 
 export HF_HOME=/scratch/general/vast/$USER/.cache/huggingface
 
 SPLIT_ID=${1:-1}
-WEAK_MODEL=${2:-""}
-STRONG_MODEL=${3:-""}
+WEAK_MODEL=${2:-$WEAK_MODEL}
+STRONG_MODEL=${3:-$STRONG_MODEL}
 
 echo "Calculating RouteLLM threshold for split $SPLIT_ID ..."
 python cli.py route-llm calculate-threshold \

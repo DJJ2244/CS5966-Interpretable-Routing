@@ -14,6 +14,7 @@
 set -e
 
 cd $SLURM_SUBMIT_DIR
+source .env
 source .venv/bin/activate
 
 export TRANSFORMERS_OFFLINE=1
@@ -24,8 +25,9 @@ export WANDB_DIR=/scratch/general/vast/$USER/wandb
 mkdir -p $WANDB_DIR
 
 # Usage: sbatch run_train_sae.sh [split_id]
-# MODEL_NAME="meta-llama/Meta-Llama-3-8B"; HOOK_NAME="blocks.16.hook_resid_post"; D_MODEL=4096  # strong
-MODEL_NAME="meta-llama/Llama-3.2-1B"; HOOK_NAME="blocks.8.hook_resid_post"; D_MODEL=2048        # weak
+MODEL_NAME=${MODEL_NAME:-$WEAK_MODEL}
+HOOK_NAME=${HOOK_NAME:-$WEAK_HOOK_NAME}
+D_MODEL=${D_MODEL:-$WEAK_D_MODEL}
 SPLIT_ID=${1:-1}
 
 echo "Training SAE: model=$MODEL_NAME hook=$HOOK_NAME d_model=$D_MODEL split=$SPLIT_ID"

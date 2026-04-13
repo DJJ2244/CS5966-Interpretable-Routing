@@ -14,14 +14,14 @@
 set -e
 
 cd $SLURM_SUBMIT_DIR
+source .env
 source .venv/bin/activate
 
 export TRANSFORMERS_OFFLINE=1
 export HF_HOME=/scratch/general/vast/$USER/.cache/huggingface
 
 # Usage: sbatch run_extract_activations.sh [split_id]
-# MODEL_NAME="meta-llama/Meta-Llama-3-8B"  # strong
-MODEL_NAME="meta-llama/Llama-3.2-1B"        # weak
+MODEL_NAME=${MODEL_NAME:-$WEAK_MODEL}
 SPLIT_ID=${1:-1}
 
 echo "Extracting activations: model=$MODEL_NAME split=$SPLIT_ID"

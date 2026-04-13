@@ -16,6 +16,7 @@ set -e
 module load python/3.13.5
 
 cd $SLURM_SUBMIT_DIR
+source .env
 source .venv/bin/activate
 mkdir -p logs/slurm
 
@@ -27,8 +28,6 @@ cleanup() {
 }
 trap cleanup EXIT
 
-WEAK_MODEL="meta-llama/Llama-3.2-1B"
-STRONG_MODEL="meta-llama/Meta-Llama-3-8B"
 SPLIT_ID=${1:-1}
 
 echo "Starting servers..."
