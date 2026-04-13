@@ -297,10 +297,14 @@ def route_llm_threshold(
         is_test=is_test,
     )
 
+    if run is None:
+        runs_dao.create(weak_model_name, strong_model_name,split_id, threshold)
+    else:
+        runs_dao.update_threshold(threshold)
+
     new_run = runs_dao.get_by_models_and_split(weak_model_name, strong_model_name, split_id)
 
     if new_run:
-        runs_dao.update_threshold(new_run.id, threshold)
         typer.echo(f"Threshold saved to run {new_run.id}.")
     else:
         typer.echo("Warning: no matching run found in DB — threshold not persisted.", err=True)
