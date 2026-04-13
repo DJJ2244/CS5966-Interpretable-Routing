@@ -301,7 +301,7 @@ def route_llm_threshold(
 
     if new_run:
         runs_dao.update_threshold(new_run.id, threshold)
-        typer.echo(f"Threshold saved to run {run.id}.")
+        typer.echo(f"Threshold saved to run {new_run.id}.")
     else:
         typer.echo("Warning: no matching run found in DB — threshold not persisted.", err=True)
 
