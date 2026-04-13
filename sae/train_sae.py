@@ -11,17 +11,22 @@ import argparse
 import glob
 import os
 import shutil
+import tempfile
 
+import datasets
 from sae_lens import LanguageModelSAERunnerConfig, LanguageModelSAETrainingRunner, StandardTrainingSAEConfig
 from util.smart_file_util import sae_weights_path, sae_cfg_path, sae_checkpoint_path
+import daos.tasks_dao as tasks_dao
 
 os.environ["WANDB_MODE"] = "disabled"
 
-#TODO Dawson this should be handeld by database right now I have hardcoded a file
-#It is in the form {text:"prompt"} from the humaneval_xl_english.jsonl file.
-#I just need a way to get the prompt text for each task id in the split.
-#Look at train.jsonl for reference of what it is supposed to be like. Thanks goat.
-DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "humaneval_train")
+
+def _build_dataset_path(split_id: int, tmpdir: str) -> str:
+    """Fetch train prompts for the split from the DB, write a HF dataset to tmpdir."""
+    tasks = tasks_dao.get_all_for_split(split_id, is_test=False)
+    ds = datasets.Dataset.from_dict({"text": [t.prompt for t in tasks]})
+    ds.save_to_disk(tmpdir)
+    return tmpdir
 
 
 def train_sae(model_name: str, hook_name: str, d_model: int, split_id: int) -> None:
@@ -38,6 +43,12 @@ def train_sae(model_name: str, hook_name: str, d_model: int, split_id: int) -> N
         print(f"SAE weights already exist at {weights_dst}, skipping.")
         return
 
+    with tempfile.TemporaryDirectory() as tmpdir:
+        dataset_path = _build_dataset_path(split_id, tmpdir)
+        _run_sae_training(model_name, hook_name, d_model, split_id, dataset_path, weights_dst)
+
+
+def _run_sae_training(model_name, hook_name, d_model, split_id, dataset_path, weights_dst):
     sae_cfg = StandardTrainingSAEConfig(
         d_in           = d_model,
         d_sae          = d_model * 16,
@@ -50,7 +61,7 @@ def train_sae(model_name: str, hook_name: str, d_model: int, split_id: int) -> N
         sae                       = sae_cfg,
         model_name                = model_name,
         hook_name                 = hook_name,
-        dataset_path              = DATA_PATH,
+        dataset_path              = dataset_path,
         is_dataset_tokenized      = False,
         dataset_trust_remote_code = False,
         prepend_bos               = True,
