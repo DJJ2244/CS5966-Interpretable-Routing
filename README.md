@@ -25,6 +25,8 @@ Both models are gated and require a free HuggingFace account:
    ```bash
    python experiment.py login
    ```
+   - NOTE: on CHPC scratch space run first: ```export HF_HOME=/scratch/general/vast/$USER/.cache/huggingface```
+    - this should be made more uniform though configs or env but sufficient for now
 
 ## Run
 
