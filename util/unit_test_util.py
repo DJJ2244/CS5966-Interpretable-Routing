@@ -343,10 +343,17 @@ def _keyword_body(code: str, entry_point: str, language: str) -> tuple:
 # =============================================================================
 
 TIMEOUT = 30  # seconds per test case
-_docker = docker.from_env()
+_docker = None
 
 _live_containers: list = []
 _live_containers_lock = threading.Lock()
+
+
+def _get_docker():
+    global _docker
+    if _docker is None:
+        _docker = docker.from_env()
+    return _docker
 
 
 def _register(container) -> None:
@@ -396,7 +403,7 @@ def _write_file_to_container(container, filename: str, source: str) -> None:
 
 def _pull_with_progress(lang: str, image: str) -> None:
     try:
-        _docker.images.get(image)
+        _get_docker().images.get(image)
         tqdm.write(f"  {lang:<14} ✓ cached ({image})")
         return
     except docker.errors.ImageNotFound:
@@ -407,7 +414,7 @@ def _pull_with_progress(lang: str, image: str) -> None:
 
     with tqdm(desc=f"  {lang:<14}", unit="B", unit_scale=True,
               unit_divisor=1024, dynamic_ncols=True, leave=False) as pbar:
-        for event in _docker.api.pull(image, stream=True, decode=True):
+        for event in _get_docker().api.pull(image, stream=True, decode=True):
             detail = event.get("progressDetail", {})
             lid = event.get("id")
             if not lid:
@@ -433,14 +440,14 @@ def _start_container(lang: str, config: dict):
 
     container_name = f"evalrunner-{lang}"
     try:
-        stale = _docker.containers.get(container_name)
+        stale = _get_docker().containers.get(container_name)
         stale.remove(force=True)
     except docker.errors.NotFound:
         pass
 
     mem = config.get("mem_limit", "256m")
     try:
-        container = _docker.containers.run(
+        container = _get_docker().containers.run(
             image=config["image"],
             name=container_name,
             command="sleep infinity",
