@@ -18,6 +18,8 @@ cd $SLURM_SUBMIT_DIR
 source .venv/bin/activate
 mkdir -p logs/slurm
 
+export HF_HOME=/scratch/general/vast/$USER/.cache/huggingface
+
 # Usage: sbatch run_test_model_code.sh [results_path]
 # MODEL_NAME="meta-llama/Meta-Llama-3-8B"  # strong
 MODEL_NAME="meta-llama/Llama-3.2-1B"        # weak

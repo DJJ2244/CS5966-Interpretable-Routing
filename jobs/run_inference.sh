@@ -20,6 +20,8 @@ cd $SLURM_SUBMIT_DIR
 source .venv/bin/activate
 mkdir -p logs/slurm
 
+export HF_HOME=/scratch/general/vast/$USER/.cache/huggingface
+
 cleanup() {
     echo "Shutting down servers..."
     python cli.py server down 2>/dev/null || true

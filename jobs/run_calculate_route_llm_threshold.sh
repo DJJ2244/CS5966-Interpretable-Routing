@@ -18,6 +18,8 @@ cd $SLURM_SUBMIT_DIR
 source .venv/bin/activate
 mkdir -p logs/slurm
 
+export HF_HOME=/scratch/general/vast/$USER/.cache/huggingface
+
 SPLIT_ID=${1:-1}
 WEAK_MODEL=${2:-""}
 STRONG_MODEL=${3:-""}

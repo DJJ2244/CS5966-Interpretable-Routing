@@ -18,6 +18,8 @@ cd $SLURM_SUBMIT_DIR
 source .venv/bin/activate
 mkdir -p logs/slurm
 
+export HF_HOME=/scratch/general/vast/$USER/.cache/huggingface
+
 # Usage: sbatch run_calculate_result_stats.sh [split_id]
 SPLIT_ID=${1:-1}
 
