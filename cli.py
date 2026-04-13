@@ -102,9 +102,10 @@ def server_status() -> None:
 
 @inference_app.command("run")
 def inference_run(
-    model_name: Annotated[str, typer.Option("--model-name", help="HuggingFace model ID")] = "",
-    split_id:   Annotated[int, typer.Option("--split-id",   help="DB split id")]           = 1,
-    workers:    Annotated[int, typer.Option("--workers",    help="Concurrent inference requests")] = 1,
+    model_name: Annotated[str,  typer.Option("--model-name", help="HuggingFace model ID")] = "",
+    split_id:   Annotated[int,  typer.Option("--split-id",   help="DB split id")]           = 1,
+    workers:    Annotated[int,  typer.Option("--workers",    help="Concurrent inference requests")] = 1,
+    is_test:    Annotated[bool, typer.Option("--test",       help="Run on test partition instead of train")] = False,
 ) -> None:
     """Run baseline inference (no routing) for a single model."""
     from daos import split_dao, task_split_dao
@@ -112,8 +113,9 @@ def inference_run(
     if split_dao.get_by_id(split_id) is None:
         typer.echo(f"Error: split_id={split_id} does not exist in the database.", err=True)
         raise typer.Exit(code=1)
-    if task_split_dao.count_for_split(split_id, is_test=False) == 0:
-        typer.echo(f"Error: no tasks found for split_id={split_id} (train partition).", err=True)
+    if task_split_dao.count_for_split(split_id, is_test=is_test) == 0:
+        partition = "test" if is_test else "train"
+        typer.echo(f"Error: no tasks found for split_id={split_id} ({partition} partition).", err=True)
         raise typer.Exit(code=1)
 
     from util.model_util import require_up
@@ -122,7 +124,7 @@ def inference_run(
 
     require_up()
     client = get_openai_client()
-    tasks  = tasks_dao.get_all_for_split(split_id, is_test=False)
+    tasks  = tasks_dao.get_all_for_split(split_id, is_test=is_test)
     run_inference(
         problems=tasks,
         create_fn=client.completions.create,
