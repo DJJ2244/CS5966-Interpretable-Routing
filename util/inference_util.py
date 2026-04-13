@@ -30,7 +30,6 @@ def run_inference(
             prompt=problem.prompt,
             max_tokens=2048,
             temperature=0,
-            stop=["\nclass ", "\ndef ", "\n#", "\nif __name__"],
         )
         run_millis = int((time.monotonic() - start) * 1000)
         return {
