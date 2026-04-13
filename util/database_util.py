@@ -44,6 +44,7 @@ def init_db() -> None:
     _seed_task_split(conn, split_id)
     conn.commit()
     conn.close()
+    print("Recording Toughness")
     record_toughness(split_id=split_id, is_test=False)
     record_toughness(split_id=split_id, is_test=True)
     print("Database initialized.")
