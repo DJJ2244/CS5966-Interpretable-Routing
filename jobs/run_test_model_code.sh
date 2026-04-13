@@ -25,7 +25,10 @@ export HF_HOME=/scratch/general/vast/$USER/.cache/huggingface
 MODEL_NAME=${MODEL_NAME:-$WEAK_MODEL}
 SPLIT_ID=${1:-1}
 
-echo "Running tests: model=$MODEL_NAME split=$SPLIT_ID"
+echo "Running tests (train): model=$MODEL_NAME split=$SPLIT_ID"
 python cli.py test run --model-name "$MODEL_NAME" --split-id "$SPLIT_ID"
+
+echo "Running tests (test): model=$MODEL_NAME split=$SPLIT_ID"
+python cli.py test run --model-name "$MODEL_NAME" --split-id "$SPLIT_ID" --test
 
 echo "Done."
