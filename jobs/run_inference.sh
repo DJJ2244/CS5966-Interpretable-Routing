@@ -13,7 +13,6 @@
 
 set -e
 
-module load cuda
 module load python/3.13.5
 
 cd $SLURM_SUBMIT_DIR
