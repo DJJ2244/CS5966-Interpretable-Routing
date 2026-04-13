@@ -1,12 +1,14 @@
 routellm
-litellm
+openai
 python-dotenv
-torch
-transformers
+torch>=2.5.0
 transformer_lens
 huggingface_hub
+datasets
 docker
-vllm>=0.4.0 # prefer binary?
+sae_lens
+tqdm
+vllm>=0.6.0
 typer>=0.9.0
 kneed
 matplotlib
