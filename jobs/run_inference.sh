@@ -36,15 +36,26 @@ python cli.py server up \
     --model "$STRONG_MODEL:1" \
     --detach
 
-echo "Running inference (weak): split=$SPLIT_ID"
+echo "Running inference (weak, train): split=$SPLIT_ID"
 python cli.py inference run --model-name "$WEAK_MODEL" --split-id "$SPLIT_ID" &
-WEAK_PID=$!
+WEAK_TRAIN_PID=$!
 
-echo "Running inference (strong): split=$SPLIT_ID"
+echo "Running inference (strong, train): split=$SPLIT_ID"
 python cli.py inference run --model-name "$STRONG_MODEL" --split-id "$SPLIT_ID" &
-STRONG_PID=$!
+STRONG_TRAIN_PID=$!
 
-wait $WEAK_PID
-wait $STRONG_PID
+wait $WEAK_TRAIN_PID
+wait $STRONG_TRAIN_PID
+
+echo "Running inference (weak, test): split=$SPLIT_ID"
+python cli.py inference run --model-name "$WEAK_MODEL" --split-id "$SPLIT_ID" --test &
+WEAK_TEST_PID=$!
+
+echo "Running inference (strong, test): split=$SPLIT_ID"
+python cli.py inference run --model-name "$STRONG_MODEL" --split-id "$SPLIT_ID" --test &
+STRONG_TEST_PID=$!
+
+wait $WEAK_TEST_PID
+wait $STRONG_TEST_PID
 
 echo "Done."
