@@ -1,4 +1,5 @@
 routellm
+litellm[proxy]
 openai
 python-dotenv
 torch>=2.5.0
