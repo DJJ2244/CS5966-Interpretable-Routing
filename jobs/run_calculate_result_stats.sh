@@ -20,10 +20,10 @@ mkdir -p logs/slurm
 
 export HF_HOME=/scratch/general/vast/$USER/.cache/huggingface
 
-# Usage: sbatch run_calculate_result_stats.sh [split_id]
-SPLIT_ID=${1:-1}
-
-echo "Calculating result stats: split_id=$SPLIT_ID"
-python cli.py stats calculate --split-id "$SPLIT_ID"
+echo "Calculating result stats..."
+python cli.py stats calculate \
+    --sae-router routing_decisions.jsonl \
+    --route-llm  route_llm_decisions.jsonl \
+    --output     visuals/routing_stats.png
 
 echo "Done."
