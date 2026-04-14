@@ -497,24 +497,23 @@ def stats_calculate(
     # ── Pareto sweep ──────────────────────────────────────────────────────────
     def _pareto_curve(records: list[dict], score_key: str, strong_if_gte: bool):
         """Sweep score thresholds and return (costs, accuracies, chosen_cost) lists."""
-        valid = [r for r in records if r.get("weak_pass") is not None]
+        valid = [r for r in records if score_key in r]
         if not valid:
             return [], [], None
-        scores   = [r[score_key] for r in valid]
+        scores     = [r[score_key] for r in valid]
         thresholds = sorted(set(scores))
         costs, accs = [], []
         for t in thresholds:
             if strong_if_gte:
                 strong = [r for r in valid if r[score_key] >= t]
                 weak   = [r for r in valid if r[score_key] <  t]
-            else:  # strong if logit <= t
+            else:  # strong if logit <= t (lower logit → more confident it's hard)
                 strong = [r for r in valid if r[score_key] <= t]
                 weak   = [r for r in valid if r[score_key] >  t]
-            cost = len(strong) / len(valid)
-            correct = sum(not r["weak_pass"] for r in strong) + sum(r["weak_pass"] for r in weak)
+            cost    = len(strong) / len(valid)
+            correct = sum(r["correct"] for r in strong) + sum(r["correct"] for r in weak)
             costs.append(cost)
             accs.append(correct / len(valid))
-        # operating point: cost at the fixed threshold used in the JSONL
         chosen_cost = sum(1 for r in valid if r["route"] == "strong") / len(valid)
         return costs, accs, chosen_cost
 
@@ -585,7 +584,8 @@ def stats_calculate(
     ax1.set_xlabel("Cost (fraction routed to strong)")
     ax1.set_ylabel("Routing accuracy")
     ax1.set_title("Pareto Curves")
-    ax1.legend()
+    if llm_costs or sae_costs:
+        ax1.legend()
     ax1.grid(True, alpha=0.3)
 
     # Panel 2: McNemar 2×2 heatmap
@@ -617,8 +617,7 @@ def stats_calculate(
     ax3.grid(True, axis="y", alpha=0.3)
     ax3.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"{v:.1%}"))
 
-    fig.suptitle("Router Comparison", fontsize=14, y=1.01)
-    plt.tight_layout()
+    fig.suptitle("Router Comparison", fontsize=14)
     plt.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close()
     typer.echo(f"\nPlot saved to {out_path}")
