@@ -477,150 +477,15 @@ def stats_calculate(
     output:     Annotated[str, typer.Option("--output",     help="Output plot path")]          = "visuals/routing_stats.png",
     n_boot:     Annotated[int, typer.Option("--n-boot",     help="Bootstrap iterations")]      = 10_000,
 ) -> None:
-    """Compare SAE+MLP and RouteLLM routers: Pareto curves, McNemar test, and Δ accuracy with CI."""
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import matplotlib.gridspec as gridspec
-    from scipy.stats import chi2
-    from util.smart_file_util import load_jsonl
+    """Compare SAE+MLP and RouteLLM routers: ROC curves, McNemar test, and Δ accuracy with CI."""
+    from util.stats_util import calculate
 
-    sae_path = Path(sae_router)
-    llm_path = Path(route_llm)
-    for p in (sae_path, llm_path):
+    for p in (Path(sae_router), Path(route_llm)):
         if not p.exists():
             typer.echo(f"Error: missing file {p}. Run the corresponding batch command first.", err=True)
             raise typer.Exit(code=1)
 
-    sae_records = load_jsonl(sae_path)
-    llm_records = load_jsonl(llm_path)
-
-    # ── Pareto sweep ──────────────────────────────────────────────────────────
-    def _pareto_curve(records: list[dict], score_key: str, strong_if_gte: bool):
-        """Sweep score thresholds and return (costs, accuracies, chosen_cost) lists."""
-        valid = [r for r in records if score_key in r]
-        if not valid:
-            return [], [], None
-        scores     = [r[score_key] for r in valid]
-        thresholds = sorted(set(scores))
-        costs, accs = [], []
-        for t in thresholds:
-            if strong_if_gte:
-                strong = [r for r in valid if r[score_key] >= t]
-                weak   = [r for r in valid if r[score_key] <  t]
-            else:  # strong if logit <= t (lower logit → more confident it's hard)
-                strong = [r for r in valid if r[score_key] <= t]
-                weak   = [r for r in valid if r[score_key] >  t]
-            cost    = len(strong) / len(valid)
-            correct = sum(r["correct"] for r in strong) + sum(r["correct"] for r in weak)
-            costs.append(cost)
-            accs.append(correct / len(valid))
-        chosen_cost = sum(1 for r in valid if r["route"] == "strong") / len(valid)
-        return costs, accs, chosen_cost
-
-    llm_costs, llm_accs, llm_op = _pareto_curve(llm_records, "toughness_score", strong_if_gte=True)
-    sae_costs, sae_accs, sae_op = _pareto_curve(sae_records, "logit",           strong_if_gte=False)
-
-    # ── McNemar ───────────────────────────────────────────────────────────────
-    sae_map = {r["task_id"]: r["correct"] for r in sae_records}
-    llm_map = {r["task_id"]: r["correct"] for r in llm_records}
-    shared  = sorted(set(sae_map) & set(llm_map))
-
-    sae_correct_shared = np.array([sae_map[t] for t in shared], dtype=float)
-    llm_correct_shared = np.array([llm_map[t] for t in shared], dtype=float)
-
-    B = int(sum((sae_correct_shared == 1) & (llm_correct_shared == 0)))  # SAE right, LLM wrong
-    C = int(sum((sae_correct_shared == 0) & (llm_correct_shared == 1)))  # SAE wrong, LLM right
-    if B + C > 0:
-        mcnemar_stat = (abs(B - C) - 1) ** 2 / (B + C)
-        mcnemar_p    = chi2.sf(mcnemar_stat, df=1)
-    else:
-        mcnemar_stat, mcnemar_p = 0.0, 1.0
-
-    # ── Δ accuracy with bootstrap CI ──────────────────────────────────────────
-    sae_all = np.array([r["correct"] for r in sae_records], dtype=float)
-    llm_all = np.array([r["correct"] for r in llm_records], dtype=float)
-
-    acc_sae = sae_all.mean()
-    acc_llm = llm_all.mean()
-
-    # Pair by shared task_ids for bootstrap
-    n = len(shared)
-    sae_s = sae_correct_shared
-    llm_s = llm_correct_shared
-    rng = np.random.default_rng(42)
-    boot_deltas = np.empty(n_boot)
-    for i in range(n_boot):
-        idx = rng.integers(0, n, size=n)
-        boot_deltas[i] = sae_s[idx].mean() - llm_s[idx].mean()
-    ci_lo, ci_hi = np.percentile(boot_deltas, [2.5, 97.5])
-    delta = acc_sae - acc_llm
-
-    # ── Terminal output ────────────────────────────────────────────────────────
-    typer.echo("\n── Router comparison ────────────────────────────────")
-    typer.echo(f"{'':20s} {'SAE+MLP':>10} {'RouteLLM':>10}")
-    typer.echo(f"{'Accuracy':20s} {acc_sae:>9.1%} {acc_llm:>9.1%}")
-    typer.echo(f"{'Strong %':20s} {sum(1 for r in sae_records if r['route']=='strong')/len(sae_records):>9.1%} "
-               f"{sum(1 for r in llm_records if r['route']=='strong')/len(llm_records):>9.1%}")
-    typer.echo(f"{'N tasks':20s} {len(sae_records):>10} {len(llm_records):>10}")
-    typer.echo(f"\nMcNemar (shared N={n}): B={B}  C={C}  χ²={mcnemar_stat:.2f}  p={mcnemar_p:.4f}")
-    sign = "+" if delta >= 0 else ""
-    typer.echo(f"Δ accuracy (SAE−LLM):  {sign}{delta:.1%}  95% CI [{ci_lo:.1%}, {ci_hi:.1%}]")
-
-    # ── Figure ────────────────────────────────────────────────────────────────
-    out_path = Path(output)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-
-    fig = plt.figure(figsize=(15, 5))
-    gs  = gridspec.GridSpec(1, 3, figure=fig, wspace=0.35)
-
-    # Panel 1: Pareto curves
-    ax1 = fig.add_subplot(gs[0])
-    if llm_costs:
-        ax1.plot(llm_costs, llm_accs, color="tab:blue",  linewidth=1.5, label="RouteLLM")
-        ax1.axvline(llm_op, color="tab:blue",  linestyle="--", alpha=0.6, linewidth=1)
-    if sae_costs:
-        ax1.plot(sae_costs, sae_accs, color="tab:orange", linewidth=1.5, label="SAE+MLP")
-        ax1.axvline(sae_op, color="tab:orange", linestyle="--", alpha=0.6, linewidth=1)
-    ax1.set_xlabel("Cost (fraction routed to strong)")
-    ax1.set_ylabel("Routing accuracy")
-    ax1.set_title("Pareto Curves")
-    if llm_costs or sae_costs:
-        ax1.legend()
-    ax1.grid(True, alpha=0.3)
-
-    # Panel 2: McNemar 2×2 heatmap
-    ax2 = fig.add_subplot(gs[1])
-    A = int(sum((sae_correct_shared == 1) & (llm_correct_shared == 1)))
-    D = int(sum((sae_correct_shared == 0) & (llm_correct_shared == 0)))
-    table = np.array([[A, B], [C, D]])
-    im = ax2.imshow(table, cmap="Blues")
-    for (r, c_), val in np.ndenumerate(table):
-        ax2.text(c_, r, str(val), ha="center", va="center", fontsize=14)
-    ax2.set_xticks([0, 1])
-    ax2.set_yticks([0, 1])
-    ax2.set_xticklabels(["LLM correct", "LLM wrong"])
-    ax2.set_yticklabels(["SAE correct", "SAE wrong"])
-    ax2.set_title(f"McNemar  χ²={mcnemar_stat:.2f}  p={mcnemar_p:.4f}")
-    plt.colorbar(im, ax=ax2, fraction=0.046, pad=0.04)
-
-    # Panel 3: Δ bar with CI
-    ax3 = fig.add_subplot(gs[2])
-    color = "tab:green" if delta >= 0 else "tab:red"
-    ax3.bar([0], [delta], color=color, alpha=0.7, width=0.4)
-    ax3.errorbar([0], [delta], yerr=[[delta - ci_lo], [ci_hi - delta]],
-                 fmt="none", color="black", capsize=8, linewidth=2)
-    ax3.axhline(0, color="black", linewidth=0.8)
-    ax3.set_xticks([0])
-    ax3.set_xticklabels(["SAE+MLP − RouteLLM"])
-    ax3.set_ylabel("Δ Accuracy")
-    ax3.set_title("Accuracy Difference\n(95% bootstrap CI)")
-    ax3.grid(True, axis="y", alpha=0.3)
-    ax3.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"{v:.1%}"))
-
-    fig.suptitle("Router Comparison", fontsize=14)
-    plt.savefig(out_path, dpi=150, bbox_inches="tight")
-    plt.close()
-    typer.echo(f"\nPlot saved to {out_path}")
+    calculate(sae_router=sae_router, route_llm=route_llm, output=output, n_boot=n_boot)
 
 
 # =============================================================================

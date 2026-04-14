@@ -1,0 +1,179 @@
+"""
+stats_util.py - Router comparison statistics: score distributions, McNemar test, Δ accuracy.
+"""
+
+from __future__ import annotations
+from pathlib import Path
+
+
+def calculate(
+    sae_router: str = "routing_decisions.jsonl",
+    route_llm: str  = "route_llm_decisions.jsonl",
+    output: str     = "visuals/routing_stats.png",
+    n_boot: int     = 10_000,
+) -> None:
+    """Compare SAE+MLP and RouteLLM routers: score distributions, McNemar test, Δ accuracy."""
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import matplotlib.gridspec as gridspec
+    import matplotlib.patches as mpatches
+    from scipy.stats import chi2
+    from util.smart_file_util import load_jsonl
+
+    sae_path = Path(sae_router)
+    llm_path = Path(route_llm)
+    for p in (sae_path, llm_path):
+        if not p.exists():
+            raise FileNotFoundError(f"Missing file: {p}")
+
+    sae_records = load_jsonl(sae_path)
+    llm_records = load_jsonl(llm_path)
+
+    # ── McNemar ───────────────────────────────────────────────────────────────
+    sae_map = {r["task_id"]: r["correct"] for r in sae_records}
+    llm_map = {r["task_id"]: r["correct"] for r in llm_records}
+    shared  = sorted(set(sae_map) & set(llm_map))
+
+    sae_correct_shared = np.array([sae_map[t] for t in shared], dtype=float)
+    llm_correct_shared = np.array([llm_map[t] for t in shared], dtype=float)
+
+    A = int(sum((sae_correct_shared == 1) & (llm_correct_shared == 1)))
+    B = int(sum((sae_correct_shared == 1) & (llm_correct_shared == 0)))
+    C = int(sum((sae_correct_shared == 0) & (llm_correct_shared == 1)))
+    D = int(sum((sae_correct_shared == 0) & (llm_correct_shared == 0)))
+
+    if B + C > 0:
+        mcnemar_stat = (abs(B - C) - 1) ** 2 / (B + C)
+        mcnemar_p    = chi2.sf(mcnemar_stat, df=1)
+    else:
+        mcnemar_stat, mcnemar_p = 0.0, 1.0
+
+    p_str = "< 0.0001" if mcnemar_p < 0.0001 else f"= {mcnemar_p:.4f}"
+
+    # ── Δ accuracy with bootstrap CI ──────────────────────────────────────────
+    n       = len(shared)
+    acc_sae = sae_correct_shared.mean()
+    acc_llm = llm_correct_shared.mean()
+    delta   = acc_sae - acc_llm
+
+    rng = np.random.default_rng(42)
+    boot_deltas = np.empty(n_boot)
+    for i in range(n_boot):
+        idx = rng.integers(0, n, size=n)
+        boot_deltas[i] = sae_correct_shared[idx].mean() - llm_correct_shared[idx].mean()
+    ci_lo, ci_hi = np.percentile(boot_deltas, [2.5, 97.5])
+
+    # ── Terminal output ────────────────────────────────────────────────────────
+    print("\n── Router comparison ────────────────────────────────")
+    print(f"{'':20s} {'SAE+MLP':>10} {'RouteLLM':>10}")
+    print(f"{'Accuracy (shared)':20s} {acc_sae:>9.1%} {acc_llm:>9.1%}")
+    print(f"{'Strong %':20s} "
+          f"{sum(1 for r in sae_records if r['route']=='strong')/len(sae_records):>9.1%} "
+          f"{sum(1 for r in llm_records if r['route']=='strong')/len(llm_records):>9.1%}")
+    print(f"{'N shared tasks':20s} {n:>10}")
+    print(f"\nMcNemar (N={n}): A={A}  B={B}  C={C}  D={D}")
+    print(f"  χ²={mcnemar_stat:.2f}  p {p_str}")
+    sign = "+" if delta >= 0 else ""
+    print(f"Δ accuracy (SAE−LLM):  {sign}{delta:.1%}  95% CI [{ci_lo:.1%}, {ci_hi:.1%}]")
+
+    # ── Figure ────────────────────────────────────────────────────────────────
+    out_path = Path(output)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    fig = plt.figure(figsize=(15, 5))
+    gs  = gridspec.GridSpec(1, 3, figure=fig, wspace=0.55)
+
+    # ── Panel 1: Operating point scatter (cost vs accuracy) ───────────────────
+    ax1 = fig.add_subplot(gs[0])
+
+    llm_cost = sum(1 for r in llm_records if r["route"] == "strong") / len(llm_records)
+    sae_cost = sum(1 for r in sae_records if r["route"] == "strong") / len(sae_records)
+    llm_acc  = np.mean([r["correct"] for r in llm_records])
+    sae_acc  = np.mean([r["correct"] for r in sae_records])
+
+    ax1.scatter([llm_cost], [llm_acc], color="tab:blue",   s=120, zorder=3, label="RouteLLM")
+    ax1.scatter([sae_cost], [sae_acc], color="tab:orange",  s=120, zorder=3, label="SAE+MLP")
+
+    for cost, acc, name, color in [
+        (llm_cost, llm_acc, "RouteLLM", "tab:blue"),
+        (sae_cost, sae_acc, "SAE+MLP",  "tab:orange"),
+    ]:
+        ax1.annotate(
+            f"{name}\n({cost:.0%} strong, {acc:.1%} acc)",
+            xy=(cost, acc), xytext=(8, -18), textcoords="offset points",
+            fontsize=8, color=color,
+        )
+
+    ax1.set_xlabel("Cost (fraction routed to strong)", fontsize=10)
+    ax1.set_ylabel("Task accuracy", fontsize=10)
+    ax1.set_title("Accuracy vs Cost\n(operating points)", fontsize=11)
+    ax1.set_xlim(0, 1)
+    ax1.set_ylim(0, 1)
+    ax1.legend(fontsize=9)
+    ax1.grid(True, alpha=0.3)
+
+    # ── Panel 2: McNemar 2×2 heatmap ─────────────────────────────────────────
+    ax2 = fig.add_subplot(gs[1])
+    table = np.array([[A, B], [C, D]], dtype=float)
+    im = ax2.imshow(table, cmap="Blues", vmin=0)
+
+    cell_labels = [
+        [f"A = {A}\n(both ✓)",        f"B = {B}\n(SAE ✓, LLM ✗)"],
+        [f"C = {C}\n(SAE ✗, LLM ✓)", f"D = {D}\n(both ✗)"],
+    ]
+    for r in range(2):
+        for c in range(2):
+            bright = table[r, c] < table.max() * 0.55
+            ax2.text(c, r, cell_labels[r][c],
+                     ha="center", va="center", fontsize=9,
+                     color="black" if bright else "white",
+                     fontweight="bold")
+
+    for (row, col) in [(0, 1), (1, 0)]:
+        ax2.add_patch(mpatches.FancyBboxPatch(
+            (col - 0.5, row - 0.5), 1, 1,
+            boxstyle="square,pad=0",
+            linewidth=2.5, edgecolor="crimson", facecolor="none", zorder=5,
+        ))
+
+    ax2.set_xticks([0, 1])
+    ax2.set_yticks([0, 1])
+    ax2.set_xticklabels(["LLM correct", "LLM wrong"], fontsize=9)
+    ax2.set_yticklabels(["SAE correct", "SAE wrong"], fontsize=9)
+    ax2.set_title(
+        f"McNemar contingency table\nχ² = {mcnemar_stat:.2f},  p {p_str}", fontsize=10,
+    )
+    cb = plt.colorbar(im, ax=ax2, fraction=0.046, pad=0.04)
+    cb.set_label("Count", fontsize=8)
+
+    # ── Panel 3: Δ bar with CI ────────────────────────────────────────────────
+    ax3 = fig.add_subplot(gs[2])
+    color = "tab:green" if delta >= 0 else "tab:red"
+    ax3.bar([0], [delta], color=color, alpha=0.75, width=0.45, zorder=3)
+    ax3.errorbar(
+        [0], [delta],
+        yerr=[[delta - ci_lo], [ci_hi - delta]],
+        fmt="none", color="black", capsize=10, linewidth=2, zorder=4,
+    )
+    ax3.axhline(0, color="black", linewidth=1.0)
+
+    margin = max(abs(ci_hi - delta), abs(delta - ci_lo)) * 1.6
+    ax3.set_ylim(delta - margin, delta + margin)
+
+    ax3.set_xticks([0])
+    ax3.set_xticklabels(["SAE+MLP − RouteLLM"], fontsize=10)
+    ax3.set_ylabel("Δ Task accuracy (SAE+MLP − RouteLLM)", fontsize=9)
+    ax3.set_title("Accuracy difference\n(95% bootstrap CI, shared tasks)", fontsize=10)
+    ax3.grid(True, axis="y", alpha=0.3, zorder=0)
+    ax3.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"{v:+.1%}"))
+    ax3.annotate(
+        f"Δ = {delta:+.1%}\n[{ci_lo:+.1%}, {ci_hi:+.1%}]",
+        xy=(0, delta), xytext=(0.28, delta),
+        fontsize=9, va="center",
+        arrowprops=dict(arrowstyle="-", color="grey", lw=0.8),
+    )
+
+    fig.suptitle("Router Comparison: SAE+MLP vs RouteLLM", fontsize=13, y=1.01)
+    plt.savefig(out_path, dpi=180, bbox_inches="tight")
+    plt.close()
+    print(f"\nPlot saved to {out_path}")
