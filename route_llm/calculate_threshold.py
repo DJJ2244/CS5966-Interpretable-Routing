@@ -1,11 +1,12 @@
 """
 calculate_threshold.py - Compute the RouteLLM routing threshold via Pareto frontier + geometric elbow.
 
-For every unique toughness score as a candidate threshold, we compute the fraction of problems
-routed to the strong model (strong_rate) and the resulting accuracy when both models' pass/fail
-outcomes are taken into account. This produces a Pareto frontier of (strong_rate, accuracy) points.
-The optimal threshold is the elbow of that curve — the point of maximum perpendicular distance
-from the chord connecting the two frontier endpoints. No tuning parameter is required.
+For every unique toughness score as a candidate threshold, we compute the strong-millis fraction
+(strong-model inference time actually spent / strong-model inference time if everything went to strong)
+and the resulting accuracy when both models' pass/fail outcomes are taken into account. This produces a
+Pareto frontier of (cost_fraction, accuracy) points, bounded [0, 1]. The optimal threshold is the
+elbow of that curve — the point of maximum perpendicular distance from the chord connecting the two
+frontier endpoints. No tuning parameter is required.
 """
 
 from dataclasses import dataclass
@@ -21,7 +22,7 @@ import daos.tasks_dao as tasks_dao
 @dataclass
 class ThresholdPoint:
     threshold: float
-    strong_rate: float
+    cost_fraction: float  # strong millis spent / total strong millis — range [0, 1]
     accuracy: float
 
 
@@ -37,27 +38,27 @@ def _build_frontier(
         if t.toughness_score is not None
     }
     if not task_score:
-        raise ValueError(f"No toughness scores found for split_id={split_id}, is_test={is_test}")
+        raise ValueError(f"No toughness scores found for split_id={split_id}")
 
-    weak_pass: dict[str, bool] = {
-        r.task_id: r.passed
+    weak_results = {
+        r.task_id: r
         for r in model_task_result_dao.get_all_for_model_split(weak_model_name, split_id, is_test)
-        if r.passed is not None
+        if r.passed is not None and r.run_millis is not None
     }
-    strong_pass: dict[str, bool] = {
-        r.task_id: r.passed
+    strong_results = {
+        r.task_id: r
         for r in model_task_result_dao.get_all_for_model_split(strong_model_name, split_id, is_test)
-        if r.passed is not None
+        if r.passed is not None and r.run_millis is not None
     }
 
-    task_ids = set(task_score) & set(weak_pass) & set(strong_pass)
+    task_ids = set(task_score) & set(weak_results) & set(strong_results)
     if not task_ids:
         raise ValueError(
-            f"No tasks have toughness scores and results for both models "
+            f"No tasks have toughness scores, pass labels, and run_millis for both models "
             f"(split_id={split_id}, weak={weak_model_name}, strong={strong_model_name})"
         )
 
-    total = len(task_ids)
+    total_strong_millis = sum(strong_results[t].run_millis for t in task_ids)
     candidate_thresholds = sorted(
         {task_score[t] for t in task_ids}, reverse=True
     )
@@ -66,36 +67,92 @@ def _build_frontier(
     for threshold in candidate_thresholds:
         strong_ids = {t for t in task_ids if task_score[t] >= threshold}
         weak_ids = task_ids - strong_ids
-        correct = sum(strong_pass[t] for t in strong_ids) + sum(weak_pass[t] for t in weak_ids)
+
+        cost_fraction = (
+            sum(strong_results[t].run_millis for t in strong_ids) +
+            sum(weak_results[t].run_millis for t in weak_ids)
+        ) / total_strong_millis
+        correct = (
+            sum(strong_results[t].passed for t in strong_ids)
+            + sum(weak_results[t].passed for t in weak_ids)
+        )
         frontier.append(ThresholdPoint(
             threshold=threshold,
-            strong_rate=len(strong_ids) / total,
-            accuracy=correct / total,
+            cost_fraction=cost_fraction,
+            accuracy=correct / len(task_ids),
         ))
 
     return frontier
 
 
 def _find_elbow(frontier: list[ThresholdPoint]) -> tuple[ThresholdPoint, KneeLocator]:
+    # Deduplicate points with the same cost_fraction (keep highest accuracy).
+    # Duplicate x-values cause KneeLocator normalization to break silently.
+    seen: dict[float, ThresholdPoint] = {}
+    for p in frontier:
+        if p.cost_fraction not in seen or p.accuracy > seen[p.cost_fraction].accuracy:
+            seen[p.cost_fraction] = p
+    deduped = sorted(seen.values(), key=lambda p: p.cost_fraction)
+
+    pareto = []
+    best_acc = -1
+
+    for p in reversed(deduped):
+        if p.accuracy > best_acc:
+            pareto.append(p)
+            best_acc = p.accuracy
+
+    pareto = list(reversed(pareto))
+
     knee = KneeLocator(
-        x=[p.strong_rate for p in frontier],
-        y=[p.accuracy    for p in frontier],
-        curve="concave",
+        x=[p.cost_fraction for p in pareto],
+        y=[p.accuracy      for p in pareto],
+        curve="convex",
         direction="increasing",
     )
 
-    if len(frontier) <= 2 or knee.knee is None:
-        return frontier[0], knee
+    if knee.knee is None:
+        # No elbow found — pick the point of maximum marginal accuracy gain per
+        # unit cost increase as a sensible fallback.
+        best = max(
+            (deduped[i].accuracy - deduped[i - 1].accuracy)
+            / max(deduped[i].cost_fraction - deduped[i - 1].cost_fraction, 1e-9)
+            for i in range(1, len(deduped))
+        )
+        best_idx = next(
+            i for i in range(1, len(deduped))
+            if (deduped[i].accuracy - deduped[i - 1].accuracy)
+               / max(deduped[i].cost_fraction - deduped[i - 1].cost_fraction, 1e-9) == best
+        )
+        print("WARNING: KneeLocator found no elbow. Falling back to max-marginal-gain point.")
+        return deduped[best_idx], knee
 
-    return min(frontier, key=lambda p: abs(p.strong_rate - knee.knee)), knee
+    return min(deduped, key=lambda p: abs(p.cost_fraction - knee.knee)), knee
 
 
-def _save_plot(knee: KneeLocator, split_id: int) -> None:
+def _save_plot(
+    frontier: list[ThresholdPoint],
+    elbow: ThresholdPoint,
+    split_id: int,
+) -> None:
     out_dir = Path("visuals")
     out_dir.mkdir(exist_ok=True)
 
-    knee.plot_knee()
+    cost_fractions = [p.cost_fraction for p in frontier]
+    accuracies     = [p.accuracy      for p in frontier]
 
+    plt.figure(figsize=(7, 5))
+    plt.plot(cost_fractions, accuracies, marker="o", markersize=3, linewidth=1.5)
+    plt.axvline(
+        elbow.cost_fraction, color="red", linestyle="--",
+        label=f"elbow (threshold={elbow.threshold:.4f})",
+    )
+    plt.xlabel("Cost fraction (spent millis / all-strong millis)")
+    plt.ylabel("Accuracy")
+    plt.title(f"Pareto Frontier — Split {split_id}")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
     filename = f"pareto_frontier_split{split_id}.png"
     plt.savefig(out_dir / filename, dpi=150, bbox_inches="tight")
     plt.close()
@@ -121,17 +178,28 @@ def calculate_threshold(
     """
     frontier = _build_frontier(split_id, weak_model_name, strong_model_name, is_test)
     elbow, knee = _find_elbow(frontier)
-    _save_plot(knee, split_id)
+    _save_plot(frontier, elbow, split_id)
 
-    a, b = frontier[0], frontier[-1]
+    a, b       = frontier[0], frontier[-1]
+    scores     = [p.threshold for p in frontier]
+    accuracies = [p.accuracy  for p in frontier]
     print(
         f"Frontier: {len(frontier)} points  "
-        f"[strong_rate {a.strong_rate:.1%}→{b.strong_rate:.1%}, "
+        f"[cost_fraction {a.cost_fraction:.1%}→{b.cost_fraction:.1%}, "
         f"accuracy {a.accuracy:.1%}→{b.accuracy:.1%}]"
     )
     print(
+        f"Toughness scores: min={min(scores):.4f}  max={max(scores):.4f}  "
+        f"range={max(scores)-min(scores):.4f}"
+    )
+    print(
+        f"Accuracy range:   min={min(accuracies):.1%}  max={max(accuracies):.1%}  "
+        f"spread={max(accuracies)-min(accuracies):.1%}"
+    )
+    print(f"KneeLocator knee: {knee.knee}")
+    print(
         f"Elbow:    threshold={elbow.threshold:.5f}  "
-        f"strong_rate={elbow.strong_rate:.1%}  "
+        f"cost_fraction={elbow.cost_fraction:.1%}  "
         f"accuracy={elbow.accuracy:.1%}"
     )
     return elbow.threshold

@@ -258,10 +258,10 @@ def mlp_eval(
 
 @route_llm_app.command("calculate-threshold")
 def route_llm_threshold(
-    split_id:          Annotated[int,            typer.Option("--split-id",     help="DB split id")] = 1,
-    weak_model_name:   Annotated[str,            typer.Option("--weak-model",   help="Weak model name")] = "",
-    strong_model_name: Annotated[str,            typer.Option("--strong-model", help="Strong model name")] = "",
-    is_test:           Annotated[bool,           typer.Option("--is-test",      help="Use test partition (default: train)")] = False,
+    split_id:          Annotated[int,  typer.Option("--split-id",     help="DB split id")] = 1,
+    weak_model_name:   Annotated[str,  typer.Option("--weak-model",   help="Weak model name")] = "",
+    strong_model_name: Annotated[str,  typer.Option("--strong-model", help="Strong model name")] = "",
+    is_test:           Annotated[bool, typer.Option("--is-test",      help="Use test partition (default: train)")] = False,
 ) -> None:
     """Compute the RouteLLM routing threshold via Pareto frontier + geometric elbow."""
     from route_llm.calculate_threshold import calculate_threshold
@@ -300,7 +300,7 @@ def route_llm_threshold(
     if run is None:
         runs_dao.create(weak_model_name, strong_model_name,split_id, threshold)
     else:
-        runs_dao.update_threshold(threshold)
+        runs_dao.update_threshold(run.id, threshold)
 
     new_run = runs_dao.get_by_models_and_split(weak_model_name, strong_model_name, split_id)
 
