@@ -12,6 +12,7 @@ Commands:
   python cli.py mlp train                   Train the MLP router
   python cli.py mlp eval                    Evaluate the MLP router
   python cli.py route-llm calculate-threshold  Compute routing threshold
+  python cli.py route-llm batch             Batch RouteLLM routing decisions
   python cli.py router batch                Batch SAE+MLP routing decisions
   python cli.py test run                    Run Docker-based code tests
   python cli.py stats calculate             Compute result statistics
@@ -308,6 +309,60 @@ def route_llm_threshold(
         typer.echo(f"Threshold saved to run {new_run.id}.")
     else:
         typer.echo("Warning: no matching run found in DB — threshold not persisted.", err=True)
+
+
+@route_llm_app.command("batch")
+def route_llm_batch(
+    weak_model_name:   Annotated[str,  typer.Option("--weak-model",   help="Weak model name")]   = "",
+    strong_model_name: Annotated[str,  typer.Option("--strong-model", help="Strong model name")] = "",
+    split_id:          Annotated[int,  typer.Option("--split-id",     help="DB split id")]       = 1,
+    is_test:           Annotated[bool, typer.Option("--test",         help="Use test partition")] = True,
+    output:            Annotated[str,  typer.Option("--output",       help="Output .jsonl path")] = "route_llm_decisions.jsonl",
+) -> None:
+    """Generate RouteLLM routing decisions using toughness scores vs saved threshold."""
+    if not weak_model_name or not strong_model_name:
+        typer.echo("Error: --weak-model and --strong-model are required.", err=True)
+        raise typer.Exit(code=1)
+
+    if Path(output).exists():
+        typer.echo(f"Output already exists at {output}, skipping.")
+        return
+
+    import daos.runs_dao as runs_dao
+    import daos.tasks_dao as tasks_dao
+    import daos.model_task_result_dao as model_task_result_dao
+    from util.smart_file_util import write_jsonl
+
+    run = runs_dao.get_by_models_and_split(weak_model_name, strong_model_name, split_id)
+    if run is None or run.route_llm_threshold is None:
+        typer.echo(
+            "Error: no threshold found. Run 'route-llm calculate-threshold' first.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+    threshold = run.route_llm_threshold
+    tasks     = tasks_dao.get_all_for_split(split_id, is_test=is_test)
+
+    results   = model_task_result_dao.get_all_for_model_split(weak_model_name, split_id, is_test=is_test)
+    label_map = {r.task_id: r.passed for r in results}
+
+    decisions = []
+    for task in tasks:
+        if task.toughness_score is None:
+            continue
+        route    = "strong" if task.toughness_score >= threshold else "weak"
+        weak_pass = label_map.get(task.id)
+        correct  = (route == "weak" and weak_pass) or (route == "strong" and not weak_pass)
+        decisions.append({
+            "task_id":         task.id,
+            "route":           route,
+            "toughness_score": round(task.toughness_score, 5),
+            "correct":         correct,
+        })
+
+    write_jsonl(Path(output), decisions)
+    typer.echo(f"RouteLLM decisions saved to {output}  ({len(decisions)} problems, threshold={threshold:.5f})")
 
 
 # =============================================================================
