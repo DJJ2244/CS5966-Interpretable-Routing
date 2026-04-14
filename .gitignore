@@ -10,7 +10,7 @@ logs/
 activations/
 sae_output/
 mlp_output/
-data/routing.db
+# data/routing.db
 *.safetensors
 *.pt
 
