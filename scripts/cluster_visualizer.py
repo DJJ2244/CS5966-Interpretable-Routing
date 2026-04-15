@@ -156,7 +156,7 @@ def load_features_file(path: Path) -> tuple[np.ndarray, list[str]]:
     print(f"Loading features from {path} …")
     raw = torch.load(str(path), weights_only=False, map_location="cpu")
     if isinstance(raw, dict):
-        tensor = raw.get("features") or raw.get("activations")
+        tensor = raw["features"] if "features" in raw else raw["activations"]
         task_ids = list(raw.get("task_ids", [f"task_{i}" for i in range(tensor.shape[0])]))
     else:
         tensor = raw
