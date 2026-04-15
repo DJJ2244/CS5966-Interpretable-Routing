@@ -92,10 +92,12 @@ def parse_args() -> argparse.Namespace:
                    help="TruncatedSVD dimensionality before clustering (default: 128).")
     p.add_argument("--top-k-features", type=int, default=20,
                    help="Top features per cluster shown to the LLM (default: 20).")
-    p.add_argument("--umap-neighbors", type=int, default=15,
-                   help="UMAP n_neighbors (default: 15).")
-    p.add_argument("--umap-min-dist", type=float, default=0.1,
-                   help="UMAP min_dist (default: 0.1).")
+    p.add_argument("--umap-neighbors", type=int, default=30,
+                   help="UMAP n_neighbors (default: 30).")
+    p.add_argument("--umap-min-dist", type=float, default=0.3,
+                   help="UMAP min_dist (default: 0.3).")
+    p.add_argument("--umap-spread", type=float, default=1.5,
+                   help="UMAP spread (default: 1.5).")
 
     # ── Neuronpedia (optional) ─────────────────────────────────────────────
     p.add_argument("--neuronpedia-model-id", type=str, default=None, metavar="MODEL_ID",
@@ -165,21 +167,33 @@ def load_features_file(path: Path) -> tuple[np.ndarray, list[str]]:
 
 
 def load_task_prompts(db_path: Path) -> dict[str, str]:
-    """Return {task_id: prompt_snippet} from the tasks table."""
+    """Return {task_id: description} from the tasks table.
+
+    Uses the natural-language description field, which contains only the
+    algorithmic concept without language boilerplate.  Falls back to the
+    natural_language column, then to stripping the docstring from prompt.
+    """
     if not db_path.exists():
         return {}
     try:
         conn = sqlite3.connect(str(db_path))
         conn.row_factory = sqlite3.Row
         rows = conn.execute(
-            "SELECT id, prompt, description, programming_language FROM tasks"
+            "SELECT id, description, natural_language, prompt FROM tasks"
         ).fetchall()
         conn.close()
         result = {}
         for r in rows:
-            lang = r["programming_language"] or r["description"] or ""
-            prompt_first = (r["prompt"] or "").strip().split("\n")[0][:120]
-            result[r["id"]] = f"[{lang}] {prompt_first}" if lang else prompt_first
+            desc = (r["description"] or r["natural_language"] or "").strip()
+            if not desc:
+                # fallback: extract first triple-quoted string from prompt
+                prompt = r["prompt"] or ""
+                m = re.search(r'"""(.*?)"""', prompt, re.DOTALL)
+                if m:
+                    desc = m.group(1).strip().split("\n")[0][:200]
+                else:
+                    desc = prompt.strip().split("\n")[0][:120]
+            result[r["id"]] = desc[:200]
         return result
     except Exception as exc:
         print(f"Warning: could not load task prompts ({exc})")
@@ -250,6 +264,7 @@ def project_umap(
     k: int,
     n_neighbors: int,
     min_dist: float,
+    spread: float = 1.5,
 ) -> tuple[np.ndarray, np.ndarray]:
     """UMAP 2-D projection; centroid = mean of per-cluster projected points."""
     try:
@@ -258,11 +273,12 @@ def project_umap(
         raise SystemExit(
             "Error: umap-learn not installed. Run: pip install umap-learn"
         )
-    print(f"  UMAP (n_neighbors={n_neighbors}, min_dist={min_dist}) …")
+    print(f"  UMAP (n_neighbors={n_neighbors}, min_dist={min_dist}, spread={spread}) …")
     reducer = umap.UMAP(
         n_components=2,
         n_neighbors=n_neighbors,
         min_dist=min_dist,
+        spread=spread,
         random_state=42,
         metric="cosine",
         low_memory=True,
@@ -584,18 +600,24 @@ for(const pt of DATA.points){
 function buildTraces(){
   const traces=[];
 
-  // ── [0..K-1] convex hull fills ────────────────────────────────────────
+  // ── [0..K-1] ellipse fills (parametric, 2σ radii) ────────────────────
+  const N_EL = 80;
+  const T = Array.from({length:N_EL+1},(_,j)=>j*2*Math.PI/N_EL);
   for(let i=0;i<K;i++){
     const c=DATA.centroids[i];
-    const hull=c.hull||[];
+    const el=c.ellipse;
+    let ex=[], ey=[];
+    if(el && el.rx>0 && el.ry>0){
+      ex=T.map(t=>el.cx+el.rx*Math.cos(t));
+      ey=T.map(t=>el.cy+el.ry*Math.sin(t));
+    }
     traces.push({
       type:'scatter', mode:'lines',
       name:c.label,
-      x: hull.length ? hull.map(v=>v[0]).concat([null]) : [],
-      y: hull.length ? hull.map(v=>v[1]).concat([null]) : [],
+      x:ex, y:ey,
       fill:'toself',
-      fillcolor: hexToRgba(clCol(i), 0.18),
-      line:{color:clCol(i), width:1.5},
+      fillcolor: hexToRgba(clCol(i), 0.15),
+      line:{color: hexToRgba(clCol(i), 0.60), width:1.5},
       legendgroup:`c${i}`, showlegend:false,
       hoverinfo:'skip',
     });
@@ -826,12 +848,6 @@ def build_viz_json(
     routing: dict[str, str],
 ) -> str:
     """Serialise everything the HTML needs into a compact JSON string."""
-    try:
-        from scipy.spatial import ConvexHull as _ConvexHull
-        _has_scipy = True
-    except ImportError:
-        _has_scipy = False
-
     points = []
     for i, (x, y) in enumerate(points_2d):
         tid = task_ids[i] if i < len(task_ids) else f"pt_{i}"
@@ -859,19 +875,17 @@ def build_viz_json(
         n_weak = sum(1 for tid in cluster_tids if routing.get(tid) == "weak")
         n_strong = sum(1 for tid in cluster_tids if routing.get(tid) == "strong")
 
-        # convex hull vertices (closed polygon, ≥3 points required)
-        hull_verts: list[list[float]] = []
-        if _has_scipy and len(cluster_pts) >= 3:
-            try:
-                hull = _ConvexHull(cluster_pts)
-                verts = cluster_pts[hull.vertices]
-                verts_closed = np.vstack([verts, verts[0]])
-                hull_verts = [
-                    [round(float(v[0]), 4), round(float(v[1]), 4)]
-                    for v in verts_closed
-                ]
-            except Exception:
-                pass
+        # ellipse: centre = cluster mean, radii = 2 × std of UMAP coords
+        if len(cluster_pts) >= 2:
+            std_xy = cluster_pts.std(axis=0)
+            ellipse = {
+                "cx": round(float(cx), 5),
+                "cy": round(float(cy), 5),
+                "rx": round(float(max(std_xy[0] * 2, 0.01)), 5),
+                "ry": round(float(max(std_xy[1] * 2, 0.01)), 5),
+            }
+        else:
+            ellipse = None
 
         centroids.append({
             "x": round(float(cx), 5),
@@ -882,7 +896,7 @@ def build_viz_json(
             "n": info["size"],
             "n_weak": n_weak,
             "n_strong": n_strong,
-            "hull": hull_verts,
+            "ellipse": ellipse,
             "feats": [
                 {
                     "i": int(idx),
@@ -951,7 +965,7 @@ def main() -> None:
     # ── UMAP ──────────────────────────────────────────────────────────────
     print("\nProjecting to 2-D via UMAP …")
     pts2d, centroids_2d = project_umap(
-        features_svd, labels, args.k, args.umap_neighbors, args.umap_min_dist
+        features_svd, labels, args.k, args.umap_neighbors, args.umap_min_dist, args.umap_spread
     )
 
     # ── top features per cluster (on original live features) ──────────────
