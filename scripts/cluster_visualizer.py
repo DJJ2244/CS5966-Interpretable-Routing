@@ -533,6 +533,21 @@ function clCol(id){ return PAL[id % PAL.length]; }
 const ROUTE_COL = { weak:'#22c55e', strong:'#ef4444', null:'#4b5563' };
 function routeCol(r){ return ROUTE_COL[r] || ROUTE_COL[null]; }
 
+function hexToRgba(hex, alpha){
+  const r=parseInt(hex.slice(1,3),16);
+  const g=parseInt(hex.slice(3,5),16);
+  const b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// trace layout: [0..K-1] hull fills, [K..2K-1] point scatters,
+//               [2K] centroid stars, [2K+1] weak legend, [2K+2] strong legend
+const HULL_IDX = (i) => i;
+const PT_IDX   = (i) => K + i;
+const CEN_IDX  = 2 * K;
+const HULL_TRACES = Array.from({length:K},(_,i)=>i);
+const PT_TRACES   = Array.from({length:K},(_,i)=>K+i);
+
 // global state
 let selectedCluster = null;
 
@@ -569,7 +584,24 @@ for(const pt of DATA.points){
 function buildTraces(){
   const traces=[];
 
-  // per-cluster scatter — routing-colour per point, no legend entry
+  // ── [0..K-1] convex hull fills ────────────────────────────────────────
+  for(let i=0;i<K;i++){
+    const c=DATA.centroids[i];
+    const hull=c.hull||[];
+    traces.push({
+      type:'scatter', mode:'lines',
+      name:c.label,
+      x: hull.length ? hull.map(v=>v[0]).concat([null]) : [],
+      y: hull.length ? hull.map(v=>v[1]).concat([null]) : [],
+      fill:'toself',
+      fillcolor: hexToRgba(clCol(i), 0.18),
+      line:{color:clCol(i), width:1.5},
+      legendgroup:`c${i}`, showlegend:false,
+      hoverinfo:'skip',
+    });
+  }
+
+  // ── [K..2K-1] per-cluster scatter — routing-colour per point ──────────
   for(let i=0;i<K;i++){
     const b=byCluster[i];
     traces.push({
@@ -581,7 +613,7 @@ function buildTraces(){
       marker:{
         size:5,
         color:b.colors,
-        opacity:0.70,
+        opacity:0.80,
         symbol:'circle',
         line:{width:0},
       },
@@ -589,7 +621,7 @@ function buildTraces(){
     });
   }
 
-  // centroids — star markers, cluster colour, with label text
+  // ── [2K] centroids — star markers ─────────────────────────────────────
   const cx=[],cy=[],ctxt=[],chov=[],ccd=[],ccol=[];
   for(const c of DATA.centroids){
     cx.push(c.x); cy.push(c.y); ccd.push(c.id);
@@ -712,16 +744,18 @@ function hideInfo(){
 
 // ── cluster toggle ────────────────────────────────────────────────────────
 function toggleCluster(id){
-  const ptTraces=Array.from({length:K},(_,i)=>i);
   if(selectedCluster===id){
     selectedCluster=null;
-    Plotly.restyle('plot',{'marker.opacity':0.70},ptTraces);
+    Plotly.restyle('plot',{'opacity':0.18},HULL_TRACES);
+    Plotly.restyle('plot',{'marker.opacity':0.80},PT_TRACES);
     document.querySelectorAll('.cl-item').forEach(el=>el.classList.remove('active'));
     hideInfo(); updateVisible(DATA.points.length);
   } else {
     selectedCluster=id;
-    const ops=ptTraces.map(i=>i===id?0.85:0.10);
-    Plotly.restyle('plot',{'marker.opacity':ops},ptTraces);
+    const hullOps = HULL_TRACES.map(i=>i===id ? 0.30 : 0.04);
+    const ptOps   = PT_TRACES.map(i=>(i-K)===id ? 0.90 : 0.10);
+    Plotly.restyle('plot',{'opacity':hullOps},HULL_TRACES);
+    Plotly.restyle('plot',{'marker.opacity':ptOps},PT_TRACES);
     document.querySelectorAll('.cl-item').forEach(el=>el.classList.remove('active'));
     document.getElementById(`ci${id}`)?.classList.add('active');
     showInfo(id); updateVisible(DATA.centroids[id].n);
@@ -733,9 +767,9 @@ function updateVisible(n){ document.getElementById('st-visible').textContent=n; 
 // ── search ────────────────────────────────────────────────────────────────
 document.getElementById('search').addEventListener('input',function(){
   const q=this.value.trim().toLowerCase();
-  const ptTraces=Array.from({length:K},(_,i)=>i);
   if(!q){
-    Plotly.restyle('plot',{'marker.opacity':0.70},ptTraces);
+    Plotly.restyle('plot',{'opacity':0.18},HULL_TRACES);
+    Plotly.restyle('plot',{'marker.opacity':0.80},PT_TRACES);
     updateVisible(DATA.points.length); return;
   }
   const hits=new Set();
@@ -743,8 +777,10 @@ document.getElementById('search').addEventListener('input',function(){
     if(pt.id.toLowerCase().includes(q)||(pt.d&&pt.d.toLowerCase().includes(q)))
       hits.add(pt.c);
   }
-  const ops=ptTraces.map(i=>hits.has(i)?0.85:0.08);
-  Plotly.restyle('plot',{'marker.opacity':ops},ptTraces);
+  const hullOps = HULL_TRACES.map(i=>hits.has(i) ? 0.28 : 0.03);
+  const ptOps   = PT_TRACES.map(i=>hits.has(i-K) ? 0.85 : 0.08);
+  Plotly.restyle('plot',{'opacity':hullOps},HULL_TRACES);
+  Plotly.restyle('plot',{'marker.opacity':ptOps},PT_TRACES);
   updateVisible([...hits].reduce((s,c)=>s+DATA.centroids[c].n,0));
 });
 
@@ -760,7 +796,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('plot').on('plotly_click',function(data){
     if(!data||!data.points||!data.points[0]) return;
     const pt=data.points[0];
-    if(pt.curveNumber===K) toggleCluster(Number(pt.customdata));
+    if(pt.curveNumber===CEN_IDX) toggleCluster(Number(pt.customdata));
   });
 
   renderClusterList();
@@ -790,6 +826,12 @@ def build_viz_json(
     routing: dict[str, str],
 ) -> str:
     """Serialise everything the HTML needs into a compact JSON string."""
+    try:
+        from scipy.spatial import ConvexHull as _ConvexHull
+        _has_scipy = True
+    except ImportError:
+        _has_scipy = False
+
     points = []
     for i, (x, y) in enumerate(points_2d):
         tid = task_ids[i] if i < len(task_ids) else f"pt_{i}"
@@ -806,14 +848,30 @@ def build_viz_json(
     centroids = []
     for info in cluster_info:
         cid = info["cluster_id"]
-        cx, cy = centroids_2d[cid]
 
-        # count routing decisions for tasks in this cluster
-        cluster_tids = [
-            task_ids[i] for i in range(len(task_ids)) if cluster_labels[i] == cid
-        ]
+        # centroid 2D = mean of UMAP-projected points in this cluster
+        mask = cluster_labels == cid
+        cluster_pts = points_2d[mask]
+        cx, cy = cluster_pts.mean(axis=0)
+
+        # count routing decisions
+        cluster_tids = [task_ids[i] for i in range(len(task_ids)) if cluster_labels[i] == cid]
         n_weak = sum(1 for tid in cluster_tids if routing.get(tid) == "weak")
         n_strong = sum(1 for tid in cluster_tids if routing.get(tid) == "strong")
+
+        # convex hull vertices (closed polygon, ≥3 points required)
+        hull_verts: list[list[float]] = []
+        if _has_scipy and len(cluster_pts) >= 3:
+            try:
+                hull = _ConvexHull(cluster_pts)
+                verts = cluster_pts[hull.vertices]
+                verts_closed = np.vstack([verts, verts[0]])
+                hull_verts = [
+                    [round(float(v[0]), 4), round(float(v[1]), 4)]
+                    for v in verts_closed
+                ]
+            except Exception:
+                pass
 
         centroids.append({
             "x": round(float(cx), 5),
@@ -824,6 +882,7 @@ def build_viz_json(
             "n": info["size"],
             "n_weak": n_weak,
             "n_strong": n_strong,
+            "hull": hull_verts,
             "feats": [
                 {
                     "i": int(idx),
