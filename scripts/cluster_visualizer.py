@@ -338,10 +338,19 @@ def query_neuronpedia(
 # ---------------------------------------------------------------------------
 
 _SYSTEM_PROMPT_LLM = (
-    "You are an expert at analysing machine learning feature clusters. "
-    "Given top-activated sparse autoencoder features and representative coding tasks, "
-    "respond with ONLY a JSON object — no preamble, no markdown fences:\n"
-    '{"label": "<2-5 word algorithmic concept>", "description": "<one sentence>"}'
+    "You are an expert at analysing clusters of coding problems. "
+    "Given representative coding tasks, identify the underlying algorithmic or "
+    "programming concept they share. "
+    "The label must name a concrete programming concept such as "
+    "'dynamic programming', 'string manipulation', 'binary search', "
+    "'tree traversal', 'graph algorithms', 'sorting', 'recursion', etc. "
+    "Do NOT reference the visualization method, clustering, feature vectors, "
+    "sparse activations, SAE, UMAP, dimensions, or any machine learning terminology. "
+    "Do NOT use generic labels like '2D clustering', 'feature mapping', "
+    "'data points', or anything that describes the analysis process rather than "
+    "the actual programming problems. "
+    "Respond with ONLY a JSON object — no preamble, no markdown fences:\n"
+    '{"label": "<2-5 word programming concept>", "description": "<one sentence about the coding tasks>"}'
 )
 
 _LABEL_PROMPT_TEMPLATE = """\
@@ -351,8 +360,11 @@ Top activated SAE feature dimensions for cluster {cid}:
 Representative coding tasks in this cluster:
 {sample_lines}
 
-Identify the dominant algorithmic concept (e.g. "dynamic programming", \
-"string manipulation", "graph traversal"). \
+What algorithmic or programming concept do these coding problems share? \
+Examples of good labels: "dynamic programming", "string manipulation", \
+"binary search", "tree traversal", "graph algorithms", "sorting", "recursion". \
+Do NOT use labels like "2D clustering", "feature vectors", "sparse activations", \
+or any term from machine learning or data visualization — label the coding concept only. \
 Respond with ONLY: {{"label": "...", "description": "..."}}"""
 
 # Completion-style prompt for base (non-instruct) models
