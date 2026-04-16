@@ -117,7 +117,7 @@ def calculate(
         ax1.plot(
             [p.cost_fraction for p in frontier],
             [p.accuracy      for p in frontier],
-            color="grey", linewidth=1.2, alpha=0.6, zorder=1, label="Pareto frontier",
+            color="grey", linewidth=1.2, alpha=0.6, zorder=1, label="RouteLLM frontier",
         )
     except ValueError:
         pass
@@ -188,6 +188,11 @@ def calculate(
     cb.set_label("Count", fontsize=8)
 
     fig.suptitle("Router Comparison: SAE+MLP vs RouteLLM", fontsize=13, y=1.01)
+    fig.text(
+        0.5, -0.02,
+        f"Weak model: {weak_model_name}    Strong model: {strong_model_name}",
+        ha="center", fontsize=9, color="dimgrey",
+    )
     plt.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close()
     print(f"\nPlot saved to {out_path}")
