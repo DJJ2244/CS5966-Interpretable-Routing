@@ -620,6 +620,18 @@ function clCol(id){ return PAL[id % PAL.length]; }
 const ROUTE_COL = { weak:'#22c55e', strong:'#ef4444', null:'#4b5563' };
 function routeCol(r){ return ROUTE_COL[r] || ROUTE_COL[null]; }
 
+function hexToRgba(hex, alpha){
+  const r=parseInt(hex.slice(1,3),16);
+  const g=parseInt(hex.slice(3,5),16);
+  const b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// trace layout: [0..K-1] hull fills, [K..2K-1] point scatters,
+//               [2K] centroid labels (text only), [2K+1/2K+2] routing legend
+const HULL_TRACES = Array.from({length:K},(_,i)=>i);
+const PT_TRACES   = Array.from({length:K},(_,i)=>K+i);
+
 // global state
 let selectedCluster = null;
 
@@ -656,7 +668,31 @@ for(const pt of DATA.points){
 function buildTraces(){
   const traces=[];
 
-  // ── [0..K-1] per-cluster scatter — routing-colour per point ──────────
+  // ── [0..K-1] convex hull fills ────────────────────────────────────────
+  for(let i=0;i<K;i++){
+    const c=DATA.centroids[i];
+    const hull=c.hull||[];
+    const rtLine=(c.n_weak||c.n_strong)
+      ? `<span style="color:#4ade80">${c.n_weak||0} weak</span> / `
+        +`<span style="color:#f87171">${c.n_strong||0} strong</span><br>`
+      : '';
+    const hov=`<b>${c.label}</b><br>${c.desc||''}<br>${rtLine}`
+             +`<i style="color:#8b949e">n = ${c.n}</i>`;
+    traces.push({
+      type:'scatter', mode:'lines',
+      name:c.label,
+      x: hull.length ? hull.map(v=>v[0]) : [],
+      y: hull.length ? hull.map(v=>v[1]) : [],
+      fill:'toself',
+      fillcolor: hexToRgba(clCol(i), 0.20),
+      line:{color: hexToRgba(clCol(i), 0.70), width:1.5},
+      customdata: Array(hull.length).fill(i),
+      hovertemplate: hov+'<extra></extra>',
+      legendgroup:`c${i}`, showlegend:false,
+    });
+  }
+
+  // ── [K..2K-1] per-cluster scatter — routing-colour per point ──────────
   for(let i=0;i<K;i++){
     const b=byCluster[i];
     traces.push({
@@ -676,44 +712,23 @@ function buildTraces(){
     });
   }
 
-  // ── [K] centroids — star markers ─────────────────────────────────────
-  const cx=[],cy=[],ctxt=[],chov=[],ccd=[],ccol=[];
+  // ── [2K] centroid labels — always-visible text, no markers ───────────
+  const cx=[],cy=[],ctxt=[];
   for(const c of DATA.centroids){
-    cx.push(c.x); cy.push(c.y); ccd.push(c.id);
-    ccol.push(clCol(c.id));
+    cx.push(c.x); cy.push(c.y);
     ctxt.push(c.label);
-    const fl=(c.feats||[]).slice(0,5).map(f=>
-      f.desc
-        ? `  ▸ feat&nbsp;${f.i}: ${f.desc}`
-        : `  ▸ feat&nbsp;${f.i}  (act=${(f.a||0).toFixed(3)})`
-    ).join('<br>');
-    const rtLine = (c.n_weak||c.n_strong)
-      ? `<span style="color:#4ade80">${c.n_weak||0} weak</span> / `+
-        `<span style="color:#f87171">${c.n_strong||0} strong</span><br>`
-      : '';
-    chov.push(
-      `<b>★ ${c.label}</b><br>`+
-      `${c.desc||''}<br>`+
-      rtLine+
-      `<i style="color:#8b949e">n = ${c.n}</i>`+
-      (fl?`<br><br><b>Top features:</b><br>${fl}`:'')
-    );
   }
   traces.push({
-    type:'scatter', mode:'markers+text',
-    name:'Centroids',
+    type:'scatter', mode:'text',
+    name:'Labels',
     x:cx, y:cy,
-    text:ctxt, textposition:'top center',
-    textfont:{size:10,color:'#f0f6fc'},
-    customdata:ccd,
-    hovertext:chov,
-    hovertemplate:'%{hovertext}<extra></extra>',
-    marker:{
-      size:20, color:ccol,
-      symbol:'star', opacity:1,
-      line:{color:'#f0f6fc',width:1.5},
-    },
-    legendgroup:'cen', showlegend:true,
+    text:ctxt,
+    textposition:'middle center',
+    textfont:{size:12, color:'#f0f6fc',
+              family:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'},
+    hoverinfo:'skip',
+    showlegend:false,
+    cliponaxis:false,
   });
 
   // ── routing legend entries (dummy traces) ─────────────────────────────
@@ -771,7 +786,7 @@ function renderClusterList(){
 function showInfo(id){
   const c=DATA.centroids[id];
   document.getElementById('info').classList.add('show');
-  document.getElementById('inf-title').textContent=`★ ${c.label}`;
+  document.getElementById('inf-title').textContent=c.label;
   document.getElementById('inf-desc').textContent=c.desc||'';
   const nW=c.n_weak||0, nS=c.n_strong||0, nU=(c.n||0)-nW-nS;
   document.getElementById('inf-rt').innerHTML=
@@ -799,16 +814,18 @@ function hideInfo(){
 
 // ── cluster toggle ────────────────────────────────────────────────────────
 function toggleCluster(id){
-  const ptTraces=Array.from({length:K},(_,i)=>i);
   if(selectedCluster===id){
     selectedCluster=null;
-    Plotly.restyle('plot',{'marker.opacity':0.80},ptTraces);
+    Plotly.restyle('plot',{'opacity':0.20},HULL_TRACES);
+    Plotly.restyle('plot',{'marker.opacity':0.80},PT_TRACES);
     document.querySelectorAll('.cl-item').forEach(el=>el.classList.remove('active'));
     hideInfo(); updateVisible(DATA.points.length);
   } else {
     selectedCluster=id;
-    const ops=ptTraces.map(i=>i===id?0.90:0.10);
-    Plotly.restyle('plot',{'marker.opacity':ops},ptTraces);
+    const hullOps=HULL_TRACES.map(i=>i===id?0.35:0.04);
+    const ptOps=PT_TRACES.map(i=>(i-K)===id?0.90:0.10);
+    Plotly.restyle('plot',{'opacity':hullOps},HULL_TRACES);
+    Plotly.restyle('plot',{'marker.opacity':ptOps},PT_TRACES);
     document.querySelectorAll('.cl-item').forEach(el=>el.classList.remove('active'));
     document.getElementById(`ci${id}`)?.classList.add('active');
     showInfo(id); updateVisible(DATA.centroids[id].n);
@@ -820,9 +837,9 @@ function updateVisible(n){ document.getElementById('st-visible').textContent=n; 
 // ── search ────────────────────────────────────────────────────────────────
 document.getElementById('search').addEventListener('input',function(){
   const q=this.value.trim().toLowerCase();
-  const ptTraces=Array.from({length:K},(_,i)=>i);
   if(!q){
-    Plotly.restyle('plot',{'marker.opacity':0.80},ptTraces);
+    Plotly.restyle('plot',{'opacity':0.20},HULL_TRACES);
+    Plotly.restyle('plot',{'marker.opacity':0.80},PT_TRACES);
     updateVisible(DATA.points.length); return;
   }
   const hits=new Set();
@@ -830,8 +847,8 @@ document.getElementById('search').addEventListener('input',function(){
     if(pt.id.toLowerCase().includes(q)||(pt.d&&pt.d.toLowerCase().includes(q)))
       hits.add(pt.c);
   }
-  const ops=ptTraces.map(i=>hits.has(i)?0.85:0.08);
-  Plotly.restyle('plot',{'marker.opacity':ops},ptTraces);
+  Plotly.restyle('plot',{'opacity':HULL_TRACES.map(i=>hits.has(i)?0.30:0.04)},HULL_TRACES);
+  Plotly.restyle('plot',{'marker.opacity':PT_TRACES.map(i=>hits.has(i-K)?0.85:0.08)},PT_TRACES);
   updateVisible([...hits].reduce((s,c)=>s+DATA.centroids[c].n,0));
 });
 
@@ -847,7 +864,8 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('plot').on('plotly_click',function(data){
     if(!data||!data.points||!data.points[0]) return;
     const pt=data.points[0];
-    if(pt.curveNumber===K) toggleCluster(Number(pt.customdata));
+    // hull traces are 0..K-1; clicking inside a hull fires with that curveNumber
+    if(pt.curveNumber < K) toggleCluster(pt.curveNumber);
   });
 
   renderClusterList();
@@ -890,6 +908,12 @@ def build_viz_json(
             **({"r": route} if route else {}),
         })
 
+    try:
+        from scipy.spatial import ConvexHull as _ConvexHull
+        _has_scipy = True
+    except ImportError:
+        _has_scipy = False
+
     centroids = []
     for info in cluster_info:
         cid = info["cluster_id"]
@@ -900,6 +924,21 @@ def build_viz_json(
         n_weak = sum(1 for tid in cluster_tids if routing.get(tid) == "weak")
         n_strong = sum(1 for tid in cluster_tids if routing.get(tid) == "strong")
 
+        # convex hull vertices (closed polygon)
+        cluster_pts = points_2d[cluster_labels == cid]
+        hull_verts: list[list[float]] = []
+        if _has_scipy and len(cluster_pts) >= 3:
+            try:
+                hull = _ConvexHull(cluster_pts)
+                verts = cluster_pts[hull.vertices]
+                verts_closed = np.vstack([verts, verts[0]])
+                hull_verts = [
+                    [round(float(v[0]), 4), round(float(v[1]), 4)]
+                    for v in verts_closed
+                ]
+            except Exception:
+                pass
+
         centroids.append({
             "x": round(float(cx), 5),
             "y": round(float(cy), 5),
@@ -909,6 +948,7 @@ def build_viz_json(
             "n": info["size"],
             "n_weak": n_weak,
             "n_strong": n_strong,
+            "hull": hull_verts,
             "feats": [
                 {
                     "i": int(idx),
