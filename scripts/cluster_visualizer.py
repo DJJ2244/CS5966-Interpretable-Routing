@@ -485,22 +485,69 @@ def label_cluster_llm(
     new_tokens = output_ids[0][inputs["input_ids"].shape[1]:]
     raw = tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
 
-    # Try to parse JSON first (instruct models follow the format reliably)
-    m = re.search(r'\{[^{}]+\}', raw, re.DOTALL)
-    if m:
-        try:
-            parsed = json.loads(m.group())
-            lbl = parsed.get("label", "").strip()[:60]
-            desc = parsed.get("description", "").strip()[:200]
-            if lbl:
-                return {"label": lbl, "description": desc}
-        except json.JSONDecodeError:
-            pass
+    def _parse_label(text: str) -> tuple[str, str]:
+        m = re.search(r'\{[^{}]+\}', text, re.DOTALL)
+        if m:
+            try:
+                parsed = json.loads(m.group())
+                lbl = parsed.get("label", "").strip()[:60]
+                desc = parsed.get("description", "").strip()[:200]
+                if lbl:
+                    return lbl, desc
+            except json.JSONDecodeError:
+                pass
+        lbl = next((ln.strip() for ln in text.splitlines() if ln.strip()), text)
+        lbl = re.sub(r'[\"\'`{}]', "", lbl).strip()[:60]
+        return lbl, text[:200]
 
-    # Fallback: take first non-empty line
-    label = next((ln.strip() for ln in raw.splitlines() if ln.strip()), raw)
-    label = re.sub(r'[\"\'`{}]', "", label).strip()[:60]
-    return {"label": label or f"Cluster {cluster_id}", "description": raw[:200]}
+    _BAD_TERMS = {
+        "clustering", "cluster", "feature vector", "sparse", "umap",
+        "sae", "dimension", "mapping", "activation", "embedding",
+        "2d", "3d", "visualization", "data point",
+    }
+
+    def _label_is_bad(lbl: str) -> bool:
+        low = lbl.lower()
+        return any(t in low for t in _BAD_TERMS)
+
+    lbl, desc = _parse_label(raw)
+
+    # Retry once with a more forceful prompt if the label is ML/viz jargon
+    if _label_is_bad(lbl) and _is_instruct(model_name):
+        retry_content = (
+            user_content
+            + f'\n\nYour previous answer "{lbl}" describes the analysis method, '
+            "not the coding problem. Give a label that names the actual "
+            "programming concept the tasks implement — e.g. "
+            "'sorting algorithms', 'graph traversal', 'dynamic programming', "
+            "'string parsing'. No ML or visualization terminology."
+        )
+        retry_messages = [
+            {"role": "system", "content": _SYSTEM_PROMPT_LLM},
+            {"role": "user",   "content": retry_content},
+        ]
+        retry_prompt = tokenizer.apply_chat_template(
+            retry_messages, tokenize=False, add_generation_prompt=True
+        )
+        retry_inputs = tokenizer(retry_prompt, return_tensors="pt",
+                                 truncation=True, max_length=1536)
+        retry_inputs = {k: v.to(next(model.parameters()).device)
+                        for k, v in retry_inputs.items()}
+        with torch.no_grad():
+            retry_ids = model.generate(
+                **retry_inputs,
+                max_new_tokens=48,
+                do_sample=False,
+                eos_token_id=list(stop_ids),
+                pad_token_id=next(iter(stop_ids)),
+            )
+        retry_new = retry_ids[0][retry_inputs["input_ids"].shape[1]:]
+        retry_raw = tokenizer.decode(retry_new, skip_special_tokens=True).strip()
+        retry_lbl, retry_desc = _parse_label(retry_raw)
+        if retry_lbl and not _label_is_bad(retry_lbl):
+            lbl, desc = retry_lbl, retry_desc
+
+    return {"label": lbl or f"Cluster {cluster_id}", "description": desc}
 
 
 # ---------------------------------------------------------------------------
