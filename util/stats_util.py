@@ -10,7 +10,6 @@ def calculate(
     sae_router:        str  = "routing_decisions.jsonl",
     route_llm:         str  = "route_llm_decisions.jsonl",
     output:            str  = "visuals/routing_stats.png",
-    n_boot:            int  = 10_000,
     weak_model_name:   str  = "",
     strong_model_name: str  = "",
     split_id:          int  = 1,
@@ -85,18 +84,10 @@ def calculate(
 
     p_str = "< 0.0001" if mcnemar_p < 0.0001 else f"= {mcnemar_p:.4f}"
 
-    # ── Δ accuracy with bootstrap CI ──────────────────────────────────────────
     n       = len(shared)
     acc_sae = sae_correct_shared.mean()
     acc_llm = llm_correct_shared.mean()
     delta   = acc_sae - acc_llm
-
-    rng = np.random.default_rng(42)
-    boot_deltas = np.empty(n_boot)
-    for i in range(n_boot):
-        idx = rng.integers(0, n, size=n)
-        boot_deltas[i] = sae_correct_shared[idx].mean() - llm_correct_shared[idx].mean()
-    ci_lo, ci_hi = np.percentile(boot_deltas, [2.5, 97.5])
 
     # ── Terminal output ────────────────────────────────────────────────────────
     print("\n── Router comparison ────────────────────────────────")
@@ -109,14 +100,14 @@ def calculate(
     print(f"\nMcNemar (N={n}): A={A}  B={B}  C={C}  D={D}")
     print(f"  χ²={mcnemar_stat:.2f}  p {p_str}")
     sign = "+" if delta >= 0 else ""
-    print(f"Δ accuracy (SAE−LLM):  {sign}{delta:.1%}  95% CI [{ci_lo:.1%}, {ci_hi:.1%}]")
+    print(f"Δ oracle routing acc (SAE−LLM):  {sign}{delta:.1%}")
 
     # ── Figure ────────────────────────────────────────────────────────────────
     out_path = Path(output)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    fig = plt.figure(figsize=(15, 5))
-    gs  = gridspec.GridSpec(1, 3, figure=fig, wspace=0.55)
+    fig = plt.figure(figsize=(11, 5))
+    gs  = gridspec.GridSpec(1, 2, figure=fig, wspace=0.55)
 
     # ── Panel 1: Operating point scatter (cost vs accuracy) ───────────────────
     ax1 = fig.add_subplot(gs[0])
@@ -195,33 +186,6 @@ def calculate(
     )
     cb = plt.colorbar(im, ax=ax2, fraction=0.046, pad=0.04)
     cb.set_label("Count", fontsize=8)
-
-    # ── Panel 3: Δ bar with CI ────────────────────────────────────────────────
-    ax3 = fig.add_subplot(gs[2])
-    color = "tab:green" if delta >= 0 else "tab:red"
-    ax3.bar([0], [delta], color=color, alpha=0.75, width=0.45, zorder=3)
-    ax3.errorbar(
-        [0], [delta],
-        yerr=[[delta - ci_lo], [ci_hi - delta]],
-        fmt="none", color="black", capsize=10, linewidth=2, zorder=4,
-    )
-    ax3.axhline(0, color="black", linewidth=1.0)
-
-    margin = max(abs(ci_hi - delta), abs(delta - ci_lo)) * 1.6
-    ax3.set_ylim(delta - margin, delta + margin)
-
-    ax3.set_xticks([0])
-    ax3.set_xticklabels(["SAE+MLP − RouteLLM"], fontsize=10)
-    ax3.set_ylabel("Δ Oracle routing accuracy (SAE+MLP − RouteLLM)", fontsize=9)
-    ax3.set_title("Oracle routing accuracy difference\n(95% bootstrap CI, shared tasks)", fontsize=10)
-    ax3.grid(True, axis="y", alpha=0.3, zorder=0)
-    ax3.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"{v:+.1%}"))
-    ax3.annotate(
-        f"Δ = {delta:+.1%}\n[{ci_lo:+.1%}, {ci_hi:+.1%}]",
-        xy=(0, delta), xytext=(0.28, delta),
-        fontsize=9, va="center",
-        arrowprops=dict(arrowstyle="-", color="grey", lw=0.8),
-    )
 
     fig.suptitle("Router Comparison: SAE+MLP vs RouteLLM", fontsize=13, y=1.01)
     plt.savefig(out_path, dpi=180, bbox_inches="tight")
