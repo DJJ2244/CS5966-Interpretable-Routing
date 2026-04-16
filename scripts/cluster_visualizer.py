@@ -115,6 +115,9 @@ def parse_args() -> argparse.Namespace:
     # ── LLM labelling ─────────────────────────────────────────────────────
     p.add_argument("--no-llm", action="store_true",
                    help="Skip LLM labelling (use generic 'Cluster N' labels).")
+    p.add_argument("--load-in-4bit", action="store_true",
+                   help="Load LLM in 4-bit quantization (requires bitsandbytes). "
+                        "Cuts VRAM to ~4 GB for 7B models — useful on small GPUs.")
     p.add_argument(
         "--llm-model", type=str,
         default=os.environ.get("STRONG_MODEL", "meta-llama/Meta-Llama-3-8B"),
@@ -334,21 +337,46 @@ def query_neuronpedia(
 # LLM cluster labelling — local HuggingFace model (no API)
 # ---------------------------------------------------------------------------
 
+_SYSTEM_PROMPT_LLM = (
+    "You are an expert at analysing machine learning feature clusters. "
+    "Given top-activated sparse autoencoder features and representative coding tasks, "
+    "respond with ONLY a JSON object — no preamble, no markdown fences:\n"
+    '{"label": "<2-5 word algorithmic concept>", "description": "<one sentence>"}'
+)
+
 _LABEL_PROMPT_TEMPLATE = """\
+Top activated SAE feature dimensions for cluster {cid}:
+{feature_lines}
+
+Representative coding tasks in this cluster:
+{sample_lines}
+
+Identify the dominant algorithmic concept (e.g. "dynamic programming", \
+"string manipulation", "graph traversal"). \
+Respond with ONLY: {{"label": "...", "description": "..."}}"""
+
+# Completion-style prompt for base (non-instruct) models
+_COMPLETION_PROMPT_TEMPLATE = """\
 ### Sparse autoencoder feature cluster analysis
-###
 ### Top activated SAE feature dimensions for cluster {cid}:
 {feature_lines}
-###
 ### Representative coding tasks in this cluster:
 {sample_lines}
-###
-### Short cluster label (2-5 words capturing the dominant theme): """
+### Short cluster label (2-5 words, algorithmic concept only): """
 
 
-def load_llm(model_name: str):
-    """Load HuggingFace causal LM for completion-style labelling."""
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+def _is_instruct(model_name: str) -> bool:
+    return "instruct" in model_name.lower() or "chat" in model_name.lower()
+
+
+def load_llm(model_name: str, load_in_4bit: bool = False):
+    """Load HuggingFace causal LM.
+
+    Pass load_in_4bit=True to quantize to ~4 GB VRAM (requires bitsandbytes).
+    Without it the 7B model needs ~15 GB — only load on a node with enough VRAM
+    or it will page to CPU and stall.
+    """
+    from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
     hf_home = os.environ.get("HF_HOME")
     if hf_home:
@@ -359,14 +387,17 @@ def load_llm(model_name: str):
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
+    kwargs: dict = {"device_map": "auto"}
+    if load_in_4bit:
+        print("  4-bit quantization enabled (bitsandbytes)")
+        kwargs["quantization_config"] = BitsAndBytesConfig(load_in_4bit=True)
+    else:
+        kwargs["torch_dtype"] = torch.bfloat16
+
     print(f"Loading model: {model_name} …")
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        device_map="auto",
-        torch_dtype=torch.bfloat16,
-    )
+    model = AutoModelForCausalLM.from_pretrained(model_name, **kwargs)
     model.eval()
-    print(f"  Model loaded on {next(model.parameters()).device}")
+    print(f"  Model loaded — device map: {getattr(model, 'hf_device_map', 'single device')}")
     return model, tokenizer
 
 
@@ -378,45 +409,85 @@ def label_cluster_llm(
     top_activations: np.ndarray,
     neuronpedia: dict[int, str],
     task_samples: list[str],
+    model_name: str = "",
 ) -> dict[str, str]:
-    """Run one completion with the local LLM to produce a cluster label."""
+    """Label one cluster using the local LLM.
+
+    Instruct/chat models (Qwen-Instruct, Llama-Instruct, etc.) use the
+    tokenizer's chat template for proper formatting.  Base models fall back
+    to plain completion prompting.
+    """
     feat_lines = []
     for idx, act in zip(top_indices[:15].tolist(), top_activations[:15].tolist()):
-        line = f"###   Feature {idx}  (mean_act={act:.4f})"
+        line = f"  Feature {idx}  (mean_act={act:.4f})"
         if idx in neuronpedia:
             line += f"  →  {neuronpedia[idx]}"
         feat_lines.append(line)
 
     sample_lines = "\n".join(
-        f"###   • {s}" for s in task_samples[:5]
-    ) if task_samples else "###   (no task samples)"
+        f"  • {s}" for s in task_samples[:5]
+    ) if task_samples else "  (no task samples)"
 
-    prompt = _LABEL_PROMPT_TEMPLATE.format(
+    user_content = _LABEL_PROMPT_TEMPLATE.format(
         cid=cluster_id,
         feature_lines="\n".join(feat_lines),
         sample_lines=sample_lines,
     )
 
-    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=1024)
+    if _is_instruct(model_name) and hasattr(tokenizer, "apply_chat_template"):
+        messages = [
+            {"role": "system", "content": _SYSTEM_PROMPT_LLM},
+            {"role": "user",   "content": user_content},
+        ]
+        prompt = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
+    else:
+        prompt = _COMPLETION_PROMPT_TEMPLATE.format(
+            cid=cluster_id,
+            feature_lines="\n".join(feat_lines),
+            sample_lines=sample_lines,
+        )
+
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=1536)
     inputs = {k: v.to(next(model.parameters()).device) for k, v in inputs.items()}
+
+    # Build stop-token list: include model EOS + any chat end tokens (e.g. Qwen's <|im_end|>)
+    stop_ids = set()
+    if tokenizer.eos_token_id is not None:
+        stop_ids.add(tokenizer.eos_token_id)
+    for tok in ("<|im_end|>", "<|endoftext|>", "</s>", "<|eot_id|>"):
+        tid = tokenizer.convert_tokens_to_ids(tok)
+        if tid is not None and tid != tokenizer.unk_token_id:
+            stop_ids.add(tid)
 
     with torch.no_grad():
         output_ids = model.generate(
             **inputs,
-            max_new_tokens=32,
+            max_new_tokens=48,
             do_sample=False,
-            temperature=None,
-            top_p=None,
-            pad_token_id=tokenizer.eos_token_id,
+            eos_token_id=list(stop_ids),
+            pad_token_id=next(iter(stop_ids)),
         )
 
     new_tokens = output_ids[0][inputs["input_ids"].shape[1]:]
     raw = tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
 
-    # Take first non-empty line, cap at 60 chars
-    label = next((ln.strip() for ln in raw.splitlines() if ln.strip()), raw)
-    label = re.sub(r"[\"'`]", "", label).strip()[:60]
+    # Try to parse JSON first (instruct models follow the format reliably)
+    m = re.search(r'\{[^{}]+\}', raw, re.DOTALL)
+    if m:
+        try:
+            parsed = json.loads(m.group())
+            lbl = parsed.get("label", "").strip()[:60]
+            desc = parsed.get("description", "").strip()[:200]
+            if lbl:
+                return {"label": lbl, "description": desc}
+        except json.JSONDecodeError:
+            pass
 
+    # Fallback: take first non-empty line
+    label = next((ln.strip() for ln in raw.splitlines() if ln.strip()), raw)
+    label = re.sub(r'[\"\'`{}]', "", label).strip()[:60]
     return {"label": label or f"Cluster {cluster_id}", "description": raw[:200]}
 
 
@@ -549,21 +620,6 @@ function clCol(id){ return PAL[id % PAL.length]; }
 const ROUTE_COL = { weak:'#22c55e', strong:'#ef4444', null:'#4b5563' };
 function routeCol(r){ return ROUTE_COL[r] || ROUTE_COL[null]; }
 
-function hexToRgba(hex, alpha){
-  const r=parseInt(hex.slice(1,3),16);
-  const g=parseInt(hex.slice(3,5),16);
-  const b=parseInt(hex.slice(5,7),16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
-// trace layout: [0..K-1] hull fills, [K..2K-1] point scatters,
-//               [2K] centroid stars, [2K+1] weak legend, [2K+2] strong legend
-const HULL_IDX = (i) => i;
-const PT_IDX   = (i) => K + i;
-const CEN_IDX  = 2 * K;
-const HULL_TRACES = Array.from({length:K},(_,i)=>i);
-const PT_TRACES   = Array.from({length:K},(_,i)=>K+i);
-
 // global state
 let selectedCluster = null;
 
@@ -600,30 +656,7 @@ for(const pt of DATA.points){
 function buildTraces(){
   const traces=[];
 
-  // ── [0..K-1] ellipse fills (parametric, 2σ radii) ────────────────────
-  const N_EL = 80;
-  const T = Array.from({length:N_EL+1},(_,j)=>j*2*Math.PI/N_EL);
-  for(let i=0;i<K;i++){
-    const c=DATA.centroids[i];
-    const el=c.ellipse;
-    let ex=[], ey=[];
-    if(el && el.rx>0 && el.ry>0){
-      ex=T.map(t=>el.cx+el.rx*Math.cos(t));
-      ey=T.map(t=>el.cy+el.ry*Math.sin(t));
-    }
-    traces.push({
-      type:'scatter', mode:'lines',
-      name:c.label,
-      x:ex, y:ey,
-      fill:'toself',
-      fillcolor: hexToRgba(clCol(i), 0.15),
-      line:{color: hexToRgba(clCol(i), 0.60), width:1.5},
-      legendgroup:`c${i}`, showlegend:false,
-      hoverinfo:'skip',
-    });
-  }
-
-  // ── [K..2K-1] per-cluster scatter — routing-colour per point ──────────
+  // ── [0..K-1] per-cluster scatter — routing-colour per point ──────────
   for(let i=0;i<K;i++){
     const b=byCluster[i];
     traces.push({
@@ -643,7 +676,7 @@ function buildTraces(){
     });
   }
 
-  // ── [2K] centroids — star markers ─────────────────────────────────────
+  // ── [K] centroids — star markers ─────────────────────────────────────
   const cx=[],cy=[],ctxt=[],chov=[],ccd=[],ccol=[];
   for(const c of DATA.centroids){
     cx.push(c.x); cy.push(c.y); ccd.push(c.id);
@@ -766,18 +799,16 @@ function hideInfo(){
 
 // ── cluster toggle ────────────────────────────────────────────────────────
 function toggleCluster(id){
+  const ptTraces=Array.from({length:K},(_,i)=>i);
   if(selectedCluster===id){
     selectedCluster=null;
-    Plotly.restyle('plot',{'opacity':0.18},HULL_TRACES);
-    Plotly.restyle('plot',{'marker.opacity':0.80},PT_TRACES);
+    Plotly.restyle('plot',{'marker.opacity':0.80},ptTraces);
     document.querySelectorAll('.cl-item').forEach(el=>el.classList.remove('active'));
     hideInfo(); updateVisible(DATA.points.length);
   } else {
     selectedCluster=id;
-    const hullOps = HULL_TRACES.map(i=>i===id ? 0.30 : 0.04);
-    const ptOps   = PT_TRACES.map(i=>(i-K)===id ? 0.90 : 0.10);
-    Plotly.restyle('plot',{'opacity':hullOps},HULL_TRACES);
-    Plotly.restyle('plot',{'marker.opacity':ptOps},PT_TRACES);
+    const ops=ptTraces.map(i=>i===id?0.90:0.10);
+    Plotly.restyle('plot',{'marker.opacity':ops},ptTraces);
     document.querySelectorAll('.cl-item').forEach(el=>el.classList.remove('active'));
     document.getElementById(`ci${id}`)?.classList.add('active');
     showInfo(id); updateVisible(DATA.centroids[id].n);
@@ -789,9 +820,9 @@ function updateVisible(n){ document.getElementById('st-visible').textContent=n; 
 // ── search ────────────────────────────────────────────────────────────────
 document.getElementById('search').addEventListener('input',function(){
   const q=this.value.trim().toLowerCase();
+  const ptTraces=Array.from({length:K},(_,i)=>i);
   if(!q){
-    Plotly.restyle('plot',{'opacity':0.18},HULL_TRACES);
-    Plotly.restyle('plot',{'marker.opacity':0.80},PT_TRACES);
+    Plotly.restyle('plot',{'marker.opacity':0.80},ptTraces);
     updateVisible(DATA.points.length); return;
   }
   const hits=new Set();
@@ -799,10 +830,8 @@ document.getElementById('search').addEventListener('input',function(){
     if(pt.id.toLowerCase().includes(q)||(pt.d&&pt.d.toLowerCase().includes(q)))
       hits.add(pt.c);
   }
-  const hullOps = HULL_TRACES.map(i=>hits.has(i) ? 0.28 : 0.03);
-  const ptOps   = PT_TRACES.map(i=>hits.has(i-K) ? 0.85 : 0.08);
-  Plotly.restyle('plot',{'opacity':hullOps},HULL_TRACES);
-  Plotly.restyle('plot',{'marker.opacity':ptOps},PT_TRACES);
+  const ops=ptTraces.map(i=>hits.has(i)?0.85:0.08);
+  Plotly.restyle('plot',{'marker.opacity':ops},ptTraces);
   updateVisible([...hits].reduce((s,c)=>s+DATA.centroids[c].n,0));
 });
 
@@ -818,7 +847,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('plot').on('plotly_click',function(data){
     if(!data||!data.points||!data.points[0]) return;
     const pt=data.points[0];
-    if(pt.curveNumber===CEN_IDX) toggleCluster(Number(pt.customdata));
+    if(pt.curveNumber===K) toggleCluster(Number(pt.customdata));
   });
 
   renderClusterList();
@@ -864,28 +893,12 @@ def build_viz_json(
     centroids = []
     for info in cluster_info:
         cid = info["cluster_id"]
-
-        # centroid 2D = mean of UMAP-projected points in this cluster
-        mask = cluster_labels == cid
-        cluster_pts = points_2d[mask]
-        cx, cy = cluster_pts.mean(axis=0)
+        cx, cy = centroids_2d[cid]
 
         # count routing decisions
         cluster_tids = [task_ids[i] for i in range(len(task_ids)) if cluster_labels[i] == cid]
         n_weak = sum(1 for tid in cluster_tids if routing.get(tid) == "weak")
         n_strong = sum(1 for tid in cluster_tids if routing.get(tid) == "strong")
-
-        # ellipse: centre = cluster mean, radii = 2 × std of UMAP coords
-        if len(cluster_pts) >= 2:
-            std_xy = cluster_pts.std(axis=0)
-            ellipse = {
-                "cx": round(float(cx), 5),
-                "cy": round(float(cy), 5),
-                "rx": round(float(max(std_xy[0] * 2, 0.01)), 5),
-                "ry": round(float(max(std_xy[1] * 2, 0.01)), 5),
-            }
-        else:
-            ellipse = None
 
         centroids.append({
             "x": round(float(cx), 5),
@@ -896,7 +909,6 @@ def build_viz_json(
             "n": info["size"],
             "n_weak": n_weak,
             "n_strong": n_strong,
-            "ellipse": ellipse,
             "feats": [
                 {
                     "i": int(idx),
@@ -1008,7 +1020,7 @@ def main() -> None:
     # ── LLM labelling ─────────────────────────────────────────────────────
     if not args.no_llm:
         try:
-            llm_model, llm_tokenizer = load_llm(args.llm_model)
+            llm_model, llm_tokenizer = load_llm(args.llm_model, load_in_4bit=args.load_in_4bit)
             print(f"\nLabelling {args.k} clusters with {args.llm_model} …")
 
             for info in cluster_info:
