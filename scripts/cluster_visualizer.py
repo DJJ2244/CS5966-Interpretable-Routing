@@ -413,6 +413,23 @@ def load_llm(model_name: str, load_in_4bit: bool = False):
     return model, tokenizer
 
 
+_BAD_TERMS = frozenset({
+    "clustering", "cluster", "feature vector", "sparse", "umap",
+    "sae", "dimension", "dimensi", "mapping", "activation", "embedding",
+    "2d", "3d", "visualization", "data point", "centroid", "latent",
+    "neural", "model", "vector", "space",
+})
+
+
+def _label_is_bad(lbl: str, used: set[str]) -> bool:
+    low = lbl.lower()
+    if any(t in low for t in _BAD_TERMS):
+        return True
+    if lbl.lower() in {u.lower() for u in used}:
+        return True
+    return False
+
+
 def label_cluster_llm(
     model,
     tokenizer,
@@ -422,6 +439,7 @@ def label_cluster_llm(
     neuronpedia: dict[int, str],
     task_samples: list[str],
     model_name: str = "",
+    used_labels: set[str] | None = None,
 ) -> dict[str, str]:
     """Label one cluster using the local LLM.
 
@@ -485,6 +503,8 @@ def label_cluster_llm(
     new_tokens = output_ids[0][inputs["input_ids"].shape[1]:]
     raw = tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
 
+    used = used_labels or set()
+
     def _parse_label(text: str) -> tuple[str, str]:
         m = re.search(r'\{[^{}]+\}', text, re.DOTALL)
         if m:
@@ -500,27 +520,19 @@ def label_cluster_llm(
         lbl = re.sub(r'[\"\'`{}]', "", lbl).strip()[:60]
         return lbl, text[:200]
 
-    _BAD_TERMS = {
-        "clustering", "cluster", "feature vector", "sparse", "umap",
-        "sae", "dimension", "mapping", "activation", "embedding",
-        "2d", "3d", "visualization", "data point",
-    }
-
-    def _label_is_bad(lbl: str) -> bool:
-        low = lbl.lower()
-        return any(t in low for t in _BAD_TERMS)
-
     lbl, desc = _parse_label(raw)
 
-    # Retry once with a more forceful prompt if the label is ML/viz jargon
-    if _label_is_bad(lbl) and _is_instruct(model_name):
+    # Retry if label is ML/viz jargon or a duplicate of an already-used label
+    if _label_is_bad(lbl, used) and _is_instruct(model_name):
+        already = ", ".join(f'"{u}"' for u in sorted(used)) if used else "none yet"
         retry_content = (
             user_content
-            + f'\n\nYour previous answer "{lbl}" describes the analysis method, '
-            "not the coding problem. Give a label that names the actual "
-            "programming concept the tasks implement — e.g. "
-            "'sorting algorithms', 'graph traversal', 'dynamic programming', "
-            "'string parsing'. No ML or visualization terminology."
+            + "\n\nFocus only on what algorithmic problem these tasks solve "
+            "(e.g. 'sorting', 'graph traversal', 'dynamic programming', "
+            "'string parsing', 'binary search', 'recursion'). "
+            "Do NOT use any machine learning or visualization terminology. "
+            f"Labels already used by other clusters: {already}. "
+            "Pick a DIFFERENT label that is specific to this cluster's tasks."
         )
         retry_messages = [
             {"role": "system", "content": _SYSTEM_PROMPT_LLM},
@@ -544,7 +556,7 @@ def label_cluster_llm(
         retry_new = retry_ids[0][retry_inputs["input_ids"].shape[1]:]
         retry_raw = tokenizer.decode(retry_new, skip_special_tokens=True).strip()
         retry_lbl, retry_desc = _parse_label(retry_raw)
-        if retry_lbl and not _label_is_bad(retry_lbl):
+        if retry_lbl and not _label_is_bad(retry_lbl, used):
             lbl, desc = retry_lbl, retry_desc
 
     return {"label": lbl or f"Cluster {cluster_id}", "description": desc}
@@ -1121,6 +1133,7 @@ def main() -> None:
         try:
             llm_model, llm_tokenizer = load_llm(args.llm_model, load_in_4bit=args.load_in_4bit)
             print(f"\nLabelling {args.k} clusters with {args.llm_model} …")
+            used_labels: set[str] = set()
 
             for info in cluster_info:
                 cid = info["cluster_id"]
@@ -1142,9 +1155,12 @@ def main() -> None:
                     top_activations=info["top_activations"],
                     neuronpedia=info.get("neuronpedia", {}),
                     task_samples=samples,
+                    model_name=args.llm_model,
+                    used_labels=used_labels,
                 )
                 info["label"] = result.get("label", f"Cluster {cid}")
                 info["description"] = result.get("description", "")
+                used_labels.add(info["label"])
                 print(f"→ \"{info['label']}\"")
 
             # free GPU memory
