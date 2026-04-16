@@ -673,7 +673,7 @@ function buildTraces(){
       text:b.texts, customdata:b.ids,
       hovertemplate:'%{text}<extra></extra>',
       marker:{
-        size:5,
+        size:10,
         color:b.colors,
         opacity:0.80,
         symbol:'circle',
