@@ -37,6 +37,7 @@ def calculate(
         raise ValueError("--weak-model and --strong-model are required.")
 
     import daos.model_task_result_dao as model_task_result_dao
+    import daos.tasks_dao as tasks_dao
     from route_llm.calculate_threshold import build_frontier
 
     weak_rows   = model_task_result_dao.get_all_for_model_split(weak_model_name,   split_id, is_test)
@@ -61,15 +62,44 @@ def calculate(
         )
         return spent / total_strong_millis
 
-    # ── McNemar + Δ accuracy (oracle routing correctness from JSONL) ─────────
-    # "correct" here means the router sent easy tasks to weak (which passed) and
-    # hard tasks to strong (which weak would have failed) — not actual task solve rate.
-    sae_map = {r["task_id"]: r["correct"] for r in sae_records}
-    llm_map = {r["task_id"]: r["correct"] for r in llm_records}
-    shared  = sorted(set(sae_map) & set(llm_map))
+    # ── Pareto frontier + cost-matched RouteLLM oracle decisions ─────────────
+    # Build the frontier up-front so we can cost-match before drawing the plot.
+    frontier = build_frontier(split_id, weak_model_name, strong_model_name, is_test=is_test)
 
-    sae_correct_shared = np.array([sae_map[t] for t in shared], dtype=float)
-    llm_correct_shared = np.array([llm_map[t] for t in shared], dtype=float)
+    sae_cost = _cost_fraction(sae_records)
+    llm_cost = _cost_fraction(llm_records)
+    sae_acc  = np.mean([v for r in sae_records if (v := _correct(r)) is not None])
+    llm_acc  = np.mean([v for r in llm_records if (v := _correct(r)) is not None])
+
+    # Find the frontier point whose cost fraction is nearest to SAE+MLP's.
+    matched_point = min(frontier, key=lambda p: abs(p.cost_fraction - sae_cost))
+
+    # Load toughness scores; re-derive oracle correctness for RouteLLM at the
+    # matched threshold.  Oracle correct = routed to weak and weak passed, OR
+    # routed to strong and weak would have failed (routing was necessary).
+    task_toughness = {
+        t.id: t.toughness_score
+        for t in tasks_dao.get_all_for_split(split_id, is_test)
+        if t.toughness_score is not None
+    }
+
+    sae_map = {r["task_id"]: r["correct"] for r in sae_records}
+
+    cost_matched_llm_map: dict[str, int] = {}
+    for task_id, sae_score in task_toughness.items():
+        if task_id not in sae_map or task_id not in weak_passed:
+            continue
+        route = "strong" if sae_score >= matched_point.threshold else "weak"
+        wp    = weak_passed[task_id]
+        cost_matched_llm_map[task_id] = int(
+            (route == "weak" and wp) or (route == "strong" and not wp)
+        )
+
+    # ── McNemar + Δ accuracy (SAE vs cost-matched RouteLLM) ──────────────────
+    shared = sorted(set(sae_map) & set(cost_matched_llm_map))
+
+    sae_correct_shared = np.array([sae_map[t]              for t in shared], dtype=float)
+    llm_correct_shared = np.array([cost_matched_llm_map[t] for t in shared], dtype=float)
 
     A = int(sum((sae_correct_shared == 1) & (llm_correct_shared == 1)))
     B = int(sum((sae_correct_shared == 1) & (llm_correct_shared == 0)))
@@ -91,16 +121,23 @@ def calculate(
 
     # ── Terminal output ────────────────────────────────────────────────────────
     print("\n── Router comparison ────────────────────────────────")
-    print(f"{'':20s} {'SAE+MLP':>10} {'RouteLLM':>10}")
-    print(f"{'Oracle routing acc':20s} {acc_sae:>9.1%} {acc_llm:>9.1%}")
+    print(f"  RouteLLM cost-matched frontier point: "
+          f"threshold={matched_point.threshold:.5f}  "
+          f"cost={matched_point.cost_fraction:.1%}  "
+          f"(SAE cost={sae_cost:.1%})")
+    print(f"{'':20s} {'SAE+MLP':>10} {'RouteLLM@cost':>13}")
+    print(f"{'Oracle routing acc':20s} {acc_sae:>9.1%} {acc_llm:>12.1%}")
+    llm_cost_matched_strong_pct = sum(
+        1 for t in shared if task_toughness.get(t, -1) >= matched_point.threshold
+    ) / len(shared)
     print(f"{'Strong %':20s} "
           f"{sum(1 for r in sae_records if r['route']=='strong')/len(sae_records):>9.1%} "
-          f"{sum(1 for r in llm_records if r['route']=='strong')/len(llm_records):>9.1%}")
+          f"{llm_cost_matched_strong_pct:>12.1%}")
     print(f"{'N shared tasks':20s} {n:>10}")
     print(f"\nMcNemar (N={n}): A={A}  B={B}  C={C}  D={D}")
     print(f"  χ²={mcnemar_stat:.2f}  p {p_str}")
     sign = "+" if delta >= 0 else ""
-    print(f"Δ oracle routing acc (SAE−LLM):  {sign}{delta:.1%}")
+    print(f"Δ oracle routing acc (SAE−LLM@cost):  {sign}{delta:.1%}")
 
     # ── Figure ────────────────────────────────────────────────────────────────
     out_path = Path(output)
@@ -112,23 +149,14 @@ def calculate(
     # ── Panel 1: Operating point scatter (cost vs accuracy) ───────────────────
     ax1 = fig.add_subplot(gs[0])
 
-    try:
-        frontier = build_frontier(split_id, weak_model_name, strong_model_name, is_test=True)
-        ax1.plot(
-            [p.cost_fraction for p in frontier],
-            [p.accuracy      for p in frontier],
-            color="grey", linewidth=1.2, alpha=0.6, zorder=1, label="RouteLLM frontier",
-        )
-    except ValueError:
-        pass
-
-    llm_cost = _cost_fraction(llm_records)
-    sae_cost = _cost_fraction(sae_records)
-    llm_acc  = np.mean([v for r in llm_records if (v := _correct(r)) is not None])
-    sae_acc  = np.mean([v for r in sae_records if (v := _correct(r)) is not None])
+    ax1.plot(
+        [p.cost_fraction for p in frontier],
+        [p.accuracy      for p in frontier],
+        color="grey", linewidth=1.2, alpha=0.6, zorder=1, label="RouteLLM frontier",
+    )
 
     ax1.scatter([llm_cost], [llm_acc], color="tab:blue",   s=120, zorder=3, label="RouteLLM")
-    ax1.scatter([sae_cost], [sae_acc], color="tab:orange",  s=120, zorder=3, label="SAE+MLP")
+    ax1.scatter([sae_cost], [sae_acc], color="tab:orange", s=120, zorder=3, label="SAE+MLP")
 
     for cost, acc, name, color in [
         (llm_cost, llm_acc, "RouteLLM", "tab:blue"),
@@ -182,7 +210,10 @@ def calculate(
     ax2.set_xticklabels(["LLM correct", "LLM wrong"], fontsize=9)
     ax2.set_yticklabels(["SAE correct", "SAE wrong"], fontsize=9)
     ax2.set_title(
-        f"McNemar contingency table (oracle routing)\nχ² = {mcnemar_stat:.2f},  p {p_str}", fontsize=10,
+        f"McNemar: SAE+MLP vs RouteLLM @ cost-matched frontier\n"
+        f"(LLM cost={matched_point.cost_fraction:.0%} ≈ SAE cost={sae_cost:.0%})   "
+        f"χ² = {mcnemar_stat:.2f},  p {p_str}",
+        fontsize=9,
     )
     cb = plt.colorbar(im, ax=ax2, fraction=0.046, pad=0.04)
     cb.set_label("Count", fontsize=8)
