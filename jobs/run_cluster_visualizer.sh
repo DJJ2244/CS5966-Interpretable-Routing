@@ -22,7 +22,7 @@ export HF_HOME=/scratch/general/vast/$USER/.cache/huggingface
 # Usage: sbatch jobs/run_cluster_visualizer.sh [split_id] [k]
 SPLIT_ID=${1:-1}
 K=${2:-12}
-LLM_MODEL=${LLM_MODEL:-Qwen/Qwen2.5-7B-Instruct}
+LLM_MODEL=${LLM_MODEL:-gpt-4o-mini}
 
 echo "Cluster visualizer: model=$WEAK_MODEL split=$SPLIT_ID k=$K llm=$LLM_MODEL"
 python scripts/cluster_visualizer.py \
