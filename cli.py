@@ -472,10 +472,14 @@ def test_run(
 
 @stats_app.command("calculate")
 def stats_calculate(
-    sae_router: Annotated[str, typer.Option("--sae-router", help="SAE+MLP decisions JSONL")]  = "routing_decisions.jsonl",
-    route_llm:  Annotated[str, typer.Option("--route-llm",  help="RouteLLM decisions JSONL")] = "route_llm_decisions.jsonl",
-    output:     Annotated[str, typer.Option("--output",     help="Output plot path")]          = "visuals/routing_stats.png",
-    n_boot:     Annotated[int, typer.Option("--n-boot",     help="Bootstrap iterations")]      = 10_000,
+    sae_router:        Annotated[str, typer.Option("--sae-router",   help="SAE+MLP decisions JSONL")]  = "routing_decisions.jsonl",
+    route_llm:         Annotated[str, typer.Option("--route-llm",    help="RouteLLM decisions JSONL")] = "route_llm_decisions.jsonl",
+    output:            Annotated[str, typer.Option("--output",        help="Output plot path")]         = "visuals/routing_stats.png",
+    n_boot:            Annotated[int, typer.Option("--n-boot",        help="Bootstrap iterations")]     = 10_000,
+    weak_model_name:   Annotated[str, typer.Option("--weak-model",   help="Weak model name (for millis cost)")] = "",
+    strong_model_name: Annotated[str, typer.Option("--strong-model", help="Strong model name (for millis cost)")] = "",
+    split_id:          Annotated[int, typer.Option("--split-id",     help="DB split id (for millis cost)")]       = 1,
+    is_test:           Annotated[bool, typer.Option("--test",        help="Use test partition (for millis cost)")] = True,
 ) -> None:
     """Compare SAE+MLP and RouteLLM routers: ROC curves, McNemar test, and Δ accuracy with CI."""
     from util.stats_util import calculate
@@ -485,7 +489,16 @@ def stats_calculate(
             typer.echo(f"Error: missing file {p}. Run the corresponding batch command first.", err=True)
             raise typer.Exit(code=1)
 
-    calculate(sae_router=sae_router, route_llm=route_llm, output=output, n_boot=n_boot)
+    calculate(
+        sae_router=sae_router,
+        route_llm=route_llm,
+        output=output,
+        n_boot=n_boot,
+        weak_model_name=weak_model_name,
+        strong_model_name=strong_model_name,
+        split_id=split_id,
+        is_test=is_test,
+    )
 
 
 # =============================================================================

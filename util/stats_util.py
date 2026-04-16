@@ -7,10 +7,14 @@ from pathlib import Path
 
 
 def calculate(
-    sae_router: str = "routing_decisions.jsonl",
-    route_llm: str  = "route_llm_decisions.jsonl",
-    output: str     = "visuals/routing_stats.png",
-    n_boot: int     = 10_000,
+    sae_router:        str  = "routing_decisions.jsonl",
+    route_llm:         str  = "route_llm_decisions.jsonl",
+    output:            str  = "visuals/routing_stats.png",
+    n_boot:            int  = 10_000,
+    weak_model_name:   str  = "",
+    strong_model_name: str  = "",
+    split_id:          int  = 1,
+    is_test:           bool = True,
 ) -> None:
     """Compare SAE+MLP and RouteLLM routers: score distributions, McNemar test, Δ accuracy."""
     import numpy as np
@@ -83,11 +87,33 @@ def calculate(
     fig = plt.figure(figsize=(15, 5))
     gs  = gridspec.GridSpec(1, 3, figure=fig, wspace=0.55)
 
+    # ── Millis lookup (optional) ──────────────────────────────────────────────
+    # When model names are provided, compute cost as spent_millis / all_strong_millis
+    # (same units as the Pareto frontier). Otherwise fall back to fraction routed strong.
+    weak_millis:   dict[str, int] = {}
+    strong_millis: dict[str, int] = {}
+    if weak_model_name and strong_model_name:
+        import daos.model_task_result_dao as model_task_result_dao
+        weak_millis   = {r.task_id: r.run_millis for r in model_task_result_dao.get_all_for_model_split(weak_model_name,   split_id, is_test) if r.run_millis is not None}
+        strong_millis = {r.task_id: r.run_millis for r in model_task_result_dao.get_all_for_model_split(strong_model_name, split_id, is_test) if r.run_millis is not None}
+
+    def _cost_fraction(records: list) -> float:
+        if not strong_millis:
+            return sum(1 for r in records if r["route"] == "strong") / len(records)
+        total_strong_millis = sum(strong_millis.get(r["task_id"], 0) for r in records)
+        if total_strong_millis == 0:
+            return sum(1 for r in records if r["route"] == "strong") / len(records)
+        spent = sum(
+            (strong_millis if r["route"] == "strong" else weak_millis).get(r["task_id"], 0)
+            for r in records
+        )
+        return spent / total_strong_millis
+
     # ── Panel 1: Operating point scatter (cost vs accuracy) ───────────────────
     ax1 = fig.add_subplot(gs[0])
 
-    llm_cost = sum(1 for r in llm_records if r["route"] == "strong") / len(llm_records)
-    sae_cost = sum(1 for r in sae_records if r["route"] == "strong") / len(sae_records)
+    llm_cost = _cost_fraction(llm_records)
+    sae_cost = _cost_fraction(sae_records)
     llm_acc  = np.mean([r["correct"] for r in llm_records])
     sae_acc  = np.mean([r["correct"] for r in sae_records])
 
@@ -99,12 +125,13 @@ def calculate(
         (sae_cost, sae_acc, "SAE+MLP",  "tab:orange"),
     ]:
         ax1.annotate(
-            f"{name}\n({cost:.0%} strong, {acc:.1%} acc)",
+            f"{name}\n({cost:.0%} cost, {acc:.1%} acc)",
             xy=(cost, acc), xytext=(8, -18), textcoords="offset points",
             fontsize=8, color=color,
         )
 
-    ax1.set_xlabel("Cost (fraction routed to strong)", fontsize=10)
+    x_label = "Cost fraction (spent millis / all-strong millis)" if strong_millis else "Cost (fraction routed to strong)"
+    ax1.set_xlabel(x_label, fontsize=10)
     ax1.set_ylabel("Task accuracy", fontsize=10)
     ax1.set_title("Accuracy vs Cost\n(operating points)", fontsize=11)
     ax1.set_xlim(0, 1)
