@@ -115,14 +115,11 @@ def parse_args() -> argparse.Namespace:
     # ── LLM labelling ─────────────────────────────────────────────────────
     p.add_argument("--no-llm", action="store_true",
                    help="Skip LLM labelling (use generic 'Cluster N' labels).")
-    p.add_argument("--load-in-4bit", action="store_true",
-                   help="Load LLM in 4-bit quantization (requires bitsandbytes). "
-                        "Cuts VRAM to ~4 GB for 7B models — useful on small GPUs.")
     p.add_argument(
         "--llm-model", type=str,
-        default=os.environ.get("STRONG_MODEL", "meta-llama/Meta-Llama-3-8B"),
-        help="HuggingFace model ID for cluster labelling "
-             "(default: $STRONG_MODEL or meta-llama/Meta-Llama-3-8B).",
+        default=os.environ.get("OPENAI_CLUSTER_MODEL", "gpt-4o-mini"),
+        help="OpenAI model for cluster labelling "
+             "(default: $OPENAI_CLUSTER_MODEL or gpt-4o-mini).",
     )
     p.add_argument("--samples-per-cluster", type=int, default=5,
                    help="Task prompt snippets per cluster shown to the LLM (default: 5).")
@@ -367,52 +364,6 @@ Do NOT use labels like "2D clustering", "feature vectors", "sparse activations",
 or any term from machine learning or data visualization — label the coding concept only. \
 Respond with ONLY: {{"label": "...", "description": "..."}}"""
 
-# Completion-style prompt for base (non-instruct) models
-_COMPLETION_PROMPT_TEMPLATE = """\
-### Sparse autoencoder feature cluster analysis
-### Top activated SAE feature dimensions for cluster {cid}:
-{feature_lines}
-### Representative coding tasks in this cluster:
-{sample_lines}
-### Short cluster label (2-5 words, algorithmic concept only): """
-
-
-def _is_instruct(model_name: str) -> bool:
-    return "instruct" in model_name.lower() or "chat" in model_name.lower()
-
-
-def load_llm(model_name: str, load_in_4bit: bool = False):
-    """Load HuggingFace causal LM.
-
-    Pass load_in_4bit=True to quantize to ~4 GB VRAM (requires bitsandbytes).
-    Without it the 7B model needs ~15 GB — only load on a node with enough VRAM
-    or it will page to CPU and stall.
-    """
-    from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-
-    hf_home = os.environ.get("HF_HOME")
-    if hf_home:
-        print(f"  HF_HOME={hf_home}")
-
-    print(f"Loading tokenizer: {model_name} …")
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-
-    kwargs: dict = {"device_map": "auto"}
-    if load_in_4bit:
-        print("  4-bit quantization enabled (bitsandbytes)")
-        kwargs["quantization_config"] = BitsAndBytesConfig(load_in_4bit=True)
-    else:
-        kwargs["torch_dtype"] = torch.bfloat16
-
-    print(f"Loading model: {model_name} …")
-    model = AutoModelForCausalLM.from_pretrained(model_name, **kwargs)
-    model.eval()
-    print(f"  Model loaded — device map: {getattr(model, 'hf_device_map', 'single device')}")
-    return model, tokenizer
-
-
 _BAD_TERMS = frozenset({
     "clustering", "cluster", "feature vector", "sparse", "umap",
     "sae", "dimension", "dimensi", "mapping", "activation", "embedding",
@@ -430,23 +381,33 @@ def _label_is_bad(lbl: str, used: set[str]) -> bool:
     return False
 
 
-def label_cluster_llm(
-    model,
-    tokenizer,
+def _parse_label(text: str) -> tuple[str, str]:
+    m = re.search(r'\{[^{}]+\}', text, re.DOTALL)
+    if m:
+        try:
+            parsed = json.loads(m.group())
+            lbl = parsed.get("label", "").strip()[:60]
+            desc = parsed.get("description", "").strip()[:200]
+            if lbl:
+                return lbl, desc
+        except json.JSONDecodeError:
+            pass
+    lbl = next((ln.strip() for ln in text.splitlines() if ln.strip()), text)
+    lbl = re.sub(r'[\"\'`{}]', "", lbl).strip()[:60]
+    return lbl, text[:200]
+
+
+def label_cluster_openai(
+    client,
     cluster_id: int,
     top_indices: np.ndarray,
     top_activations: np.ndarray,
     neuronpedia: dict[int, str],
     task_samples: list[str],
-    model_name: str = "",
+    model_name: str = "gpt-4o-mini",
     used_labels: set[str] | None = None,
 ) -> dict[str, str]:
-    """Label one cluster using the local LLM.
-
-    Instruct/chat models (Qwen-Instruct, Llama-Instruct, etc.) use the
-    tokenizer's chat template for proper formatting.  Base models fall back
-    to plain completion prompting.
-    """
+    """Label one cluster via the OpenAI chat completions API."""
     feat_lines = []
     for idx, act in zip(top_indices[:15].tolist(), top_activations[:15].tolist()):
         line = f"  Feature {idx}  (mean_act={act:.4f})"
@@ -464,66 +425,25 @@ def label_cluster_llm(
         sample_lines=sample_lines,
     )
 
-    if _is_instruct(model_name) and hasattr(tokenizer, "apply_chat_template"):
-        messages = [
-            {"role": "system", "content": _SYSTEM_PROMPT_LLM},
-            {"role": "user",   "content": user_content},
-        ]
-        prompt = tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
-    else:
-        prompt = _COMPLETION_PROMPT_TEMPLATE.format(
-            cid=cluster_id,
-            feature_lines="\n".join(feat_lines),
-            sample_lines=sample_lines,
-        )
-
-    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=1536)
-    inputs = {k: v.to(next(model.parameters()).device) for k, v in inputs.items()}
-
-    # Build stop-token list: include model EOS + any chat end tokens (e.g. Qwen's <|im_end|>)
-    stop_ids = set()
-    if tokenizer.eos_token_id is not None:
-        stop_ids.add(tokenizer.eos_token_id)
-    for tok in ("<|im_end|>", "<|endoftext|>", "</s>", "<|eot_id|>"):
-        tid = tokenizer.convert_tokens_to_ids(tok)
-        if tid is not None and tid != tokenizer.unk_token_id:
-            stop_ids.add(tid)
-
-    with torch.no_grad():
-        output_ids = model.generate(
-            **inputs,
-            max_new_tokens=48,
-            do_sample=False,
-            eos_token_id=list(stop_ids),
-            pad_token_id=next(iter(stop_ids)),
-        )
-
-    new_tokens = output_ids[0][inputs["input_ids"].shape[1]:]
-    raw = tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
-
     used = used_labels or set()
 
-    def _parse_label(text: str) -> tuple[str, str]:
-        m = re.search(r'\{[^{}]+\}', text, re.DOTALL)
-        if m:
-            try:
-                parsed = json.loads(m.group())
-                lbl = parsed.get("label", "").strip()[:60]
-                desc = parsed.get("description", "").strip()[:200]
-                if lbl:
-                    return lbl, desc
-            except json.JSONDecodeError:
-                pass
-        lbl = next((ln.strip() for ln in text.splitlines() if ln.strip()), text)
-        lbl = re.sub(r'[\"\'`{}]', "", lbl).strip()[:60]
-        return lbl, text[:200]
+    def _call(user_msg: str) -> str:
+        resp = client.chat.completions.create(
+            model=model_name,
+            temperature=0,
+            max_tokens=64,
+            messages=[
+                {"role": "system", "content": _SYSTEM_PROMPT_LLM},
+                {"role": "user",   "content": user_msg},
+            ],
+        )
+        return resp.choices[0].message.content.strip()
 
+    raw = _call(user_content)
     lbl, desc = _parse_label(raw)
 
-    # Retry if label is ML/viz jargon or a duplicate of an already-used label
-    if _label_is_bad(lbl, used) and _is_instruct(model_name):
+    # Retry once if label is ML/viz jargon or a duplicate
+    if _label_is_bad(lbl, used):
         already = ", ".join(f'"{u}"' for u in sorted(used)) if used else "none yet"
         retry_content = (
             user_content
@@ -532,29 +452,9 @@ def label_cluster_llm(
             "'string parsing', 'binary search', 'recursion'). "
             "Do NOT use any machine learning or visualization terminology. "
             f"Labels already used by other clusters: {already}. "
-            "Pick a DIFFERENT label that is specific to this cluster's tasks."
+            "Pick a DIFFERENT label specific to this cluster's tasks."
         )
-        retry_messages = [
-            {"role": "system", "content": _SYSTEM_PROMPT_LLM},
-            {"role": "user",   "content": retry_content},
-        ]
-        retry_prompt = tokenizer.apply_chat_template(
-            retry_messages, tokenize=False, add_generation_prompt=True
-        )
-        retry_inputs = tokenizer(retry_prompt, return_tensors="pt",
-                                 truncation=True, max_length=1536)
-        retry_inputs = {k: v.to(next(model.parameters()).device)
-                        for k, v in retry_inputs.items()}
-        with torch.no_grad():
-            retry_ids = model.generate(
-                **retry_inputs,
-                max_new_tokens=48,
-                do_sample=False,
-                eos_token_id=list(stop_ids),
-                pad_token_id=next(iter(stop_ids)),
-            )
-        retry_new = retry_ids[0][retry_inputs["input_ids"].shape[1]:]
-        retry_raw = tokenizer.decode(retry_new, skip_special_tokens=True).strip()
+        retry_raw = _call(retry_content)
         retry_lbl, retry_desc = _parse_label(retry_raw)
         if retry_lbl and not _label_is_bad(retry_lbl, used):
             lbl, desc = retry_lbl, retry_desc
@@ -577,55 +477,55 @@ _HTML_TEMPLATE = """\
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-     background:#0d1117;color:#c9d1d9;height:100vh;overflow:hidden}
+     background:#ffffff;color:#24292f;height:100vh;overflow:hidden}
 #app{display:grid;grid-template-columns:300px 1fr;grid-template-rows:48px 1fr;height:100vh}
-#hdr{grid-column:1/-1;background:#161b22;border-bottom:1px solid #30363d;
+#hdr{grid-column:1/-1;background:#f6f8fa;border-bottom:1px solid #d0d7de;
      display:flex;align-items:center;gap:14px;padding:0 18px}
-#hdr h1{font-size:15px;font-weight:600;color:#f0f6fc;white-space:nowrap}
-#hdr .sub{font-size:12px;color:#8b949e}
+#hdr h1{font-size:15px;font-weight:600;color:#24292f;white-space:nowrap}
+#hdr .sub{font-size:12px;color:#57606a}
 /* routing legend in header */
 .rt-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;
           padding:2px 9px;border-radius:10px;font-weight:500;margin-left:6px}
-.rt-weak  {background:#14532d;color:#4ade80}
-.rt-strong{background:#450a0a;color:#f87171}
-.rt-none  {background:#1c2128;color:#8b949e}
-#side{background:#161b22;border-right:1px solid #30363d;overflow-y:auto;
+.rt-weak  {background:#d1fae5;color:#166534}
+.rt-strong{background:#fee2e2;color:#991b1b}
+.rt-none  {background:#f1f5f9;color:#57606a}
+#side{background:#f6f8fa;border-right:1px solid #d0d7de;overflow-y:auto;
       display:flex;flex-direction:column;gap:14px;padding:14px}
 #plot-wrap{position:relative;overflow:hidden}
 .sec{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;
-     color:#8b949e;margin-bottom:6px}
-#search{width:100%;background:#21262d;border:1px solid #30363d;border-radius:6px;
-        color:#c9d1d9;padding:6px 10px;font-size:13px;outline:none}
-#search:focus{border-color:#58a6ff}
+     color:#57606a;margin-bottom:6px}
+#search{width:100%;background:#ffffff;border:1px solid #d0d7de;border-radius:6px;
+        color:#24292f;padding:6px 10px;font-size:13px;outline:none}
+#search:focus{border-color:#0969da}
 /* cluster list items */
 .cl-item{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:6px;
          cursor:pointer;transition:background .12s;border:1px solid transparent}
-.cl-item:hover{background:#21262d}
-.cl-item.active{background:#21262d;border-color:#30363d}
+.cl-item:hover{background:#eaeef2}
+.cl-item.active{background:#eaeef2;border-color:#d0d7de}
 .cl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .cl-lbl{font-size:13px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;
         text-overflow:ellipsis}
-.cl-sz{font-size:11px;color:#8b949e;flex-shrink:0}
+.cl-sz{font-size:11px;color:#57606a;flex-shrink:0}
 /* routing mini-bars on cluster items */
 .cl-rt{display:flex;height:3px;border-radius:2px;overflow:hidden;width:40px;flex-shrink:0}
 .cl-rt-w{background:#22c55e}
 .cl-rt-s{background:#ef4444}
 /* info panel */
-#info{background:#1c2128;border:1px solid #30363d;border-radius:8px;padding:13px;
+#info{background:#ffffff;border:1px solid #d0d7de;border-radius:8px;padding:13px;
       display:none;flex-direction:column;gap:8px}
 #info.show{display:flex}
-#inf-title{font-size:14px;font-weight:600;color:#f0f6fc}
-#inf-desc{font-size:12px;color:#8b949e;line-height:1.55}
+#inf-title{font-size:14px;font-weight:600;color:#24292f}
+#inf-desc{font-size:12px;color:#57606a;line-height:1.55}
 #inf-rt{font-size:12px;display:flex;gap:8px;flex-wrap:wrap}
 .feat-row{display:flex;align-items:center;gap:7px;padding:2px 0}
-.feat-id{font-family:monospace;font-size:11px;color:#79c0ff;width:72px;flex-shrink:0}
-.feat-bg{flex:1;height:4px;background:#30363d;border-radius:2px}
+.feat-id{font-family:monospace;font-size:11px;color:#0969da;width:72px;flex-shrink:0}
+.feat-bg{flex:1;height:4px;background:#d0d7de;border-radius:2px}
 .feat-bar{height:100%;border-radius:2px}
-.feat-txt{font-size:11px;color:#8b949e;max-width:140px;white-space:nowrap;
+.feat-txt{font-size:11px;color:#57606a;max-width:140px;white-space:nowrap;
           overflow:hidden;text-overflow:ellipsis}
-#stats{font-size:12px;color:#8b949e;border-top:1px solid #30363d;padding-top:10px}
+#stats{font-size:12px;color:#57606a;border-top:1px solid #d0d7de;padding-top:10px}
 .st-row{display:flex;justify-content:space-between;padding:2px 0}
-.st-val{color:#c9d1d9}
+.st-val{color:#24292f}
 </style>
 </head>
 <body>
@@ -719,16 +619,16 @@ for(const pt of DATA.points){
   byCluster[c].routes.push(pt.r||null);
   byCluster[c].colors.push(routeCol(pt.r||null));
   const routeTag = pt.r==='weak'
-    ? '<span style="color:#4ade80">&#11044; weak</span>'
+    ? '<span style="color:#16a34a">&#11044; weak</span>'
     : pt.r==='strong'
-      ? '<span style="color:#f87171">&#11044; strong</span>'
+      ? '<span style="color:#dc2626">&#11044; strong</span>'
       : '<span style="color:#6b7280">&#11044; —</span>';
   const snippet = pt.d
-    ? `<span style="color:#8b949e;font-size:11px">${pt.d}</span>`
+    ? `<span style="color:#57606a;font-size:11px">${pt.d}</span>`
     : '';
   byCluster[c].texts.push(
     `<b>${pt.id}</b>  ${routeTag}<br>`+
-    `<i style="color:#8b949e;font-size:11px">cluster: ${lbl}</i>`+
+    `<i style="color:#57606a;font-size:11px">cluster: ${lbl}</i>`+
     (snippet?`<br>${snippet}`:'')
   );
   if(pt.r==='weak') totalWeak++;
@@ -744,11 +644,11 @@ function buildTraces(){
     const c=DATA.centroids[i];
     const hull=c.hull||[];
     const rtLine=(c.n_weak||c.n_strong)
-      ? `<span style="color:#4ade80">${c.n_weak||0} weak</span> / `
-        +`<span style="color:#f87171">${c.n_strong||0} strong</span><br>`
+      ? `<span style="color:#16a34a">${c.n_weak||0} weak</span> / `
+        +`<span style="color:#dc2626">${c.n_strong||0} strong</span><br>`
       : '';
     const hov=`<b>${c.label}</b><br>${c.desc||''}<br>${rtLine}`
-             +`<i style="color:#8b949e">n = ${c.n}</i>`;
+             +`<i style="color:#57606a">n = ${c.n}</i>`;
     traces.push({
       type:'scatter', mode:'lines',
       name:c.label,
@@ -783,25 +683,6 @@ function buildTraces(){
     });
   }
 
-  // ── [2K] centroid labels — always-visible text, no markers ───────────
-  const cx=[],cy=[],ctxt=[];
-  for(const c of DATA.centroids){
-    cx.push(c.x); cy.push(c.y);
-    ctxt.push(c.label);
-  }
-  traces.push({
-    type:'scatter', mode:'text',
-    name:'Labels',
-    x:cx, y:cy,
-    text:ctxt,
-    textposition:'middle center',
-    textfont:{size:12, color:'#f0f6fc',
-              family:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'},
-    hoverinfo:'skip',
-    showlegend:false,
-    cliponaxis:false,
-  });
-
   // ── routing legend entries (dummy traces) ─────────────────────────────
   traces.push({
     type:'scatter', mode:'markers', name:'Weak',
@@ -820,14 +701,14 @@ function buildTraces(){
 }
 
 const LAYOUT={
-  paper_bgcolor:'#0d1117', plot_bgcolor:'#161b22',
-  font:{color:'#8b949e',family:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'},
-  xaxis:{title:{text:'UMAP 1',font:{size:11}},gridcolor:'#21262d',zerolinecolor:'#30363d',tickfont:{size:10}},
-  yaxis:{title:{text:'UMAP 2',font:{size:11}},gridcolor:'#21262d',zerolinecolor:'#30363d',tickfont:{size:10}},
-  legend:{bgcolor:'#161b22',bordercolor:'#30363d',borderwidth:1,font:{size:11},x:1.01,y:1},
+  paper_bgcolor:'#ffffff', plot_bgcolor:'#ffffff',
+  font:{color:'#57606a',family:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'},
+  xaxis:{title:{text:'UMAP 1',font:{size:11}},gridcolor:'#eaeef2',zerolinecolor:'#d0d7de',tickfont:{size:10}},
+  yaxis:{title:{text:'UMAP 2',font:{size:11}},gridcolor:'#eaeef2',zerolinecolor:'#d0d7de',tickfont:{size:10}},
+  legend:{bgcolor:'#ffffff',bordercolor:'#d0d7de',borderwidth:1,font:{size:11},x:1.01,y:1},
   margin:{l:50,r:120,t:28,b:48},
   hovermode:'closest',
-  hoverlabel:{bgcolor:'#1c2128',bordercolor:'#58a6ff',font:{color:'#c9d1d9',size:12}},
+  hoverlabel:{bgcolor:'#ffffff',bordercolor:'#0969da',font:{color:'#24292f',size:12}},
 };
 
 // ── sidebar cluster list ──────────────────────────────────────────────────
@@ -863,7 +744,7 @@ function showInfo(id){
   document.getElementById('inf-rt').innerHTML=
     `<span class="rt-badge rt-weak">${nW} weak</span>`+
     `<span class="rt-badge rt-strong">${nS} strong</span>`+
-    (nU>0?`<span class="rt-badge rt-none">${nU} n/a</span>`:'');
+    (nU>0?`<span class="rt-badge rt-none">${nU} n/a</span>`:'');;
   const maxA=Math.max(...(c.feats||[]).map(f=>f.a||0),1e-9);
   const html=(c.feats||[]).slice(0,10).map(f=>{
     const pct=Math.round((f.a||0)/maxA*100);
@@ -874,7 +755,7 @@ function showInfo(id){
       `</div>`;
   }).join('');
   document.getElementById('inf-feats').innerHTML=html||
-    '<div style="color:#8b949e;font-size:12px">No feature data</div>';
+    '<div style="color:#57606a;font-size:12px">No feature data</div>';
   document.getElementById('st-active').textContent=`${c.label} (${c.n})`;
 }
 
@@ -1131,7 +1012,8 @@ def main() -> None:
     # ── LLM labelling ─────────────────────────────────────────────────────
     if not args.no_llm:
         try:
-            llm_model, llm_tokenizer = load_llm(args.llm_model, load_in_4bit=args.load_in_4bit)
+            from openai import OpenAI
+            client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
             print(f"\nLabelling {args.k} clusters with {args.llm_model} …")
             used_labels: set[str] = set()
 
@@ -1147,9 +1029,8 @@ def main() -> None:
                 ]
 
                 print(f"  Cluster {cid} …", end=" ", flush=True)
-                result = label_cluster_llm(
-                    model=llm_model,
-                    tokenizer=llm_tokenizer,
+                result = label_cluster_openai(
+                    client=client,
                     cluster_id=cid,
                     top_indices=info["top_indices"],
                     top_activations=info["top_activations"],
@@ -1163,14 +1044,9 @@ def main() -> None:
                 used_labels.add(info["label"])
                 print(f"→ \"{info['label']}\"")
 
-            # free GPU memory
-            del llm_model, llm_tokenizer
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-
         except ImportError:
-            print("Warning: 'transformers' not installed — skipping LLM labelling.")
-            print("  Install with: pip install transformers accelerate")
+            print("Warning: 'openai' package not installed — skipping LLM labelling.")
+            print("  Install with: pip install openai")
         except Exception as exc:
             print(f"Warning: LLM labelling failed ({exc}). Continuing with generic labels.")
 
