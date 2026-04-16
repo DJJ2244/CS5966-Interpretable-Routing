@@ -479,7 +479,7 @@ def stats_calculate(
     weak_model_name:   Annotated[str, typer.Option("--weak-model",   help="Weak model name (for millis cost)")] = "",
     strong_model_name: Annotated[str, typer.Option("--strong-model", help="Strong model name (for millis cost)")] = "",
     split_id:          Annotated[int, typer.Option("--split-id",     help="DB split id (for millis cost)")]       = 1,
-    is_test:           Annotated[bool, typer.Option("--test",        help="Use test partition (for millis cost)")] = True,
+    is_test:           Annotated[bool, typer.Option("--test",        help="Use test partition (for millis cost)")] = False,
 ) -> None:
     """Compare SAE+MLP and RouteLLM routers: ROC curves, McNemar test, and Δ accuracy with CI."""
     from util.stats_util import calculate

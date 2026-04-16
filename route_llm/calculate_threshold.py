@@ -26,7 +26,7 @@ class ThresholdPoint:
     accuracy: float
 
 
-def _build_frontier(
+def build_frontier(
     split_id: int,
     weak_model_name: str,
     strong_model_name: str,
@@ -85,7 +85,7 @@ def _build_frontier(
     return frontier
 
 
-def _find_elbow(frontier: list[ThresholdPoint]) -> tuple[ThresholdPoint, KneeLocator]:
+def find_elbow(frontier: list[ThresholdPoint]) -> tuple[ThresholdPoint, KneeLocator]:
     # Deduplicate points with the same cost_fraction (keep highest accuracy).
     # Duplicate x-values cause KneeLocator normalization to break silently.
     seen: dict[float, ThresholdPoint] = {}
@@ -176,8 +176,8 @@ def calculate_threshold(
     Returns:
         Threshold float. Problems with toughness_score >= threshold are routed to strong.
     """
-    frontier = _build_frontier(split_id, weak_model_name, strong_model_name, is_test)
-    elbow, knee = _find_elbow(frontier)
+    frontier = build_frontier(split_id, weak_model_name, strong_model_name, is_test)
+    elbow, knee = find_elbow(frontier)
     _save_plot(frontier, elbow, split_id)
 
     a, b       = frontier[0], frontier[-1]
