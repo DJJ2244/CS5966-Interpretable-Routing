@@ -18,7 +18,6 @@ def calculate(
     """Compare SAE+MLP and RouteLLM routers: score distributions, McNemar test, Δ accuracy."""
     import numpy as np
     import matplotlib.pyplot as plt
-    import matplotlib.gridspec as gridspec
     import matplotlib.patches as mpatches
     from scipy.stats import chi2
     from util.smart_file_util import load_jsonl
@@ -139,15 +138,16 @@ def calculate(
     sign = "+" if delta >= 0 else ""
     print(f"Δ oracle routing acc (SAE−LLM@cost):  {sign}{delta:.1%}")
 
-    # ── Figure ────────────────────────────────────────────────────────────────
+    # ── Figure paths ──────────────────────────────────────────────────────────
     out_path = Path(output)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    panel1_path = out_path.with_name(out_path.stem + "_panel1" + out_path.suffix)
+    panel2_path = out_path.with_name(out_path.stem + "_panel2" + out_path.suffix)
 
-    fig = plt.figure(figsize=(11, 5))
-    gs  = gridspec.GridSpec(1, 2, figure=fig, wspace=0.55)
+    footer = f"Weak model: {weak_model_name}    Strong model: {strong_model_name}"
 
     # ── Panel 1: Operating point scatter (cost vs accuracy) ───────────────────
-    ax1 = fig.add_subplot(gs[0])
+    fig1, ax1 = plt.subplots(figsize=(6, 5))
 
     ax1.plot(
         [p.cost_fraction for p in frontier],
@@ -181,8 +181,13 @@ def calculate(
     ax1.legend(fontsize=9)
     ax1.grid(True, alpha=0.3)
 
+    fig1.text(0.5, -0.02, footer, ha="center", fontsize=9, color="dimgrey")
+    fig1.savefig(panel1_path, dpi=180, bbox_inches="tight")
+    plt.close(fig1)
+    print(f"\nPanel 1 saved to {panel1_path}")
+
     # ── Panel 2: McNemar 2×2 heatmap ─────────────────────────────────────────
-    ax2 = fig.add_subplot(gs[1])
+    fig2, ax2 = plt.subplots(figsize=(6, 5))
     table = np.array([[A, B], [C, D]], dtype=float)
     im = ax2.imshow(table, cmap="Blues", vmin=0)
 
@@ -210,7 +215,7 @@ def calculate(
     ax2.set_xticklabels(["LLM correct", "LLM wrong"], fontsize=9)
     ax2.set_yticklabels(["SAE correct", "SAE wrong"], fontsize=9)
     ax2.set_title(
-        f"McNemar: SAE+MLP vs RouteLLM @ cost-matched frontier\n"
+        f"Oracle Decisions: SAE+MLP vs cost-matched RouteLLM\n"
         f"(LLM cost={matched_point.cost_fraction:.0%} ≈ SAE cost={sae_cost:.0%})   "
         f"χ² = {mcnemar_stat:.2f},  p {p_str}",
         fontsize=9,
@@ -218,12 +223,7 @@ def calculate(
     cb = plt.colorbar(im, ax=ax2, fraction=0.046, pad=0.04)
     cb.set_label("Count", fontsize=8)
 
-    fig.suptitle("Router Comparison: SAE+MLP vs RouteLLM", fontsize=13, y=1.01)
-    fig.text(
-        0.5, -0.02,
-        f"Weak model: {weak_model_name}    Strong model: {strong_model_name}",
-        ha="center", fontsize=9, color="dimgrey",
-    )
-    plt.savefig(out_path, dpi=180, bbox_inches="tight")
-    plt.close()
-    print(f"\nPlot saved to {out_path}")
+    fig2.text(0.5, -0.02, footer, ha="center", fontsize=9, color="dimgrey")
+    fig2.savefig(panel2_path, dpi=180, bbox_inches="tight")
+    plt.close(fig2)
+    print(f"Panel 2 saved to {panel2_path}")
