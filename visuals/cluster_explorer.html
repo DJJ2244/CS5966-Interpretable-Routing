@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAE Feature Cluster Explorer</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+     background:#0d1117;color:#c9d1d9;height:100vh;overflow:hidden}
+#app{display:grid;grid-template-columns:300px 1fr;grid-template-rows:48px 1fr;height:100vh}
+#hdr{grid-column:1/-1;background:#161b22;border-bottom:1px solid #30363d;
+     display:flex;align-items:center;gap:14px;padding:0 18px}
+#hdr h1{font-size:15px;font-weight:600;color:#f0f6fc;white-space:nowrap}
+#hdr .sub{font-size:12px;color:#8b949e}
+/* routing legend in header */
+.rt-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;
+          padding:2px 9px;border-radius:10px;font-weight:500;margin-left:6px}
+.rt-weak  {background:#14532d;color:#4ade80}
+.rt-strong{background:#450a0a;color:#f87171}
+.rt-none  {background:#1c2128;color:#8b949e}
+#side{background:#161b22;border-right:1px solid #30363d;overflow-y:auto;
+      display:flex;flex-direction:column;gap:14px;padding:14px}
+#plot-wrap{position:relative;overflow:hidden}
+.sec{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;
+     color:#8b949e;margin-bottom:6px}
+#search{width:100%;background:#21262d;border:1px solid #30363d;border-radius:6px;
+        color:#c9d1d9;padding:6px 10px;font-size:13px;outline:none}
+#search:focus{border-color:#58a6ff}
+/* cluster list items */
+.cl-item{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:6px;
+         cursor:pointer;transition:background .12s;border:1px solid transparent}
+.cl-item:hover{background:#21262d}
+.cl-item.active{background:#21262d;border-color:#30363d}
+.cl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.cl-lbl{font-size:13px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;
+        text-overflow:ellipsis}
+.cl-sz{font-size:11px;color:#8b949e;flex-shrink:0}
+/* routing mini-bars on cluster items */
+.cl-rt{display:flex;height:3px;border-radius:2px;overflow:hidden;width:40px;flex-shrink:0}
+.cl-rt-w{background:#22c55e}
+.cl-rt-s{background:#ef4444}
+/* info panel */
+#info{background:#1c2128;border:1px solid #30363d;border-radius:8px;padding:13px;
+      display:none;flex-direction:column;gap:8px}
+#info.show{display:flex}
+#inf-title{font-size:14px;font-weight:600;color:#f0f6fc}
+#inf-desc{font-size:12px;color:#8b949e;line-height:1.55}
+#inf-rt{font-size:12px;display:flex;gap:8px;flex-wrap:wrap}
+.feat-row{display:flex;align-items:center;gap:7px;padding:2px 0}
+.feat-id{font-family:monospace;font-size:11px;color:#79c0ff;width:72px;flex-shrink:0}
+.feat-bg{flex:1;height:4px;background:#30363d;border-radius:2px}
+.feat-bar{height:100%;border-radius:2px}
+.feat-txt{font-size:11px;color:#8b949e;max-width:140px;white-space:nowrap;
+          overflow:hidden;text-overflow:ellipsis}
+#stats{font-size:12px;color:#8b949e;border-top:1px solid #30363d;padding-top:10px}
+.st-row{display:flex;justify-content:space-between;padding:2px 0}
+.st-val{color:#c9d1d9}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hdr">
+    <div><h1>SAE Feature Cluster Explorer</h1></div>
+    <div class="sub" id="hdr-sub"></div>
+    <div style="margin-left:auto;display:flex;align-items:center">
+      <span class="rt-badge rt-weak">&#9679; Weak</span>
+      <span class="rt-badge rt-strong">&#9679; Strong</span>
+      <span class="rt-badge rt-none">&#9679; No data</span>
+    </div>
+  </div>
+  <div id="side">
+    <div>
+      <div class="sec">Search</div>
+      <input id="search" type="text" placeholder="Filter by task ID or keyword…">
+    </div>
+    <div>
+      <div class="sec">Clusters</div>
+      <div id="cl-list"></div>
+    </div>
+    <div id="info">
+      <div id="inf-title"></div>
+      <div id="inf-desc"></div>
+      <div id="inf-rt"></div>
+      <div id="inf-feats"></div>
+    </div>
+    <div id="stats">
+      <div class="sec">Stats</div>
+      <div class="st-row"><span>Total points</span><span class="st-val" id="st-total">—</span></div>
+      <div class="st-row"><span>Visible</span><span class="st-val" id="st-visible">—</span></div>
+      <div class="st-row"><span>Active cluster</span><span class="st-val" id="st-active">—</span></div>
+      <div class="st-row"><span>Routed weak</span><span class="st-val" id="st-weak">—</span></div>
+      <div class="st-row"><span>Routed strong</span><span class="st-val" id="st-strong">—</span></div>
+    </div>
+  </div>
+  <div id="plot-wrap">
+    <div id="plot" style="width:100%;height:100%"></div>
+  </div>
+</div>
+
+<!-- embedded data -->
+<script type="application/json" id="viz-data">
+{"points":[{"x":-2.41947,"y":11.30258,"c":0,"id":"csharp/11","d":"prime_fib returns n-th number that is a Fibonacci number and it's also prime.\n>>> prime_fib(1)\n2\n>>>","r":"strong"},{"x":-2.28027,"y":11.74759,"c":0,"id":"csharp/13","d":"pairs_sum_to_zero takes a list of integers as an input.\nit returns True if there are two distinct el","r":"strong"},{"x":-2.32355,"y":11.41674,"c":0,"id":"csharp/14","d":"The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:","r":"strong"},{"x":-1.99093,"y":11.16994,"c":0,"id":"csharp/17","d":"remove_vowels is a function that takes string and returns string without vowels.\n>>> remove_vowels('","r":"strong"},{"x":-2.15622,"y":10.88064,"c":0,"id":"csharp/27","d":"Write a function vowels_count which takes a string representing\na word as input and returns the numb","r":"strong"},{"x":-1.90274,"y":11.93143,"c":0,"id":"csharp/28","d":"You are given a non-empty list of positive integers. Return the greatest integer that is greater tha","r":"strong"},{"x":-1.06308,"y":11.32193,"c":0,"id":"csharp/29","d":"Given the lengths of the three sides of a triangle. Return the area of\nthe triangle rounded to 2 dec","r":"strong"},{"x":-1.60964,"y":10.20991,"c":0,"id":"csharp/3","d":"Out of list of strings, return the longest one. Return the first one in case of multiple\nstrings of ","r":"strong"},{"x":-1.17036,"y":10.61032,"c":0,"id":"csharp/31","d":"Write a function that returns true if the given number is the multiplication of 3 prime numbers\nand ","r":"strong"},{"x":0.5971,"y":7.36031,"c":0,"id":"csharp/35","d":"Write a function that takes a string and returns True if the string\nlength is a prime number or Fals","r":"strong"},{"x":3.96115,"y":3.0905,"c":0,"id":"csharp/4","d":"Return a greatest common divisor of two integers a and b\n>>> greatest_common_divisor(3, 5)\n1\n>>> gre","r":"strong"},{"x":-1.39532,"y":11.44952,"c":0,"id":"csharp/54","d":"Given an array arr of integers and a positive integer k, return a sorted list \nof length k with the ","r":"strong"},{"x":0.80492,"y":7.14252,"c":0,"id":"csharp/64","d":"The Brazilian factorial is defined as:\nbrazilian_factorial(n) = n! * (n-1)! * (n-2)! * ... * 1!\nwher","r":"strong"},{"x":-2.53579,"y":10.92504,"c":0,"id":"csharp/69","d":"You are given a positive integer n. You have to create an integer array a of length n.\nFor each i (1","r":"strong"},{"x":1.27153,"y":7.56138,"c":0,"id":"csharp/71","d":"A simple program which should return the value of x if n is \na prime number and should return the va","r":"strong"},{"x":0.90587,"y":7.66909,"c":0,"id":"csharp/78","d":"Given a string 'text', return its md5 hash equivalent string.\nIf 'text' is an empty string, return N","r":"strong"},{"x":1.55431,"y":4.38993,"c":0,"id":"go/20","d":"Check if two words have the same characters.\n>>> same_chars('eabcdzzzz', 'dddzzzzzzzddeddabc')\nTrue\n","r":"strong"},{"x":1.68344,"y":6.81171,"c":0,"id":"go/28","d":"You are given a non-empty list of positive integers. Return the greatest integer that is greater tha","r":"strong"},{"x":4.51065,"y":0.973,"c":0,"id":"go/29","d":"Given the lengths of the three sides of a triangle. Return the area of\nthe triangle rounded to 2 dec","r":"strong"},{"x":6.18701,"y":-0.28252,"c":1,"id":"go/31","d":"Write a function that returns true if the given number is the multiplication of 3 prime numbers\nand ","r":"strong"},{"x":2.53762,"y":6.11763,"c":0,"id":"go/34","d":"It is the last week of the semester and the teacher has to give the grades\nto students. The teacher ","r":"strong"},{"x":7.35784,"y":-1.46271,"c":1,"id":"go/4","d":"Return a greatest common divisor of two integers a and b\n>>> greatest_common_divisor(3, 5)\n1\n>>> gre","r":"strong"},{"x":1.78871,"y":5.67499,"c":0,"id":"go/40","d":"You are given a list of integers.\nYou need to find the largest prime value and return the sum of its","r":"strong"},{"x":-2.20296,"y":11.0189,"c":0,"id":"go/41","d":"Given a dictionary, return True if all keys are strings in lower \ncase or all keys are strings in up","r":"strong"},{"x":-1.63916,"y":10.7995,"c":0,"id":"go/48","d":"Given a positive integer n, return a tuple that has the number of even and odd\ninteger palindromes t","r":"strong"},{"x":-2.14808,"y":11.56416,"c":0,"id":"go/51","d":"Task\nWe are given two strings s and c, you have to deleted all the characters in s that are equal to","r":"strong"},{"x":1.6748,"y":4.13041,"c":0,"id":"go/59","d":"Create a function that takes a string as input which contains only square brackets.\nThe function sho","r":"strong"},{"x":3.37444,"y":3.10757,"c":0,"id":"go/68","d":"Write a function that takes an array of numbers as input and returns \nthe number of elements in the ","r":"strong"},{"x":8.30197,"y":-1.51718,"c":3,"id":"go/7","d":"For a given string, flip lowercase characters to uppercase and uppercase to lowercase.\n>>> flip_case","r":"weak"},{"x":5.01433,"y":0.28268,"c":2,"id":"go/71","d":"A simple program which should return the value of x if n is \na prime number and should return the va","r":"weak"},{"x":1.76693,"y":3.80949,"c":0,"id":"go/74","d":"You are given 2 words. You need to return True if the second word or any of its rotations is a subst","r":"strong"},{"x":3.04107,"y":2.62778,"c":0,"id":"go/8","d":"Return only positive numbers in the list.\n>>> get_positive([-1, 2, -4, 5, 6])\n[2, 5, 6]\n>>> get_posi","r":"weak"},{"x":3.52601,"y":3.54474,"c":0,"id":"java/0","d":"You're given a list of deposit and withdrawal operations on a bank account that starts with\n    zero","r":"strong"},{"x":1.23479,"y":5.25908,"c":0,"id":"java/13","d":"pairs_sum_to_zero takes a list of integers as an input.\n    it returns True if there are two distinc","r":"strong"},{"x":8.00178,"y":-2.09494,"c":3,"id":"java/19","d":"Add two numbers x and y\n    >>> add(2, 3)\n    5\n    >>> add(5, 7)\n    12","r":"weak"},{"x":7.3849,"y":-0.20399,"c":1,"id":"java/2","d":"Input are two strings a and b consisting only of 1s and 0s.\n    Perform binary XOR on these inputs a","r":"strong"},{"x":1.6705,"y":4.79226,"c":0,"id":"java/20","d":"Check if two words have the same characters.\n    >>> same_chars('eabcdzzzz', 'dddzzzzzzzddeddabc')\n ","r":"strong"},{"x":3.49444,"y":2.88314,"c":0,"id":"java/22","d":"Return sorted unique common elements for two lists.\n    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, ","r":"strong"},{"x":5.4445,"y":3.5101,"c":0,"id":"java/25","d":"xs represent coefficients of a polynomial.\n    xs[0] + xs[1] * x + xs[2] * x^2 + ....\n     Return de","r":"strong"},{"x":1.52542,"y":6.33183,"c":0,"id":"java/38","d":"You are given a list of integers.\n    Write a function next_smallest() that returns the 2nd smallest","r":"strong"},{"x":2.63776,"y":6.35029,"c":0,"id":"java/41","d":"Given a dictionary, return True if all keys are strings in lower \n    case or all keys are strings i","r":"strong"},{"x":4.89007,"y":4.60557,"c":0,"id":"java/47","d":"Implement the function f that takes n as a parameter,\n    and returns a list of size n, such that th","r":"strong"},{"x":4.49238,"y":2.75313,"c":0,"id":"java/62","d":"Create a function which returns the largest index of an element which\n    is not greater than or equ","r":"strong"},{"x":5.47321,"y":2.72647,"c":2,"id":"java/64","d":"The Brazilian factorial is defined as:\n    brazilian_factorial(n) = n! * (n-1)! * (n-2)! * ... * 1!\n","r":"strong"},{"x":2.61693,"y":3.65386,"c":0,"id":"java/67","d":"Write a function which sorts the given list of integers\n    in ascending order according to the sum ","r":"strong"},{"x":4.54634,"y":5.61225,"c":0,"id":"java/69","d":"You are given a positive integer n. You have to create an integer array a of length n.\n        For e","r":"strong"},{"x":4.5002,"y":3.56806,"c":0,"id":"java/77","d":"You are given a string s.\n    if s[i] is a letter, reverse its case from lower to upper or vise vers","r":"strong"},{"x":4.70262,"y":2.85344,"c":2,"id":"java/79","d":"Given two positive integers a and b, return the even digits between a\n    and b, in ascending order.","r":"strong"},{"x":3.38862,"y":3.49048,"c":0,"id":"javascript/12","d":"triples_sum_to_zero takes a list of integers as an input.\n    it returns True if there are three dis","r":"strong"},{"x":6.8273,"y":-1.57765,"c":1,"id":"javascript/24","d":"sum_to_n is a function that sums numbers from 1 to n.\n    >>> sum_to_n(30)\n    465\n    >>> sum_to_n(","r":"weak"},{"x":8.03914,"y":-1.29598,"c":3,"id":"javascript/31","d":"Write a function that returns true if the given number is the multiplication of 3 prime numbers\n    ","r":"strong"},{"x":7.01376,"y":-0.71036,"c":1,"id":"javascript/45","d":"This function takes two positive numbers x and y and returns the\n    biggest even integer number tha","r":"strong"},{"x":-1.87894,"y":11.33488,"c":0,"id":"javascript/52","d":"You are given a rectangular grid of wells. Each row represents a single well,\n    and each 1 in a ro","r":"strong"},{"x":3.18469,"y":6.46613,"c":0,"id":"javascript/54","d":"Given an array arr of integers and a positive integer k, return a sorted list \n    of length k with ","r":"strong"},{"x":5.07662,"y":3.35026,"c":2,"id":"javascript/55","d":"Given a non-empty array of integers arr and an integer k, return\n    the sum of the elements with at","r":"strong"},{"x":3.06609,"y":1.88138,"c":2,"id":"javascript/59","d":"Create a function that takes a string as input which contains only square brackets.\n    The function","r":"strong"},{"x":6.24434,"y":0.10531,"c":2,"id":"javascript/6","d":"Given list of numbers (of at least two elements), apply a linear transform to that list,\n    such th","r":"strong"},{"x":2.54158,"y":4.61196,"c":0,"id":"javascript/60","d":"You are given a list of numbers.\n    You need to return the sum of squared numbers in the given list","r":"strong"},{"x":7.41826,"y":-1.78888,"c":1,"id":"javascript/71","d":"A simple program which should return the value of x if n is \n    a prime number and should return th","r":"weak"},{"x":3.82136,"y":1.56943,"c":2,"id":"javascript/72","d":"Given a list of numbers, return the sum of squares of the numbers\n    in the list that are odd. Igno","r":"weak"},{"x":-16.48411,"y":9.81777,"c":0,"id":"javascript/73","d":"You will be given the name of a class (a string) and a list of extensions.\n    The extensions are to","r":"strong"},{"x":2.76089,"y":1.97285,"c":2,"id":"javascript/74","d":"You are given 2 words. You need to return True if the second word or any of its rotations is a subst","r":"strong"},{"x":6.85035,"y":0.67607,"c":2,"id":"javascript/77","d":"You are given a string s.\n    if s[i] is a letter, reverse its case from lower to upper or vise vers","r":"strong"},{"x":6.89305,"y":-0.14669,"c":1,"id":"javascript/79","d":"Given two positive integers a and b, return the even digits between a\n    and b, in ascending order.","r":"strong"},{"x":7.55514,"y":-0.54011,"c":1,"id":"kotlin/10","d":"Return sorted unique elements in a list\n    >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])\n    [0, 2, 3, ","r":"strong"},{"x":6.70109,"y":-0.43095,"c":1,"id":"kotlin/15","d":"Return median of elements in the list l.\n    >>> median([3, 1, 2, 4, 5])\n    3\n    >>> median([-10, ","r":"strong"},{"x":7.59723,"y":-1.08284,"c":1,"id":"kotlin/23","d":"Return the largest prime factor of n. Assume n > 1 and is not a prime.\n    >>> largest_prime_factor(","r":"strong"},{"x":4.5252,"y":4.96051,"c":0,"id":"kotlin/26","d":"The FibFib number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follow","r":"strong"},{"x":2.53374,"y":8.00932,"c":0,"id":"kotlin/30","d":"Write a function that returns True if the object q will fly, and False otherwise.\n    The object q w","r":"strong"},{"x":6.44998,"y":0.13288,"c":1,"id":"kotlin/31","d":"Write a function that returns true if the given number is the multiplication of 3 prime numbers\n    ","r":"strong"},{"x":2.61043,"y":3.021,"c":0,"id":"kotlin/33","d":"You are given a string s.\n    Your task is to check if the string is happy or not.\n    A string is h","r":"strong"},{"x":2.08743,"y":5.44689,"c":0,"id":"kotlin/40","d":"You are given a list of integers.\n    You need to find the largest prime value and return the sum of","r":"strong"},{"x":5.73811,"y":1.78135,"c":2,"id":"kotlin/5","d":"Input is a space-delimited string of numberals from 'zero' to 'nine'.\n    Valid choices are 'zero', ","r":"strong"},{"x":-1.58091,"y":10.88461,"c":0,"id":"kotlin/51","d":"Task\n    We are given two strings s and c, you have to deleted all the characters in s that are equa","r":"strong"},{"x":-1.59406,"y":11.52647,"c":0,"id":"kotlin/53","d":"Given a string s and a natural number n, you have been tasked to implement \n    a function that retu","r":"strong"},{"x":3.79722,"y":5.68551,"c":0,"id":"kotlin/66","d":"Your task is to implement a function that will simplify the expression\n    x * n. The function retur","r":"strong"},{"x":2.90522,"y":3.9736,"c":0,"id":"kotlin/72","d":"Given a list of numbers, return the sum of squares of the numbers\n    in the list that are odd. Igno","r":"strong"},{"x":4.63349,"y":0.99454,"c":2,"id":"kotlin/76","d":"Given the lengths of the three sides of a triangle. Return True if the three\n    sides form a right-","r":"strong"},{"x":6.62475,"y":0.54867,"c":2,"id":"kotlin/78","d":"Given a string 'text', return its md5 hash equivalent string.\n    If 'text' is an empty string, retu","r":"strong"},{"x":3.29586,"y":2.31144,"c":0,"id":"kotlin/8","d":"Return only positive numbers in the list.\n    >>> get_positive([-1, 2, -4, 5, 6])\n    [2, 5, 6]\n    ","r":"weak"},{"x":5.6792,"y":0.7125,"c":2,"id":"perl/1","d":"For a given list of integers, return a tuple consisting of a sum and a product of all the integers i","r":"weak"},{"x":4.53339,"y":6.43376,"c":0,"id":"perl/14","d":"The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:","r":"strong"},{"x":6.24702,"y":-1.11632,"c":1,"id":"perl/16","d":"Checks if given string is a palindrome\n    >>> is_palindrome('')\n    True\n    >>> is_palindrome('aba","r":"weak"},{"x":6.81215,"y":-1.15177,"c":1,"id":"perl/18","d":"Return True if all numbers in the list l are below threshold t.\n    >>> below_threshold([1, 2, 4, 10","r":"weak"},{"x":8.4867,"y":-1.81505,"c":3,"id":"perl/19","d":"Add two numbers x and y\n    >>> add(2, 3)\n    5\n    >>> add(5, 7)\n    12","r":"weak"},{"x":4.20711,"y":2.5667,"c":2,"id":"perl/39","d":"You'll be given a string of words, and your task is to count the number\n    of boredoms. A boredom i","r":"strong"},{"x":7.56739,"y":-1.86218,"c":3,"id":"perl/4","d":"Return a greatest common divisor of two integers a and b\n    >>> greatest_common_divisor(3, 5)\n    1","r":"weak"},{"x":3.76948,"y":4.13215,"c":0,"id":"perl/46","d":"You are given two positive integers n and m, and your task is to compute the\n    average of the inte","r":"strong"},{"x":5.61577,"y":2.48866,"c":0,"id":"perl/47","d":"Implement the function f that takes n as a parameter,\n    and returns a list of size n, such that th","r":"strong"},{"x":6.15153,"y":1.73518,"c":2,"id":"perl/5","d":"Input is a space-delimited string of numberals from 'zero' to 'nine'.\n    Valid choices are 'zero', ","r":"strong"},{"x":-2.59614,"y":11.6803,"c":0,"id":"perl/54","d":"Given an array arr of integers and a positive integer k, return a sorted list \n    of length k with ","r":"strong"},{"x":4.19314,"y":4.2868,"c":0,"id":"perl/55","d":"Given a non-empty array of integers arr and an integer k, return\n    the sum of the elements with at","r":"strong"},{"x":4.89546,"y":5.73874,"c":0,"id":"perl/69","d":"You are given a positive integer n. You have to create an integer array a of length n.\n        For e","r":"strong"},{"x":-1.64732,"y":11.94509,"c":0,"id":"perl/70","d":"There are eight planets in our solar system: the closerst to the Sun \n    is Mercury, the next one i","r":"strong"},{"x":5.36664,"y":0.0866,"c":1,"id":"perl/71","d":"A simple program which should return the value of x if n is \n    a prime number and should return th","r":"weak"},{"x":4.47493,"y":0.40988,"c":2,"id":"perl/9","d":"Return true if a given number is prime, and false otherwise.\n    >>> is_prime(6)\n    False\n    >>> i","r":"weak"},{"x":3.95845,"y":2.26249,"c":2,"id":"php/0","d":"You're given a list of deposit and withdrawal operations on a bank account that starts with\n    zero","r":"strong"},{"x":4.5797,"y":6.33269,"c":0,"id":"php/14","d":"The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:","r":"strong"},{"x":5.52622,"y":1.74275,"c":2,"id":"php/24","d":"sum_to_n is a function that sums numbers from 1 to n.\n    >>> sum_to_n(30)\n    465\n    >>> sum_to_n(","r":"weak"},{"x":5.95367,"y":2.74886,"c":2,"id":"php/25","d":"xs represent coefficients of a polynomial.\n    xs[0] + xs[1] * x + xs[2] * x^2 + ....\n     Return de","r":"strong"},{"x":3.13261,"y":5.23636,"c":0,"id":"php/32","d":"You will be given a number in decimal form and your task is to convert it to\n    binary format. The ","r":"strong"},{"x":1.89058,"y":5.69465,"c":0,"id":"php/40","d":"You are given a list of integers.\n    You need to find the largest prime value and return the sum of","r":"strong"},{"x":3.88926,"y":4.44823,"c":0,"id":"php/44","d":"You will be given a string of words separated by commas or spaces. Your task is\n    to split the str","r":"strong"},{"x":3.29022,"y":4.42919,"c":0,"id":"php/46","d":"You are given two positive integers n and m, and your task is to compute the\n    average of the inte","r":"strong"},{"x":-2.40414,"y":10.65487,"c":0,"id":"php/49","d":"We have an array 'arr' of N integers arr[1], arr[2], ..., arr[N].The\n    numbers in the array will b","r":"strong"},{"x":5.93192,"y":1.71905,"c":2,"id":"php/5","d":"Input is a space-delimited string of numberals from 'zero' to 'nine'.\n    Valid choices are 'zero', ","r":"strong"},{"x":3.93485,"y":4.80248,"c":0,"id":"php/55","d":"Given a non-empty array of integers arr and an integer k, return\n    the sum of the elements with at","r":"strong"},{"x":3.14408,"y":7.4038,"c":0,"id":"php/65","d":"You are given a string representing a sentence,\n    the sentence contains some words separated by a ","r":"strong"},{"x":3.88247,"y":5.35341,"c":0,"id":"php/66","d":"Your task is to implement a function that will simplify the expression\n    x * n. The function retur","r":"strong"},{"x":4.59203,"y":5.40892,"c":0,"id":"php/69","d":"You are given a positive integer n. You have to create an integer array a of length n.\n        For e","r":"strong"},{"x":-16.25537,"y":9.58886,"c":0,"id":"php/73","d":"You will be given the name of a class (a string) and a list of extensions.\n    The extensions are to","r":"strong"},{"x":4.66057,"y":2.95069,"c":2,"id":"php/77","d":"You are given a string s.\n    if s[i] is a letter, reverse its case from lower to upper or vise vers","r":"strong"},{"x":4.23876,"y":1.33089,"c":2,"id":"python/0","d":"You're given a list of deposit and withdrawal operations on a bank account that starts with\n    zero","r":"weak"},{"x":2.85778,"y":3.38166,"c":0,"id":"python/13","d":"pairs_sum_to_zero takes a list of integers as an input.\n    it returns True if there are two distinc","r":"strong"},{"x":7.80231,"y":-1.69329,"c":3,"id":"python/18","d":"Return True if all numbers in the list l are below threshold t.\n    >>> below_threshold([1, 2, 4, 10","r":"weak"},{"x":6.69897,"y":-1.55632,"c":1,"id":"python/24","d":"sum_to_n is a function that sums numbers from 1 to n.\n    >>> sum_to_n(30)\n    465\n    >>> sum_to_n(","r":"weak"},{"x":1.25244,"y":6.25016,"c":0,"id":"python/28","d":"You are given a non-empty list of positive integers. Return the greatest integer that is greater tha","r":"strong"},{"x":7.82913,"y":-1.55423,"c":3,"id":"python/31","d":"Write a function that returns true if the given number is the multiplication of 3 prime numbers\n    ","r":"strong"},{"x":3.07829,"y":5.9402,"c":0,"id":"python/49","d":"We have an array 'arr' of N integers arr[1], arr[2], ..., arr[N].The\n    numbers in the array will b","r":"strong"},{"x":3.48666,"y":6.99796,"c":0,"id":"python/51","d":"Task\n    We are given two strings s and c, you have to deleted all the characters in s that are equa","r":"strong"},{"x":3.22735,"y":7.24313,"c":0,"id":"python/53","d":"Given a string s and a natural number n, you have been tasked to implement \n    a function that retu","r":"strong"},{"x":-1.6689,"y":11.67088,"c":0,"id":"python/54","d":"Given an array arr of integers and a positive integer k, return a sorted list \n    of length k with ","r":"strong"},{"x":8.16411,"y":-1.91117,"c":3,"id":"python/58","d":"Given a positive integer n, return the product of the odd digits.\n    Return 0 if all digits are eve","r":"weak"},{"x":2.72477,"y":4.84983,"c":0,"id":"python/60","d":"You are given a list of numbers.\n    You need to return the sum of squared numbers in the given list","r":"strong"},{"x":3.68644,"y":1.80015,"c":0,"id":"python/63","d":"Create a function that returns a tuple (a, b), where 'a' is\n    the largest of negative integers, an","r":"weak"},{"x":-16.33393,"y":9.6673,"c":0,"id":"python/73","d":"You will be given the name of a class (a string) and a list of extensions.\n    The extensions are to","r":"strong"},{"x":8.28945,"y":-1.44946,"c":1,"id":"python/78","d":"Given a string 'text', return its md5 hash equivalent string.\n    If 'text' is an empty string, retu","r":"strong"},{"x":5.18476,"y":-0.41646,"c":1,"id":"python/9","d":"Return true if a given number is prime, and false otherwise.\n    >>> is_prime(6)\n    False\n    >>> i","r":"weak"},{"x":4.55285,"y":1.66353,"c":2,"id":"ruby/0","d":"You're given a list of deposit and withdrawal operations on a bank account that starts with\n    zero","r":"weak"},{"x":1.19765,"y":7.1188,"c":0,"id":"ruby/28","d":"You are given a non-empty list of positive integers. Return the greatest integer that is greater tha","r":"strong"},{"x":1.96955,"y":6.2935,"c":0,"id":"ruby/34","d":"It is the last week of the semester and the teacher has to give the grades\n    to students. The teac","r":"strong"},{"x":2.45788,"y":2.75461,"c":0,"id":"ruby/38","d":"You are given a list of integers.\n    Write a function next_smallest() that returns the 2nd smallest","r":"strong"},{"x":5.71431,"y":0.64468,"c":2,"id":"ruby/45","d":"This function takes two positive numbers x and y and returns the\n    biggest even integer number tha","r":"strong"},{"x":-1.79548,"y":10.75749,"c":0,"id":"ruby/48","d":"Given a positive integer n, return a tuple that has the number of even and odd\n    integer palindrom","r":"strong"},{"x":-1.73104,"y":11.30117,"c":0,"id":"ruby/49","d":"We have an array 'arr' of N integers arr[1], arr[2], ..., arr[N].The\n    numbers in the array will b","r":"strong"},{"x":3.25045,"y":7.55797,"c":0,"id":"ruby/53","d":"Given a string s and a natural number n, you have been tasked to implement \n    a function that retu","r":"strong"},{"x":4.42103,"y":4.02771,"c":0,"id":"ruby/55","d":"Given a non-empty array of integers arr and an integer k, return\n    the sum of the elements with at","r":"strong"},{"x":2.17349,"y":2.79916,"c":0,"id":"ruby/61","d":"Create a function that returns True if the last character\n    of a given string is an alphabetical c","r":"strong"},{"x":5.06813,"y":1.41702,"c":2,"id":"ruby/62","d":"Create a function which returns the largest index of an element which\n    is not greater than or equ","r":"strong"},{"x":3.90414,"y":2.11582,"c":2,"id":"ruby/68","d":"Write a function that takes an array of numbers as input and returns \n    the number of elements in ","r":"strong"},{"x":4.93029,"y":5.41135,"c":0,"id":"ruby/69","d":"You are given a positive integer n. You have to create an integer array a of length n.\n        For e","r":"strong"},{"x":2.70718,"y":6.88907,"c":0,"id":"ruby/70","d":"There are eight planets in our solar system: the closerst to the Sun \n    is Mercury, the next one i","r":"strong"},{"x":5.72432,"y":-0.22904,"c":1,"id":"ruby/71","d":"A simple program which should return the value of x if n is \n    a prime number and should return th","r":"weak"},{"x":-16.08572,"y":9.41909,"c":0,"id":"ruby/73","d":"You will be given the name of a class (a string) and a list of extensions.\n    The extensions are to","r":"strong"},{"x":3.42807,"y":5.62976,"c":0,"id":"scala/13","d":"pairs_sum_to_zero takes a list of integers as an input.\n    it returns True if there are two distinc","r":"strong"},{"x":4.39054,"y":6.81012,"c":0,"id":"scala/14","d":"The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:","r":"strong"},{"x":1.53919,"y":4.55971,"c":0,"id":"scala/20","d":"Check if two words have the same characters.\n    >>> same_chars('eabcdzzzz', 'dddzzzzzzzddeddabc')\n ","r":"strong"},{"x":6.59632,"y":-0.94393,"c":1,"id":"scala/21","d":"Return n-th Fibonacci number.\n    >>> fib(10)\n    55\n    >>> fib(1)\n    1\n    >>> fib(8)\n    21","r":"strong"},{"x":5.5685,"y":3.24635,"c":0,"id":"scala/25","d":"xs represent coefficients of a polynomial.\n    xs[0] + xs[1] * x + xs[2] * x^2 + ....\n     Return de","r":"strong"},{"x":2.81205,"y":3.83078,"c":0,"id":"scala/3","d":"Out of list of strings, return the longest one. Return the first one in case of multiple\n    strings","r":"strong"},{"x":5.13656,"y":1.07649,"c":2,"id":"scala/31","d":"Write a function that returns true if the given number is the multiplication of 3 prime numbers\n    ","r":"strong"},{"x":-1.38058,"y":10.95234,"c":0,"id":"scala/32","d":"You will be given a number in decimal form and your task is to convert it to\n    binary format. The ","r":"strong"},{"x":3.5579,"y":4.58148,"c":0,"id":"scala/39","d":"You'll be given a string of words, and your task is to count the number\n    of boredoms. A boredom i","r":"strong"},{"x":4.82504,"y":4.66709,"c":0,"id":"scala/47","d":"Implement the function f that takes n as a parameter,\n    and returns a list of size n, such that th","r":"strong"},{"x":-1.8136,"y":11.48149,"c":0,"id":"scala/48","d":"Given a positive integer n, return a tuple that has the number of even and odd\n    integer palindrom","r":"strong"},{"x":-1.30857,"y":11.20234,"c":0,"id":"scala/50","d":"In this problem, you will implement a function that takes two lists of numbers,\n    and determines w","r":"strong"},{"x":1.18515,"y":4.68793,"c":0,"id":"scala/59","d":"Create a function that takes a string as input which contains only square brackets.\n    The function","r":"strong"},{"x":1.11515,"y":6.68642,"c":0,"id":"scala/72","d":"Given a list of numbers, return the sum of squares of the numbers\n    in the list that are odd. Igno","r":"strong"},{"x":-15.99098,"y":9.32414,"c":0,"id":"scala/73","d":"You will be given the name of a class (a string) and a list of extensions.\n    The extensions are to","r":"strong"},{"x":3.25946,"y":3.8017,"c":0,"id":"scala/9","d":"Return true if a given number is prime, and false otherwise.\n    >>> is_prime(6)\n    False\n    >>> i","r":"strong"},{"x":7.59159,"y":-0.36244,"c":1,"id":"swift/10","d":"Return sorted unique elements in a list\n    >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])\n    [0, 2, 3, ","r":"strong"},{"x":5.28182,"y":2.15161,"c":2,"id":"swift/11","d":"prime_fib returns n-th number that is a Fibonacci number and it's also prime.\n    >>> prime_fib(1)\n ","r":"strong"},{"x":8.35756,"y":-0.76441,"c":1,"id":"swift/2","d":"Input are two strings a and b consisting only of 1s and 0s.\n    Perform binary XOR on these inputs a","r":"strong"},{"x":5.76611,"y":1.22125,"c":2,"id":"swift/24","d":"sum_to_n is a function that sums numbers from 1 to n.\n    >>> sum_to_n(30)\n    465\n    >>> sum_to_n(","r":"weak"},{"x":2.54264,"y":7.56623,"c":0,"id":"swift/28","d":"You are given a non-empty list of positive integers. Return the greatest integer that is greater tha","r":"strong"},{"x":2.33399,"y":7.99352,"c":0,"id":"swift/30","d":"Write a function that returns True if the object q will fly, and False otherwise.\n    The object q w","r":"strong"},{"x":-2.40472,"y":10.98033,"c":0,"id":"swift/37","d":"You are given a 2 dimensional data, as a nested lists,\n    which is similar to matrix, however, unli","r":"strong"},{"x":-1.20238,"y":11.71633,"c":0,"id":"swift/51","d":"Task\n    We are given two strings s and c, you have to deleted all the characters in s that are equa","r":"strong"},{"x":-1.93433,"y":12.11795,"c":0,"id":"swift/52","d":"You are given a rectangular grid of wells. Each row represents a single well,\n    and each 1 in a ro","r":"strong"},{"x":3.91132,"y":6.28068,"c":0,"id":"swift/57","d":"Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in \n    the last couple c","r":"strong"},{"x":2.53931,"y":5.38124,"c":0,"id":"swift/60","d":"You are given a list of numbers.\n    You need to return the sum of squared numbers in the given list","r":"strong"},{"x":4.87199,"y":2.14909,"c":2,"id":"swift/62","d":"Create a function which returns the largest index of an element which\n    is not greater than or equ","r":"strong"},{"x":3.86758,"y":5.54651,"c":0,"id":"swift/66","d":"Your task is to implement a function that will simplify the expression\n    x * n. The function retur","r":"strong"},{"x":4.72771,"y":0.08197,"c":2,"id":"swift/71","d":"A simple program which should return the value of x if n is \n    a prime number and should return th","r":"strong"},{"x":1.90508,"y":3.78427,"c":0,"id":"swift/74","d":"You are given 2 words. You need to return True if the second word or any of its rotations is a subst","r":"strong"},{"x":4.88648,"y":0.85293,"c":2,"id":"swift/76","d":"Given the lengths of the three sides of a triangle. Return True if the three\n    sides form a right-","r":"strong"},{"x":7.87533,"y":-0.71548,"c":1,"id":"typescript/10","d":"Return sorted unique elements in a list\n>>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])\n[0, 2, 3, 5, 9, 12","r":"strong"},{"x":4.74565,"y":6.76314,"c":0,"id":"typescript/14","d":"The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:","r":"strong"},{"x":7.30346,"y":-0.90905,"c":1,"id":"typescript/15","d":"Return median of elements in the list l.\n>>> median([3, 1, 2, 4, 5])\n3\n>>> median([-10, 4, 6, 1000, ","r":"strong"},{"x":8.44165,"y":-2.14134,"c":3,"id":"typescript/19","d":"Add two numbers x and y\n>>> add(2, 3)\n5\n>>> add(5, 7)\n12","r":"weak"},{"x":1.90941,"y":7.11909,"c":0,"id":"typescript/28","d":"You are given a non-empty list of positive integers. Return the greatest integer that is greater tha","r":"strong"},{"x":6.93553,"y":-0.57757,"c":1,"id":"typescript/31","d":"Write a function that returns true if the given number is the multiplication of 3 prime numbers\nand ","r":"strong"},{"x":2.58372,"y":4.0458,"c":0,"id":"typescript/38","d":"You are given a list of integers.\nWrite a function next_smallest() that returns the 2nd smallest ele","r":"strong"},{"x":3.27004,"y":7.33806,"c":0,"id":"typescript/51","d":"Task\nWe are given two strings s and c, you have to deleted all the characters in s that are equal to","r":"strong"},{"x":-2.67303,"y":11.82953,"c":0,"id":"typescript/53","d":"Given a string s and a natural number n, you have been tasked to implement \na function that returns ","r":"strong"},{"x":4.9015,"y":1.50629,"c":2,"id":"typescript/6","d":"Given list of numbers (of at least two elements), apply a linear transform to that list,\nsuch that t","r":"strong"},{"x":2.15267,"y":3.46049,"c":0,"id":"typescript/61","d":"Create a function that returns True if the last character\nof a given string is an alphabetical chara","r":"strong"},{"x":4.41959,"y":1.90161,"c":2,"id":"typescript/62","d":"Create a function which returns the largest index of an element which\nis not greater than or equal t","r":"strong"},{"x":5.3877,"y":0.34064,"c":2,"id":"typescript/71","d":"A simple program which should return the value of x if n is \na prime number and should return the va","r":"weak"},{"x":-16.12967,"y":9.46288,"c":0,"id":"typescript/73","d":"You will be given the name of a class (a string) and a list of extensions.\nThe extensions are to be ","r":"strong"},{"x":3.57086,"y":1.91403,"c":2,"id":"typescript/8","d":"Return only positive numbers in the list.\n>>> get_positive([-1, 2, -4, 5, 6])\n[2, 5, 6]\n>>> get_posi","r":"weak"},{"x":4.00395,"y":0.55499,"c":2,"id":"typescript/9","d":"Return true if a given number is prime, and false otherwise.\n>>> is_prime(6)\nFalse\n>>> is_prime(101)","r":"weak"}],"centroids":[{"x":0.8967,"y":6.82178,"id":0,"label":"number theory","desc":"Involves prime numbers and Fibonacci sequences","n":122,"n_weak":3,"n_strong":119,"hull":[[-1.9343,12.118],[-16.4841,9.8178],[-16.3339,9.6673],[-16.1297,9.4629],[-15.991,9.3241],[4.5106,0.973],[5.6158,2.4887],[5.5685,3.2464],[4.7457,6.7631],[-1.2024,11.7163],[-1.9343,12.118]],"feats":[{"i":438,"a":0.01163},{"i":183,"a":0.01106},{"i":171,"a":0.01076},{"i":29,"a":0.01059},{"i":325,"a":0.00971},{"i":222,"a":0.00937},{"i":116,"a":0.00824},{"i":108,"a":0.00725},{"i":321,"a":0.00671},{"i":257,"a":0.0066}]},{"x":6.93203,"y":-0.75831,"id":1,"label":"math operations","desc":"Involves arithmetic, prime number checking, and number theory","n":24,"n_weak":8,"n_strong":16,"hull":[[5.1848,-0.4165],[6.699,-1.5563],[7.4183,-1.7889],[8.2894,-1.4495],[8.3576,-0.7644],[7.3849,-0.204],[6.45,0.1329],[5.3666,0.0866],[5.1848,-0.4165]],"feats":[{"i":183,"a":0.17233},{"i":438,"a":0.16258},{"i":222,"a":0.15725},{"i":325,"a":0.15231},{"i":29,"a":0.14946},{"i":257,"a":0.14288},{"i":171,"a":0.13975},{"i":401,"a":0.13616},{"i":194,"a":0.13514},{"i":460,"a":0.13334}]},{"x":4.94547,"y":1.52739,"id":2,"label":"conditional logic","desc":"These tasks involve making decisions based on conditions.","n":37,"n_weak":11,"n_strong":26,"hull":[[5.0766,3.3503],[2.7609,1.9729],[4.0039,0.555],[4.7277,0.082],[6.2443,0.1053],[6.8503,0.6761],[5.9537,2.7489],[5.0766,3.3503]],"feats":[{"i":183,"a":0.08648},{"i":438,"a":0.07938},{"i":325,"a":0.07846},{"i":222,"a":0.07714},{"i":29,"a":0.07348},{"i":171,"a":0.0707},{"i":401,"a":0.06689},{"i":257,"a":0.06363},{"i":460,"a":0.06236},{"i":194,"a":0.06061}]},{"x":8.07047,"y":-1.76504,"id":3,"label":"string manipulation","desc":"Tasks involve transforming and processing strings.","n":9,"n_weak":7,"n_strong":2,"hull":[[8.0391,-1.296],[7.5674,-1.8622],[8.0018,-2.0949],[8.4417,-2.1413],[8.4867,-1.8151],[8.302,-1.5172],[8.0391,-1.296]],"feats":[{"i":183,"a":0.26246},{"i":222,"a":0.24122},{"i":438,"a":0.2406},{"i":325,"a":0.23471},{"i":29,"a":0.22854},{"i":257,"a":0.22254},{"i":194,"a":0.21197},{"i":401,"a":0.2098},{"i":75,"a":0.20789},{"i":171,"a":0.20752}]}]}
+</script>
+
+<script>
+'use strict';
+const DATA = JSON.parse(document.getElementById('viz-data').textContent);
+const K = DATA.centroids.length;
+
+// cluster colour palette
+const PAL = [
+  '#58a6ff','#3fb950','#f78166','#d2a8ff','#ffa657','#79c0ff',
+  '#56d364','#ff7b72','#bc8cff','#ff9a3c','#1f6feb','#238636',
+  '#c0392b','#7c3aed','#92400e','#0ea5e9','#16a34a','#dc2626',
+  '#9333ea','#ca8a04',
+];
+function clCol(id){ return PAL[id % PAL.length]; }
+
+// routing colours
+const ROUTE_COL = { weak:'#22c55e', strong:'#ef4444', null:'#4b5563' };
+function routeCol(r){ return ROUTE_COL[r] || ROUTE_COL[null]; }
+
+function hexToRgba(hex, alpha){
+  const r=parseInt(hex.slice(1,3),16);
+  const g=parseInt(hex.slice(3,5),16);
+  const b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// trace layout: [0..K-1] hull fills, [K..2K-1] point scatters,
+//               [2K] centroid labels (text only), [2K+1/2K+2] routing legend
+const HULL_TRACES = Array.from({length:K},(_,i)=>i);
+const PT_TRACES   = Array.from({length:K},(_,i)=>K+i);
+
+// global state
+let selectedCluster = null;
+
+// ── pre-compute per-cluster arrays ────────────────────────────────────────
+const byCluster = {};
+for(let i=0;i<K;i++) byCluster[i]={xs:[],ys:[],ids:[],texts:[],colors:[],routes:[]};
+let totalWeak=0, totalStrong=0;
+for(const pt of DATA.points){
+  const c=pt.c;
+  const lbl=DATA.centroids[c].label;
+  byCluster[c].xs.push(pt.x);
+  byCluster[c].ys.push(pt.y);
+  byCluster[c].ids.push(pt.id);
+  byCluster[c].routes.push(pt.r||null);
+  byCluster[c].colors.push(routeCol(pt.r||null));
+  const routeTag = pt.r==='weak'
+    ? '<span style="color:#4ade80">&#11044; weak</span>'
+    : pt.r==='strong'
+      ? '<span style="color:#f87171">&#11044; strong</span>'
+      : '<span style="color:#6b7280">&#11044; —</span>';
+  const snippet = pt.d
+    ? `<span style="color:#8b949e;font-size:11px">${pt.d}</span>`
+    : '';
+  byCluster[c].texts.push(
+    `<b>${pt.id}</b>  ${routeTag}<br>`+
+    `<i style="color:#8b949e;font-size:11px">cluster: ${lbl}</i>`+
+    (snippet?`<br>${snippet}`:'')
+  );
+  if(pt.r==='weak') totalWeak++;
+  else if(pt.r==='strong') totalStrong++;
+}
+
+// ── build Plotly traces ───────────────────────────────────────────────────
+function buildTraces(){
+  const traces=[];
+
+  // ── [0..K-1] convex hull fills ────────────────────────────────────────
+  for(let i=0;i<K;i++){
+    const c=DATA.centroids[i];
+    const hull=c.hull||[];
+    const rtLine=(c.n_weak||c.n_strong)
+      ? `<span style="color:#4ade80">${c.n_weak||0} weak</span> / `
+        +`<span style="color:#f87171">${c.n_strong||0} strong</span><br>`
+      : '';
+    const hov=`<b>${c.label}</b><br>${c.desc||''}<br>${rtLine}`
+             +`<i style="color:#8b949e">n = ${c.n}</i>`;
+    traces.push({
+      type:'scatter', mode:'lines',
+      name:c.label,
+      x: hull.length ? hull.map(v=>v[0]) : [],
+      y: hull.length ? hull.map(v=>v[1]) : [],
+      fill:'toself',
+      fillcolor: hexToRgba(clCol(i), 0.20),
+      line:{color: hexToRgba(clCol(i), 0.70), width:1.5},
+      customdata: Array(hull.length).fill(i),
+      hovertemplate: hov+'<extra></extra>',
+      legendgroup:`c${i}`, showlegend:false,
+    });
+  }
+
+  // ── [K..2K-1] per-cluster scatter — routing-colour per point ──────────
+  for(let i=0;i<K;i++){
+    const b=byCluster[i];
+    traces.push({
+      type:'scatter', mode:'markers',
+      name:DATA.centroids[i].label,
+      x:b.xs, y:b.ys,
+      text:b.texts, customdata:b.ids,
+      hovertemplate:'%{text}<extra></extra>',
+      marker:{
+        size:5,
+        color:b.colors,
+        opacity:0.80,
+        symbol:'circle',
+        line:{width:0},
+      },
+      legendgroup:`c${i}`, showlegend:false,
+    });
+  }
+
+  // ── [2K] centroid labels — always-visible text, no markers ───────────
+  const cx=[],cy=[],ctxt=[];
+  for(const c of DATA.centroids){
+    cx.push(c.x); cy.push(c.y);
+    ctxt.push(c.label);
+  }
+  traces.push({
+    type:'scatter', mode:'text',
+    name:'Labels',
+    x:cx, y:cy,
+    text:ctxt,
+    textposition:'middle center',
+    textfont:{size:12, color:'#f0f6fc',
+              family:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'},
+    hoverinfo:'skip',
+    showlegend:false,
+    cliponaxis:false,
+  });
+
+  // ── routing legend entries (dummy traces) ─────────────────────────────
+  traces.push({
+    type:'scatter', mode:'markers', name:'Weak',
+    x:[null], y:[null], showlegend:true,
+    marker:{color:'#22c55e',size:9,symbol:'circle'},
+    legendgroup:'routing',
+  });
+  traces.push({
+    type:'scatter', mode:'markers', name:'Strong',
+    x:[null], y:[null], showlegend:true,
+    marker:{color:'#ef4444',size:9,symbol:'circle'},
+    legendgroup:'routing',
+  });
+
+  return traces;
+}
+
+const LAYOUT={
+  paper_bgcolor:'#0d1117', plot_bgcolor:'#161b22',
+  font:{color:'#8b949e',family:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'},
+  xaxis:{title:{text:'UMAP 1',font:{size:11}},gridcolor:'#21262d',zerolinecolor:'#30363d',tickfont:{size:10}},
+  yaxis:{title:{text:'UMAP 2',font:{size:11}},gridcolor:'#21262d',zerolinecolor:'#30363d',tickfont:{size:10}},
+  legend:{bgcolor:'#161b22',bordercolor:'#30363d',borderwidth:1,font:{size:11},x:1.01,y:1},
+  margin:{l:50,r:120,t:28,b:48},
+  hovermode:'closest',
+  hoverlabel:{bgcolor:'#1c2128',bordercolor:'#58a6ff',font:{color:'#c9d1d9',size:12}},
+};
+
+// ── sidebar cluster list ──────────────────────────────────────────────────
+function renderClusterList(){
+  const list=document.getElementById('cl-list');
+  list.innerHTML='';
+  for(const c of DATA.centroids){
+    const total=c.n||1;
+    const wPct=Math.round(((c.n_weak||0)/total)*100);
+    const sPct=Math.round(((c.n_strong||0)/total)*100);
+    const div=document.createElement('div');
+    div.className='cl-item'; div.id=`ci${c.id}`;
+    div.innerHTML=
+      `<div class="cl-dot" style="background:${clCol(c.id)}"></div>`+
+      `<div class="cl-lbl">${c.label}</div>`+
+      `<div class="cl-rt">`+
+        `<div class="cl-rt-w" style="width:${wPct}%"></div>`+
+        `<div class="cl-rt-s" style="width:${sPct}%"></div>`+
+      `</div>`+
+      `<div class="cl-sz">${c.n}</div>`;
+    div.onclick=()=>toggleCluster(c.id);
+    list.appendChild(div);
+  }
+}
+
+// ── info panel ────────────────────────────────────────────────────────────
+function showInfo(id){
+  const c=DATA.centroids[id];
+  document.getElementById('info').classList.add('show');
+  document.getElementById('inf-title').textContent=c.label;
+  document.getElementById('inf-desc').textContent=c.desc||'';
+  const nW=c.n_weak||0, nS=c.n_strong||0, nU=(c.n||0)-nW-nS;
+  document.getElementById('inf-rt').innerHTML=
+    `<span class="rt-badge rt-weak">${nW} weak</span>`+
+    `<span class="rt-badge rt-strong">${nS} strong</span>`+
+    (nU>0?`<span class="rt-badge rt-none">${nU} n/a</span>`:'');
+  const maxA=Math.max(...(c.feats||[]).map(f=>f.a||0),1e-9);
+  const html=(c.feats||[]).slice(0,10).map(f=>{
+    const pct=Math.round((f.a||0)/maxA*100);
+    return `<div class="feat-row">`+
+      `<div class="feat-id">feat ${f.i}</div>`+
+      `<div class="feat-bg"><div class="feat-bar" style="width:${pct}%;background:${clCol(id)}"></div></div>`+
+      (f.desc?`<div class="feat-txt" title="${f.desc}">${f.desc}</div>`:'')+
+      `</div>`;
+  }).join('');
+  document.getElementById('inf-feats').innerHTML=html||
+    '<div style="color:#8b949e;font-size:12px">No feature data</div>';
+  document.getElementById('st-active').textContent=`${c.label} (${c.n})`;
+}
+
+function hideInfo(){
+  document.getElementById('info').classList.remove('show');
+  document.getElementById('st-active').textContent='—';
+}
+
+// ── cluster toggle ────────────────────────────────────────────────────────
+function toggleCluster(id){
+  if(selectedCluster===id){
+    selectedCluster=null;
+    Plotly.restyle('plot',{'opacity':0.20},HULL_TRACES);
+    Plotly.restyle('plot',{'marker.opacity':0.80},PT_TRACES);
+    document.querySelectorAll('.cl-item').forEach(el=>el.classList.remove('active'));
+    hideInfo(); updateVisible(DATA.points.length);
+  } else {
+    selectedCluster=id;
+    const hullOps=HULL_TRACES.map(i=>i===id?0.35:0.04);
+    const ptOps=PT_TRACES.map(i=>(i-K)===id?0.90:0.10);
+    Plotly.restyle('plot',{'opacity':hullOps},HULL_TRACES);
+    Plotly.restyle('plot',{'marker.opacity':ptOps},PT_TRACES);
+    document.querySelectorAll('.cl-item').forEach(el=>el.classList.remove('active'));
+    document.getElementById(`ci${id}`)?.classList.add('active');
+    showInfo(id); updateVisible(DATA.centroids[id].n);
+  }
+}
+
+function updateVisible(n){ document.getElementById('st-visible').textContent=n; }
+
+// ── search ────────────────────────────────────────────────────────────────
+document.getElementById('search').addEventListener('input',function(){
+  const q=this.value.trim().toLowerCase();
+  if(!q){
+    Plotly.restyle('plot',{'opacity':0.20},HULL_TRACES);
+    Plotly.restyle('plot',{'marker.opacity':0.80},PT_TRACES);
+    updateVisible(DATA.points.length); return;
+  }
+  const hits=new Set();
+  for(const pt of DATA.points){
+    if(pt.id.toLowerCase().includes(q)||(pt.d&&pt.d.toLowerCase().includes(q)))
+      hits.add(pt.c);
+  }
+  Plotly.restyle('plot',{'opacity':HULL_TRACES.map(i=>hits.has(i)?0.30:0.04)},HULL_TRACES);
+  Plotly.restyle('plot',{'marker.opacity':PT_TRACES.map(i=>hits.has(i-K)?0.85:0.08)},PT_TRACES);
+  updateVisible([...hits].reduce((s,c)=>s+DATA.centroids[c].n,0));
+});
+
+// ── init ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',function(){
+  Plotly.newPlot('plot', buildTraces(), LAYOUT, {
+    responsive:true, displayModeBar:true,
+    modeBarButtonsToRemove:['select2d','lasso2d'],
+    displaylogo:false,
+  });
+
+  // centroid click
+  document.getElementById('plot').on('plotly_click',function(data){
+    if(!data||!data.points||!data.points[0]) return;
+    const pt=data.points[0];
+    // hull traces are 0..K-1; clicking inside a hull fires with that curveNumber
+    if(pt.curveNumber < K) toggleCluster(pt.curveNumber);
+  });
+
+  renderClusterList();
+
+  const hasRouting = DATA.points.some(p=>p.r);
+  document.getElementById('hdr-sub').textContent=
+    `${K} clusters · UMAP · ${DATA.points.length} points`+
+    (hasRouting?' · routing overlay':'');
+  document.getElementById('st-total').textContent=DATA.points.length;
+  document.getElementById('st-weak').textContent=totalWeak||'—';
+  document.getElementById('st-strong').textContent=totalStrong||'—';
+  updateVisible(DATA.points.length);
+});
+</script>
+</body>
+</html>
