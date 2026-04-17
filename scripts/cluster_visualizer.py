@@ -431,7 +431,7 @@ def label_cluster_openai(
         resp = client.chat.completions.create(
             model=model_name,
             temperature=0,
-            max_tokens=64,
+            max_completion_tokens=64,
             messages=[
                 {"role": "system", "content": _SYSTEM_PROMPT_LLM},
                 {"role": "user",   "content": user_msg},
