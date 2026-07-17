@@ -1,5 +1,7 @@
 # ClearRouter — Interpretable LLM Routing via Sparse Autoencoders
 
+![Project Poster](Results_Poster.pdf)
+
 ClearRouter is a research pipeline that routes code-generation tasks to a weak or strong language model based on task difficulty. Instead of a black-box classifier, routing decisions are made by an MLP trained on sparse, interpretable features extracted from model activations via a [Sparse Autoencoder (SAE)](https://transformer-circuits.pub/2023/monosemantic-features/index.html).
 
 The pipeline is evaluated on [HumanEval-XL](https://huggingface.co/datasets/FloatAI/HumanEval-XL) and benchmarked against [RouteLLM](https://github.com/lm-sys/RouteLLM)'s built-in BERT router.
